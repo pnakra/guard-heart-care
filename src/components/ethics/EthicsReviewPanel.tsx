@@ -1,26 +1,42 @@
 import { useState } from 'react';
 import { EthicsReviewResult, EthicsCategory } from '@/types/ethics';
+import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
 import { OverallStatus } from './OverallStatus';
 import { CategoryCard } from './CategoryCard';
 import { IssuesList } from './IssuesList';
+import { MisuseScenarios } from './MisuseScenarios';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, X, Filter } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RefreshCw, X, Filter, AlertTriangle, Shield } from 'lucide-react';
 
 interface EthicsReviewPanelProps {
   result: EthicsReviewResult;
+  capabilities: DetectedCapability[];
+  misuseScenarios: MisuseScenario[];
   onRescan?: () => void;
+  onPublish?: () => void;
 }
 
-export function EthicsReviewPanel({ result, onRescan }: EthicsReviewPanelProps) {
+export function EthicsReviewPanel({ 
+  result, 
+  capabilities, 
+  misuseScenarios,
+  onRescan,
+  onPublish 
+}: EthicsReviewPanelProps) {
   const [selectedCategory, setSelectedCategory] = useState<EthicsCategory | null>(null);
+  const [activeTab, setActiveTab] = useState<'issues' | 'misuse'>('issues');
 
   const handleCategoryClick = (category: EthicsCategory) => {
     setSelectedCategory(prev => prev === category ? null : category);
+    setActiveTab('issues');
   };
 
   const selectedCategoryLabel = selectedCategory
     ? result.categories.find(c => c.category === selectedCategory)?.label
     : null;
+
+  const criticalMisuseCount = misuseScenarios.filter(s => s.severity === 'critical').length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -54,15 +70,25 @@ export function EthicsReviewPanel({ result, onRescan }: EthicsReviewPanelProps) 
               </div>
             </div>
             
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={onRescan}
-              className="gap-2"
-            >
-              <RefreshCw size={14} />
-              Rescan
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={onRescan}
+                className="gap-2"
+              >
+                <RefreshCw size={14} />
+                Rescan
+              </Button>
+              <Button 
+                size="sm" 
+                onClick={onPublish}
+                className="gap-2"
+              >
+                <Shield size={14} />
+                Publish
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -95,14 +121,30 @@ export function EthicsReviewPanel({ result, onRescan }: EthicsReviewPanelProps) 
             </div>
           </div>
 
-          {/* Issues Panel */}
+          {/* Tabbed Content Panel */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
-                  Issues
-                </h3>
-                {selectedCategory && (
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'issues' | 'misuse')}>
+              <div className="flex items-center justify-between">
+                <TabsList className="bg-secondary/50">
+                  <TabsTrigger value="issues" className="gap-2">
+                    <Shield size={14} />
+                    Issues
+                    <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                      {result.issues.length}
+                    </span>
+                  </TabsTrigger>
+                  <TabsTrigger value="misuse" className="gap-2">
+                    <AlertTriangle size={14} />
+                    Misuse Scenarios
+                    {criticalMisuseCount > 0 && (
+                      <span className="text-xs bg-[hsl(var(--ethics-critical))] text-white px-1.5 py-0.5 rounded-full">
+                        {criticalMisuseCount}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                </TabsList>
+
+                {activeTab === 'issues' && selectedCategory && (
                   <button
                     onClick={() => setSelectedCategory(null)}
                     className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full hover:bg-primary/20 transition-colors"
@@ -113,17 +155,21 @@ export function EthicsReviewPanel({ result, onRescan }: EthicsReviewPanelProps) 
                   </button>
                 )}
               </div>
-              <span className="text-sm text-muted-foreground">
-                {selectedCategory 
-                  ? result.issues.filter(i => i.category === selectedCategory).length
-                  : result.issues.length} issues
-              </span>
-            </div>
-            
-            <IssuesList 
-              issues={result.issues} 
-              selectedCategory={selectedCategory}
-            />
+
+              <TabsContent value="issues" className="mt-4">
+                <IssuesList 
+                  issues={result.issues} 
+                  selectedCategory={selectedCategory}
+                />
+              </TabsContent>
+
+              <TabsContent value="misuse" className="mt-4">
+                <MisuseScenarios 
+                  scenarios={misuseScenarios}
+                  capabilities={capabilities}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </main>
