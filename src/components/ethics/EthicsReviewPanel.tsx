@@ -1,0 +1,149 @@
+import { useState } from 'react';
+import { EthicsReviewResult, EthicsCategory } from '@/types/ethics';
+import { OverallStatus } from './OverallStatus';
+import { CategoryCard } from './CategoryCard';
+import { IssuesList } from './IssuesList';
+import { Button } from '@/components/ui/button';
+import { RefreshCw, X, Filter } from 'lucide-react';
+
+interface EthicsReviewPanelProps {
+  result: EthicsReviewResult;
+  onRescan?: () => void;
+}
+
+export function EthicsReviewPanel({ result, onRescan }: EthicsReviewPanelProps) {
+  const [selectedCategory, setSelectedCategory] = useState<EthicsCategory | null>(null);
+
+  const handleCategoryClick = (category: EthicsCategory) => {
+    setSelectedCategory(prev => prev === category ? null : category);
+  };
+
+  const selectedCategoryLabel = selectedCategory
+    ? result.categories.find(c => c.category === selectedCategory)?.label
+    : null;
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
+        <div className="container max-w-6xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                <svg 
+                  className="w-5 h-5 text-primary-foreground" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" 
+                  />
+                </svg>
+              </div>
+              <div>
+                <h1 className="font-serif text-xl font-semibold text-foreground">
+                  Ethical Framework Review
+                </h1>
+                <p className="text-xs text-muted-foreground">
+                  Last scanned: {new Date(result.timestamp).toLocaleString()}
+                </p>
+              </div>
+            </div>
+            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onRescan}
+              className="gap-2"
+            >
+              <RefreshCw size={14} />
+              Rescan
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="container max-w-6xl mx-auto px-4 py-6">
+        {/* Overall Status */}
+        <OverallStatus 
+          status={result.overallStatus}
+          issueCount={result.issues.length}
+          projectName={result.projectName}
+        />
+
+        {/* Two Column Layout */}
+        <div className="mt-6 grid lg:grid-cols-[320px,1fr] gap-6">
+          {/* Categories Sidebar */}
+          <div className="space-y-3">
+            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide px-1">
+              Categories
+            </h3>
+            <div className="space-y-2">
+              {result.categories.map(category => (
+                <CategoryCard
+                  key={category.category}
+                  category={category}
+                  isSelected={selectedCategory === category.category}
+                  onClick={() => handleCategoryClick(category.category)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Issues Panel */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                  Issues
+                </h3>
+                {selectedCategory && (
+                  <button
+                    onClick={() => setSelectedCategory(null)}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full hover:bg-primary/20 transition-colors"
+                  >
+                    <Filter size={10} />
+                    {selectedCategoryLabel}
+                    <X size={10} />
+                  </button>
+                )}
+              </div>
+              <span className="text-sm text-muted-foreground">
+                {selectedCategory 
+                  ? result.issues.filter(i => i.category === selectedCategory).length
+                  : result.issues.length} issues
+              </span>
+            </div>
+            
+            <IssuesList 
+              issues={result.issues} 
+              selectedCategory={selectedCategory}
+            />
+          </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border mt-12">
+        <div className="container max-w-6xl mx-auto px-4 py-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+            <p>
+              Ethical Framework Review is designed to surface potential concerns, not make final judgments.
+            </p>
+            <a 
+              href="#" 
+              className="text-primary hover:underline"
+            >
+              Learn about our methodology
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
