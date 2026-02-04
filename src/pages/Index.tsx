@@ -1,65 +1,105 @@
 import { useState } from 'react';
+import { ProjectUpload } from '@/components/ethics/ProjectUpload';
 import { ScanningScreen } from '@/components/ethics/ScanningScreen';
 import { EthicsReviewPanel } from '@/components/ethics/EthicsReviewPanel';
 import { PublishGate } from '@/components/ethics/PublishGate';
-import { mockReviewResult } from '@/data/mockEthicsData';
-import { mockCapabilities, mockMisuseScenarios } from '@/data/mockMisuseData';
+import { useCodeAnalysis } from '@/hooks/useCodeAnalysis';
+import { EthicsReviewResult } from '@/types/ethics';
+import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
 import { toast } from 'sonner';
 
-type DemoState = 'scanning' | 'results' | 'publish-gate' | 'published';
+type AppState = 'upload' | 'scanning' | 'results' | 'publish-gate';
+
+interface UploadedFile {
+  name: string;
+  content: string;
+  size: number;
+}
 
 const Index = () => {
-  const [demoState, setDemoState] = useState<DemoState>('scanning');
-  const projectName = 'Social Connect App';
+  const [appState, setAppState] = useState<AppState>('upload');
+  const [analysisResult, setAnalysisResult] = useState<EthicsReviewResult | null>(null);
+  const [capabilities, setCapabilities] = useState<DetectedCapability[]>([]);
+  const [misuseScenarios, setMisuseScenarios] = useState<MisuseScenario[]>([]);
+  const [projectName, setProjectName] = useState('');
+  
+  const { analyzeCode, isAnalyzing } = useCodeAnalysis();
 
-  const handleScanComplete = () => {
-    setDemoState('results');
+  const handleAnalyze = async (files: UploadedFile[], name: string) => {
+    setProjectName(name);
+    setAppState('scanning');
+
+    const result = await analyzeCode(files, name);
+    
+    if (result) {
+      setAnalysisResult(result.result);
+      setCapabilities(result.capabilities);
+      setMisuseScenarios(result.misuseScenarios);
+      setAppState('results');
+    } else {
+      // Analysis failed, go back to upload
+      setAppState('upload');
+    }
   };
 
   const handleRescan = () => {
-    setDemoState('scanning');
+    setAppState('upload');
+    setAnalysisResult(null);
+    setCapabilities([]);
+    setMisuseScenarios([]);
   };
 
   const handlePublishClick = () => {
-    setDemoState('publish-gate');
+    setAppState('publish-gate');
   };
 
   const handlePublishConfirm = () => {
-    setDemoState('published');
-    toast.success('Project published!', {
-      description: 'Your app is now live with acknowledged ethical considerations.',
+    toast.success('Project approved!', {
+      description: 'All ethical considerations have been acknowledged.',
     });
-    // Reset to results view after a moment
-    setTimeout(() => setDemoState('results'), 2000);
+    setAppState('results');
   };
 
   const handlePublishCancel = () => {
-    setDemoState('results');
+    setAppState('results');
   };
 
-  if (demoState === 'scanning') {
+  if (appState === 'upload') {
+    return (
+      <ProjectUpload 
+        onAnalyze={handleAnalyze}
+        isAnalyzing={isAnalyzing}
+      />
+    );
+  }
+
+  if (appState === 'scanning') {
     return (
       <ScanningScreen 
         projectName={projectName}
-        onComplete={handleScanComplete}
+        onComplete={() => {}} // Will transition via analyzeCode callback
       />
     );
+  }
+
+  if (!analysisResult) {
+    return null;
   }
 
   return (
     <>
       <EthicsReviewPanel 
-        result={{ ...mockReviewResult, projectName }}
-        capabilities={mockCapabilities}
-        misuseScenarios={mockMisuseScenarios}
+        result={analysisResult}
+        capabilities={capabilities}
+        misuseScenarios={misuseScenarios}
         onRescan={handleRescan}
         onPublish={handlePublishClick}
       />
       
-      {demoState === 'publish-gate' && (
+      {appState === 'publish-gate' && (
         <PublishGate
-          issues={mockReviewResult.issues}
-          misuseScenarios={mockMisuseScenarios}
+          issues={analysisResult.issues}
+          misuseScenarios={misuseScenarios}
           projectName={projectName}
           onPublish={handlePublishConfirm}
           onCancel={handlePublishCancel}
