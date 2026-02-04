@@ -1,3 +1,4 @@
+import { jsPDF } from 'jspdf';
 import { EthicsReviewResult } from '@/types/ethics';
 import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
 
@@ -13,6 +14,14 @@ const severityEmoji: Record<string, string> = {
   medium: '🟡',
   high: '🟠',
   critical: '🔴',
+};
+
+const severityLabel: Record<string, string> = {
+  safe: '[SAFE]',
+  low: '[LOW]',
+  medium: '[MEDIUM]',
+  high: '[HIGH]',
+  critical: '[CRITICAL]',
 };
 
 const mitigationTypeLabels: Record<string, string> = {
@@ -284,13 +293,162 @@ export function copyToClipboard(text: string): Promise<void> {
   return navigator.clipboard.writeText(text);
 }
 
-export function exportReport(data: ExportData, format: 'markdown' | 'json') {
+export function exportAsPDF({ result, capabilities, misuseScenarios }: ExportData): void {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 20;
+  const maxWidth = pageWidth - margin * 2;
+  let y = 20;
+
+  const addText = (text: string, size: number, style: 'normal' | 'bold' = 'normal', color: [number, number, number] = [0, 0, 0]) => {
+    doc.setFontSize(size);
+    doc.setFont('helvetica', style);
+    doc.setTextColor(...color);
+    const lines = doc.splitTextToSize(text, maxWidth);
+    
+    // Check if we need a new page
+    const lineHeight = size * 0.5;
+    if (y + lines.length * lineHeight > doc.internal.pageSize.getHeight() - 20) {
+      doc.addPage();
+      y = 20;
+    }
+    
+    doc.text(lines, margin, y);
+    y += lines.length * lineHeight + 4;
+  };
+
+  const addSpacer = (height: number = 6) => {
+    y += height;
+  };
+
+  // Header
+  addText(`Misuse-by-Design Scan Report`, 18, 'bold');
+  addText(result.projectName, 14, 'bold', [100, 100, 100]);
+  addSpacer(4);
+  addText(`Generated: ${new Date(result.timestamp).toLocaleString()}`, 10, 'normal', [120, 120, 120]);
+  addText(`Risk Score: ${result.executiveSummary.riskScore.toFixed(1)} / 10`, 12, 'bold');
+  addText(`Overall Status: ${result.overallStatus.toUpperCase()}`, 11, 'normal');
+  
+  // Separator line
+  addSpacer(4);
+  doc.setDrawColor(200, 200, 200);
+  doc.line(margin, y, pageWidth - margin, y);
+  addSpacer(10);
+
+  // Executive Summary
+  addText('Executive Summary', 14, 'bold');
+  addSpacer(2);
+  addText(`Total Issues: ${result.executiveSummary.totalIssueCount}`, 10);
+  addText(`Critical: ${result.executiveSummary.criticalCount} | High: ${result.executiveSummary.highCount}`, 10);
+  addSpacer(4);
+
+  // Top Risks
+  if (result.executiveSummary.topThreeRisks.length > 0) {
+    addText('Top Risks to Address Before Shipping', 12, 'bold');
+    addSpacer(2);
+    result.executiveSummary.topThreeRisks.forEach((risk, i) => {
+      const severityColor: [number, number, number] = risk.severity === 'critical' ? [180, 40, 40] : risk.severity === 'high' ? [200, 100, 40] : [100, 100, 100];
+      addText(`${i + 1}. ${risk.title} ${severityLabel[risk.severity]}`, 10, 'bold', severityColor);
+      addText(`   ${risk.summary}`, 9, 'normal', [80, 80, 80]);
+      addText(`   Effort to fix: ${risk.effortToFix}`, 9, 'normal', [100, 100, 100]);
+      addSpacer(2);
+    });
+  }
+
+  // Detected Capabilities
+  if (capabilities.length > 0) {
+    addSpacer(6);
+    addText('Detected Capabilities', 14, 'bold');
+    addSpacer(2);
+    for (const cap of capabilities) {
+      const riskColor: [number, number, number] = cap.riskLevel === 'high' ? [180, 40, 40] : cap.riskLevel === 'medium' ? [200, 140, 40] : [40, 140, 40];
+      addText(`${cap.name} (${cap.riskLevel.toUpperCase()} risk)`, 11, 'bold', riskColor);
+      addText(cap.description, 9, 'normal', [80, 80, 80]);
+      if (cap.detectedIn.length > 0) {
+        addText(`Found in: ${cap.detectedIn.join(', ')}`, 8, 'normal', [120, 120, 120]);
+      }
+      addSpacer(4);
+    }
+  }
+
+  // Misuse Scenarios
+  if (misuseScenarios.length > 0) {
+    addSpacer(6);
+    addText('Potential Misuse Scenarios', 14, 'bold');
+    addSpacer(2);
+    
+    const sorted = [...misuseScenarios].sort((a, b) => {
+      const order: Record<string, number> = { critical: 0, high: 1, medium: 2 };
+      return (order[a.severity] ?? 3) - (order[b.severity] ?? 3);
+    });
+
+    for (const scenario of sorted) {
+      const severityColor: [number, number, number] = scenario.severity === 'critical' ? [180, 40, 40] : scenario.severity === 'high' ? [200, 100, 40] : [180, 140, 40];
+      addText(`${severityLabel[scenario.severity]} ${scenario.title}`, 11, 'bold', severityColor);
+      addText(scenario.description, 9, 'normal', [80, 80, 80]);
+      
+      if (scenario.realWorldExample) {
+        addText(`Real-world precedent: ${scenario.realWorldExample}`, 8, 'normal', [100, 100, 140]);
+      }
+      
+      addText('Recommended Mitigations:', 9, 'bold', [60, 60, 60]);
+      for (const mitigation of scenario.mitigations) {
+        addText(`• ${mitigation}`, 9, 'normal', [80, 80, 80]);
+      }
+      addSpacer(6);
+    }
+  }
+
+  // Issues
+  if (result.issues.length > 0) {
+    addSpacer(6);
+    addText('Detailed Findings', 14, 'bold');
+    addSpacer(2);
+
+    for (const issue of result.issues) {
+      const severityColor: [number, number, number] = issue.severity === 'critical' ? [180, 40, 40] : issue.severity === 'high' ? [200, 100, 40] : [180, 140, 40];
+      addText(`${severityLabel[issue.severity]} ${issue.title}`, 11, 'bold', severityColor);
+      addText(`Category: ${issue.category}`, 9, 'normal', [100, 100, 100]);
+      if (issue.location) {
+        addText(`Location: ${issue.location}`, 9, 'normal', [100, 100, 100]);
+      }
+      addText(issue.description, 9, 'normal', [80, 80, 80]);
+      
+      if (issue.misuseScenario) {
+        addText(`Misuse Scenario: "${issue.misuseScenario}"`, 9, 'normal', [100, 80, 120]);
+      }
+      
+      if (issue.whyMisuseByDesign) {
+        addText(`Why misuse-by-design: ${issue.whyMisuseByDesign}`, 9, 'normal', [80, 80, 80]);
+      }
+      
+      addText(`Mitigation: ${issue.mitigation}`, 9, 'bold', [40, 100, 40]);
+      addSpacer(6);
+    }
+  }
+
+  // Footer
+  addSpacer(10);
+  doc.setDrawColor(200, 200, 200);
+  doc.line(margin, y, pageWidth - margin, y);
+  addSpacer(6);
+  addText('This report identifies misuse-by-design patterns—features that could harm people when working exactly as intended. It is not a security audit or bug report.', 8, 'normal', [120, 120, 120]);
+
+  // Save
+  const timestamp = new Date().toISOString().split('T')[0];
+  const safeName = result.projectName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+  doc.save(`ethics-review-${safeName}-${timestamp}.pdf`);
+}
+
+export function exportReport(data: ExportData, format: 'markdown' | 'json' | 'pdf') {
   const timestamp = new Date().toISOString().split('T')[0];
   const safeName = data.result.projectName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
   
   if (format === 'markdown') {
     const content = exportAsMarkdown(data);
     downloadFile(content, `ethics-review-${safeName}-${timestamp}.md`, 'text/markdown');
+  } else if (format === 'pdf') {
+    exportAsPDF(data);
   } else {
     const content = exportAsJSON(data);
     downloadFile(content, `ethics-review-${safeName}-${timestamp}.json`, 'application/json');
