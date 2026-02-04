@@ -1,24 +1,19 @@
 import { 
   Brain, 
-  EyeOff, 
-  Shield, 
-  Accessibility, 
-  RefreshCw, 
-  Search, 
-  Users, 
+  Eye, 
+  ShieldAlert, 
+  Scale,
+  Sparkles,
   AlertTriangle,
   LucideIcon
 } from 'lucide-react';
-import { EthicsCategory } from '@/types/ethics';
 
 const iconMap: Record<string, LucideIcon> = {
   brain: Brain,
-  'eye-off': EyeOff,
-  shield: Shield,
-  accessibility: Accessibility,
-  'refresh-cw': RefreshCw,
-  search: Search,
-  users: Users,
+  eye: Eye,
+  'shield-alert': ShieldAlert,
+  scale: Scale,
+  sparkles: Sparkles,
   'alert-triangle': AlertTriangle,
 };
 

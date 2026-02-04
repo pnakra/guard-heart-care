@@ -1,28 +1,41 @@
 export type SeverityLevel = 'safe' | 'low' | 'medium' | 'high' | 'critical';
 
-export type EthicsCategory = 
+export type HarmCategory = 
+  | 'false-authority'
   | 'manipulation'
-  | 'dark-patterns'
-  | 'privacy'
-  | 'accessibility'
-  | 'addiction'
-  | 'misinformation'
-  | 'discrimination'
-  | 'transparency';
+  | 'surveillance'
+  | 'admin-abuse'
+  | 'ai-hallucination';
 
 export interface EthicsIssue {
   id: string;
-  category: EthicsCategory;
+  category: HarmCategory;
   title: string;
   description: string;
   severity: SeverityLevel;
   location?: string;
-  recommendation: string;
-  learnMoreUrl?: string;
+  misuseScenario: string; // "A user could use this feature to ___ in order to ___"
+  whyMisuseByDesign: string; // Why this is misuse-by-design, not a bug
+  mitigation: string;
+  mitigationType: 'ui-language' | 'interaction-model' | 'feature-removal' | 'reframing';
+  isNewSinceLast?: boolean; // For iteration awareness
+}
+
+export interface ExecutiveSummary {
+  topThreeRisks: {
+    title: string;
+    severity: SeverityLevel;
+    effortToFix: 'low' | 'medium' | 'high';
+    summary: string;
+  }[];
+  riskScore: number; // 0-10 scale
+  totalIssueCount: number;
+  criticalCount: number;
+  highCount: number;
 }
 
 export interface CategorySummary {
-  category: EthicsCategory;
+  category: HarmCategory;
   label: string;
   description: string;
   icon: string;
@@ -31,9 +44,14 @@ export interface CategorySummary {
 }
 
 export interface EthicsReviewResult {
+  executiveSummary: ExecutiveSummary;
   overallStatus: SeverityLevel;
   issues: EthicsIssue[];
   categories: CategorySummary[];
   timestamp: string;
   projectName: string;
+  scanVersion?: number; // For iteration tracking
 }
+
+// Legacy type alias for backwards compat
+export type EthicsCategory = HarmCategory;

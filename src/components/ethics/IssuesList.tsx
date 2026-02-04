@@ -1,9 +1,9 @@
-import { EthicsIssue, EthicsCategory } from '@/types/ethics';
+import { EthicsIssue, HarmCategory } from '@/types/ethics';
 import { IssueCard } from './IssueCard';
 
 interface IssuesListProps {
   issues: EthicsIssue[];
-  selectedCategory: EthicsCategory | null;
+  selectedCategory: HarmCategory | null;
 }
 
 export function IssuesList({ issues, selectedCategory }: IssuesListProps) {
@@ -30,12 +30,12 @@ export function IssuesList({ issues, selectedCategory }: IssuesListProps) {
           </svg>
         </div>
         <h3 className="font-medium text-foreground">
-          {selectedCategory ? 'No issues in this category' : 'No issues found'}
+          {selectedCategory ? 'No findings in this category' : 'No misuse-by-design patterns found'}
         </h3>
         <p className="text-sm text-muted-foreground mt-1">
           {selectedCategory 
-            ? 'This category passed all ethical checks.' 
-            : 'Your project passed all ethical framework checks.'}
+            ? 'This harm category has no detected issues.' 
+            : 'Your project appears free of harmful affordances.'}
         </p>
       </div>
     );

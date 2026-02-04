@@ -1,17 +1,16 @@
 import { useState } from 'react';
-import { EthicsReviewResult, EthicsCategory } from '@/types/ethics';
+import { EthicsReviewResult, HarmCategory } from '@/types/ethics';
 import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
-import { OverallStatus } from './OverallStatus';
+import { ExecutiveSummary } from './ExecutiveSummary';
 import { CategoryCard } from './CategoryCard';
 import { IssuesList } from './IssuesList';
 import { MisuseScenarios } from './MisuseScenarios';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { RefreshCw, X, Filter, AlertTriangle, Shield, Download, FileText, FileJson, Copy, Sparkles } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { RefreshCw, Filter, AlertTriangle, Shield, Download, FileText, FileJson, Sparkles, X } from 'lucide-react';
 import { exportReport, generateLovablePrompt, copyToClipboard } from '@/utils/exportReport';
 import { toast } from 'sonner';
-import { DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 
 interface EthicsReviewPanelProps {
   result: EthicsReviewResult;
@@ -28,10 +27,10 @@ export function EthicsReviewPanel({
   onRescan,
   onPublish 
 }: EthicsReviewPanelProps) {
-  const [selectedCategory, setSelectedCategory] = useState<EthicsCategory | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<HarmCategory | null>(null);
   const [activeTab, setActiveTab] = useState<'issues' | 'misuse'>('issues');
 
-  const handleCategoryClick = (category: EthicsCategory) => {
+  const handleCategoryClick = (category: HarmCategory) => {
     setSelectedCategory(prev => prev === category ? null : category);
     setActiveTab('issues');
   };
@@ -45,7 +44,7 @@ export function EthicsReviewPanel({
   const handleExport = (format: 'markdown' | 'json') => {
     exportReport({ result, capabilities, misuseScenarios }, format);
     toast.success(`Report exported as ${format.toUpperCase()}`, {
-      description: `Your ethics review has been downloaded.`,
+      description: `Your misuse-by-design scan has been downloaded.`,
     });
   };
 
@@ -81,10 +80,10 @@ export function EthicsReviewPanel({
               </div>
               <div>
                 <h1 className="font-serif text-xl font-semibold text-foreground">
-                  Ethical Framework Review
+                  Misuse-by-Design Scanner
                 </h1>
                 <p className="text-xs text-muted-foreground">
-                  Last scanned: {new Date(result.timestamp).toLocaleString()}
+                  Detecting harmful affordances in your application
                 </p>
               </div>
             </div>
@@ -137,11 +136,11 @@ export function EthicsReviewPanel({
 
       {/* Main Content */}
       <main className="container max-w-6xl mx-auto px-4 py-6">
-        {/* Overall Status */}
-        <OverallStatus 
-          status={result.overallStatus}
-          issueCount={result.issues.length}
+        {/* Executive Summary - New component */}
+        <ExecutiveSummary 
+          summary={result.executiveSummary}
           projectName={result.projectName}
+          timestamp={result.timestamp}
         />
 
         {/* Two Column Layout */}
@@ -149,7 +148,7 @@ export function EthicsReviewPanel({
           {/* Categories Sidebar */}
           <div className="space-y-3">
             <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide px-1">
-              Categories
+              Harm Categories
             </h3>
             <div className="space-y-2">
               {result.categories.map(category => (
@@ -170,7 +169,7 @@ export function EthicsReviewPanel({
                 <TabsList className="bg-secondary/50">
                   <TabsTrigger value="issues" className="gap-2">
                     <Shield size={14} />
-                    Issues
+                    Findings
                     <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
                       {result.issues.length}
                     </span>
@@ -221,7 +220,7 @@ export function EthicsReviewPanel({
         <div className="container max-w-6xl mx-auto px-4 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <p>
-              Ethical Framework Review is designed to surface potential concerns, not make final judgments.
+              This scanner identifies misuse-by-design patterns, not bugs or security vulnerabilities.
             </p>
             <a 
               href="#" 
