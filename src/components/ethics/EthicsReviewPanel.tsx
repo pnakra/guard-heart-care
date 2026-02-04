@@ -8,7 +8,7 @@ import { MisuseScenarios } from './MisuseScenarios';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { RefreshCw, Filter, AlertTriangle, Shield, Download, FileText, FileJson, Sparkles, X } from 'lucide-react';
+import { RefreshCw, Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X } from 'lucide-react';
 import { exportReport, generateLovablePrompt, copyToClipboard } from '@/utils/exportReport';
 import { toast } from 'sonner';
 
@@ -41,7 +41,7 @@ export function EthicsReviewPanel({
 
   const criticalMisuseCount = misuseScenarios.filter(s => s.severity === 'critical').length;
 
-  const handleExport = (format: 'markdown' | 'json') => {
+  const handleExport = (format: 'markdown' | 'json' | 'pdf') => {
     exportReport({ result, capabilities, misuseScenarios }, format);
     toast.success(`Report exported as ${format.toUpperCase()}`, {
       description: `Your misuse-by-design scan has been downloaded.`,
@@ -106,6 +106,10 @@ export function EthicsReviewPanel({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleExport('pdf')} className="gap-2">
+                    <FileType size={14} />
+                    Export as PDF
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleExport('markdown')} className="gap-2">
                     <FileText size={14} />
                     Export as Markdown
