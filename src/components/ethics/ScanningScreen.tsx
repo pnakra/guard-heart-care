@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import { Shield, FileSearch, Brain, Eye, CheckCircle2 } from 'lucide-react';
+import { Shield, FileSearch, Brain, Eye, Loader2 } from 'lucide-react';
 
 interface ScanningScreenProps {
   onComplete: () => void;
@@ -8,40 +8,36 @@ interface ScanningScreenProps {
 }
 
 const scanSteps = [
-  { id: 'files', label: 'Analyzing codebase structure...', icon: FileSearch, duration: 1200 },
-  { id: 'capabilities', label: 'Detecting capabilities & APIs...', icon: Eye, duration: 1500 },
-  { id: 'patterns', label: 'Scanning for dark patterns...', icon: Brain, duration: 1800 },
-  { id: 'adversarial', label: 'Running adversarial analysis...', icon: Shield, duration: 2000 },
+  { id: 'files', label: 'Analyzing codebase structure', icon: FileSearch },
+  { id: 'capabilities', label: 'Detecting capabilities & APIs', icon: Eye },
+  { id: 'patterns', label: 'Scanning for dark patterns', icon: Brain },
+  { id: 'adversarial', label: 'Running adversarial analysis', icon: Shield },
 ];
 
-export function ScanningScreen({ onComplete, projectName }: ScanningScreenProps) {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
+export function ScanningScreen({ projectName }: ScanningScreenProps) {
+  const [activeStep, setActiveStep] = useState(0);
+  const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (currentStep >= scanSteps.length) {
-      const timeout = setTimeout(onComplete, 600);
-      return () => clearTimeout(timeout);
-    }
+    // Cycle through steps continuously while analysis runs
+    intervalRef.current = window.setInterval(() => {
+      setActiveStep(prev => (prev + 1) % scanSteps.length);
+    }, 2000);
 
-    const step = scanSteps[currentStep];
-    const timeout = setTimeout(() => {
-      setCompletedSteps(prev => [...prev, step.id]);
-      setCurrentStep(prev => prev + 1);
-    }, step.duration);
-
-    return () => clearTimeout(timeout);
-  }, [currentStep, onComplete]);
-
-  const progress = ((currentStep) / scanSteps.length) * 100;
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-8">
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-6 animate-pulse">
-            <Shield className="w-8 h-8 text-primary" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-6">
+            <Loader2 className="w-8 h-8 text-primary animate-spin" />
           </div>
           <h1 className="font-serif text-2xl font-semibold text-foreground mb-2">
             Ethical Framework Review
@@ -51,75 +47,75 @@ export function ScanningScreen({ onComplete, projectName }: ScanningScreenProps)
           </p>
         </div>
 
-        {/* Progress bar */}
+        {/* Indeterminate progress bar */}
         <div className="mb-8">
-          <div className="h-2 bg-secondary rounded-full overflow-hidden">
+          <div className="h-2 bg-secondary rounded-full overflow-hidden relative">
             <div 
-              className="h-full bg-primary transition-all duration-500 ease-out rounded-full"
-              style={{ width: `${progress}%` }}
+              className="absolute h-full w-1/3 bg-primary rounded-full animate-[slide_1.5s_ease-in-out_infinite]"
+              style={{
+                animation: 'slide 1.5s ease-in-out infinite',
+              }}
             />
           </div>
+          <style>{`
+            @keyframes slide {
+              0% { left: -33%; }
+              100% { left: 100%; }
+            }
+          `}</style>
           <p className="text-xs text-muted-foreground text-center mt-2">
-            {Math.round(progress)}% complete
+            AI analysis in progress...
           </p>
         </div>
 
         {/* Steps */}
         <div className="space-y-3">
           {scanSteps.map((step, index) => {
-            const isCompleted = completedSteps.includes(step.id);
-            const isCurrent = index === currentStep;
+            const isActive = index === activeStep;
             const Icon = step.icon;
 
             return (
               <div
                 key={step.id}
                 className={cn(
-                  'flex items-center gap-4 p-4 rounded-lg border transition-all duration-300',
-                  isCompleted && 'bg-[hsl(var(--ethics-safe-bg))] border-[hsl(var(--ethics-safe)/0.3)]',
-                  isCurrent && 'bg-primary/5 border-primary/30',
-                  !isCompleted && !isCurrent && 'bg-card border-border/50 opacity-50'
+                  'flex items-center gap-4 p-4 rounded-lg border transition-all duration-500',
+                  isActive && 'bg-primary/5 border-primary/30 scale-[1.02]',
+                  !isActive && 'bg-card border-border/50 opacity-50'
                 )}
               >
                 <div className={cn(
-                  'shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors',
-                  isCompleted && 'bg-[hsl(var(--ethics-safe))]',
-                  isCurrent && 'bg-primary animate-pulse',
-                  !isCompleted && !isCurrent && 'bg-muted'
+                  'shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500',
+                  isActive && 'bg-primary',
+                  !isActive && 'bg-muted'
                 )}>
-                  {isCompleted ? (
-                    <CheckCircle2 className="w-5 h-5 text-white" />
-                  ) : (
-                    <Icon className={cn(
-                      'w-5 h-5',
-                      isCurrent ? 'text-primary-foreground' : 'text-muted-foreground'
-                    )} />
-                  )}
+                  <Icon className={cn(
+                    'w-5 h-5 transition-colors duration-500',
+                    isActive ? 'text-primary-foreground' : 'text-muted-foreground'
+                  )} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className={cn(
-                    'font-medium text-sm',
-                    isCompleted && 'text-[hsl(var(--ethics-safe))]',
-                    isCurrent && 'text-foreground',
-                    !isCompleted && !isCurrent && 'text-muted-foreground'
+                    'font-medium text-sm transition-colors duration-500',
+                    isActive && 'text-foreground',
+                    !isActive && 'text-muted-foreground'
                   )}>
-                    {isCompleted ? step.label.replace('...', '') : step.label}
-                    {isCompleted && ' ✓'}
+                    {step.label}
+                    {isActive && '...'}
                   </p>
                 </div>
+                {isActive && (
+                  <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                )}
               </div>
             );
           })}
         </div>
 
-        {/* Analyzing indicator */}
-        <div className="mt-8 flex items-center justify-center gap-2 text-muted-foreground">
-          <div className="flex gap-1">
-            <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-            <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-            <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-          </div>
-          <span className="text-sm">This usually takes a few seconds</span>
+        {/* Info */}
+        <div className="mt-8 text-center">
+          <p className="text-sm text-muted-foreground">
+            This usually takes 10-30 seconds depending on codebase size
+          </p>
         </div>
       </div>
     </div>
