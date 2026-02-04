@@ -45,7 +45,7 @@ export function generateMarkdownSummary(result: EthicsReviewResultV2): string {
   
   lines.push(`**Risk Score:** ${result.executiveSummary.riskScore.toFixed(1)}/10 ${statusEmoji} ${changeIndicator ? `(${changeIndicator})` : ''}`);
   lines.push(`**Status:** ${result.overallStatus.charAt(0).toUpperCase() + result.overallStatus.slice(1)} Risk`);
-  lines.push(`**Percentile:** Riskier than ${result.benchmark.percentile}% of ${result.benchmark.categoryName.toLowerCase()}`);
+  lines.push(`**Adjusted Score:** ${result.executiveSummary.adjustedRiskScore.toFixed(1)}/10 (based on deployment context)`);
   lines.push('');
   
   // Issues Summary Table
@@ -141,7 +141,6 @@ export function generateMarkdownSummary(result: EthicsReviewResultV2): string {
     
     if (result.versionComparison.trendAnalysis) {
       lines.push(`- 📉 Score trend: ${result.versionComparison.trendAnalysis.velocity}`);
-      lines.push(`- 🏁 ${result.versionComparison.trendAnalysis.projectedTimeTo5}`);
     }
     
     lines.push('');
@@ -179,7 +178,6 @@ export function generateCISummary(result: EthicsReviewResultV2): CISummary {
     riskScore: result.executiveSummary.riskScore,
     scoreChange: result.versionComparison.scoreChange,
     status: result.overallStatus as CISummary['status'],
-    percentile: result.benchmark.percentile,
     issuesSummary: {
       critical: criticalCount,
       high: highCount,
@@ -198,7 +196,6 @@ export function generateCISummary(result: EthicsReviewResultV2): CISummary {
       resolved: result.versionComparison.resolvedIssues.length,
       remaining: result.issues.length,
       trend: result.versionComparison.trendAnalysis?.velocity || 'No trend data',
-      projectedCompletion: result.versionComparison.trendAnalysis?.projectedTimeTo5 || 'Unknown',
     },
     markdownSummary: generateMarkdownSummary(result),
   };
@@ -209,5 +206,5 @@ export function generateCISummary(result: EthicsReviewResultV2): CISummary {
  */
 export function generateStatusBadge(result: EthicsReviewResultV2): string {
   const emoji = STATUS_EMOJI[result.overallStatus];
-  return `${emoji} Risk: ${result.executiveSummary.riskScore.toFixed(1)}/10 | ${result.issues.length} issues | ${result.benchmark.categoryName}`;
+  return `${emoji} Risk: ${result.executiveSummary.riskScore.toFixed(1)}/10 | ${result.issues.length} issues`;
 }

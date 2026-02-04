@@ -7,7 +7,6 @@ import {
   EthicsIssueV2, 
   MisuseScenarioV2, 
   DetectedCapabilityV2,
-  Benchmark,
   DeploymentContext,
   RiskChain,
   VersionComparison,
@@ -15,11 +14,8 @@ import {
   EnhancedMitigation,
   IssueConfidence,
   DefensiveUse,
-  RemediationImpact,
-  FixComplexity
 } from '@/types/ethicsV2';
 import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
-import { generateBenchmark } from '@/services/benchmarking';
 import { calculateRemediationImpact } from '@/services/remediationImpact';
 import { calculateIssueConfidence, calculateScenarioConfidence } from '@/services/confidenceScoring';
 import { detectDeploymentContext } from '@/services/deploymentDetector';
@@ -150,18 +146,15 @@ export function useCodeAnalysis() {
       // Calculate base risk score
       const baseRiskScore = analysis.executiveSummary?.riskScore ?? calculateRiskScore(issues);
 
-      // --- V2 ENHANCEMENTS ---
+      // --- V2 ENHANCEMENTS (all derived from actual code analysis) ---
 
-      // 1. Generate benchmark context
-      const benchmark: Benchmark = generateBenchmark(baseRiskScore, projectName, files, capabilities);
-
-      // 2. Detect deployment context
+      // 1. Detect deployment context from actual files
       const deploymentContext: DeploymentContext = detectDeploymentContext(files, projectName, baseRiskScore);
 
-      // 3. Analyze risk chains
+      // 2. Analyze risk chains from detected capabilities
       const riskChains: RiskChain[] = analyzeRiskChains(capabilities, misuseScenarios);
 
-      // 4. Version comparison
+      // 3. Version comparison with previous scans
       const versionComparison: VersionComparison = compareWithPreviousScan(
         issues,
         baseRiskScore,
@@ -169,7 +162,7 @@ export function useCodeAnalysis() {
         timestamp
       );
 
-      // 5. Enhanced issues with confidence, remediation impact, defensive use
+      // 4. Enhanced issues with confidence, remediation impact, defensive use
       const enhancedIssues: EthicsIssueV2[] = issues.map((issue) => {
         // Get confidence from AI response or calculate
         const aiConfidence = (analysis.issues || []).find((i: any) => i.id === issue.id)?.confidence;
@@ -215,7 +208,7 @@ export function useCodeAnalysis() {
         };
       });
 
-      // 6. Enhanced scenarios with confidence scores
+      // 5. Enhanced scenarios with confidence scores
       const enhancedScenarios: MisuseScenarioV2[] = misuseScenarios.map((scenario) => {
         const aiScenario = (analysis.misuseScenarios || []).find((s: any) => s.id === scenario.id);
         const scenarioConfidence = calculateScenarioConfidence(scenario, capabilities);
@@ -230,7 +223,7 @@ export function useCodeAnalysis() {
         };
       });
 
-      // 7. Enhanced capabilities
+      // 6. Enhanced capabilities with chain info
       const enhancedCapabilities: DetectedCapabilityV2[] = capabilities.map((cap) => {
         const aiCap = (analysis.capabilities || []).find((c: any) => c.id === cap.id);
         return {
@@ -305,7 +298,7 @@ export function useCodeAnalysis() {
         totalIssueCount: issues.length,
         criticalCount: issues.filter(i => i.severity === 'critical').length,
         highCount: issues.filter(i => i.severity === 'high').length,
-        acknowledgedCount: 0, // Would come from override system
+        acknowledgedCount: 0,
       };
 
       const overallStatus: SeverityLevel = 
@@ -323,14 +316,13 @@ export function useCodeAnalysis() {
         projectName: data.projectName,
       };
 
-      // V2 result (enhanced)
+      // V2 result (enhanced - all derived from actual code)
       const resultV2: EthicsReviewResultV2 = {
         executiveSummary: executiveSummaryV2,
         overallStatus,
         issues: enhancedIssues,
         capabilities: enhancedCapabilities,
         misuseScenarios: enhancedScenarios,
-        benchmark,
         deploymentContext,
         riskChains,
         versionComparison,
