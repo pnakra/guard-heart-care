@@ -5,34 +5,6 @@
 import { SeverityLevel, HarmCategory } from './ethics';
 
 // ============================================================
-// BENCHMARKING & CONTEXT
-// ============================================================
-
-export interface ComparableProject {
-  name: string;
-  score: number;
-  relationship: 'Best-in-class example' | 'Similar risk profile' | 'Slightly riskier' | 'Much riskier';
-}
-
-export interface ScoreDistribution {
-  '0-3': string;
-  '3-5': string;
-  '5-7': string;
-  '7-10': string;
-}
-
-export interface Benchmark {
-  riskScore: number;
-  industryAverage: number;
-  categoryAverage: number;
-  categoryName: string;
-  percentile: number;
-  interpretation: string;
-  comparableProjects: ComparableProject[];
-  scoreDistribution: ScoreDistribution;
-}
-
-// ============================================================
 // REMEDIATION IMPACT MODELING
 // ============================================================
 
@@ -335,8 +307,7 @@ export interface EthicsReviewResultV2 {
   capabilities: DetectedCapabilityV2[];
   misuseScenarios: MisuseScenarioV2[];
   
-  // V2 Additions
-  benchmark: Benchmark;
+  // V2 Additions (derived from actual code analysis)
   deploymentContext: DeploymentContext;
   riskChains: RiskChain[];
   versionComparison: VersionComparison;
@@ -363,7 +334,6 @@ export interface CISummary {
   riskScore: number;
   scoreChange: number | null;
   status: 'critical' | 'high' | 'medium' | 'low' | 'safe';
-  percentile: number;
   issuesSummary: {
     critical: number;
     high: number;
@@ -382,7 +352,6 @@ export interface CISummary {
     resolved: number;
     remaining: number;
     trend: string;
-    projectedCompletion: string;
   };
   markdownSummary: string;
 }
