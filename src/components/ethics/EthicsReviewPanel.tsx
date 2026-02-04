@@ -7,7 +7,10 @@ import { IssuesList } from './IssuesList';
 import { MisuseScenarios } from './MisuseScenarios';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, X, Filter, AlertTriangle, Shield } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { RefreshCw, X, Filter, AlertTriangle, Shield, Download, FileText, FileJson } from 'lucide-react';
+import { exportReport } from '@/utils/exportReport';
+import { toast } from 'sonner';
 
 interface EthicsReviewPanelProps {
   result: EthicsReviewResult;
@@ -37,6 +40,13 @@ export function EthicsReviewPanel({
     : null;
 
   const criticalMisuseCount = misuseScenarios.filter(s => s.severity === 'critical').length;
+
+  const handleExport = (format: 'markdown' | 'json') => {
+    exportReport({ result, capabilities, misuseScenarios }, format);
+    toast.success(`Report exported as ${format.toUpperCase()}`, {
+      description: `Your ethics review has been downloaded.`,
+    });
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -80,6 +90,24 @@ export function EthicsReviewPanel({
                 <RefreshCw size={14} />
                 Rescan
               </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Download size={14} />
+                    Export
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleExport('markdown')} className="gap-2">
+                    <FileText size={14} />
+                    Export as Markdown
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExport('json')} className="gap-2">
+                    <FileJson size={14} />
+                    Export as JSON
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button 
                 size="sm" 
                 onClick={onPublish}
