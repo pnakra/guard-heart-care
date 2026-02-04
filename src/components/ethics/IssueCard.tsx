@@ -1,12 +1,27 @@
 import { EthicsIssue } from '@/types/ethics';
 import { SeverityBadge } from './SeverityBadge';
-import { ChevronRight, ExternalLink, FileCode } from 'lucide-react';
+import { ChevronRight, FileCode, Lightbulb, AlertCircle, HelpCircle } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface IssueCardProps {
   issue: EthicsIssue;
 }
+
+const mitigationTypeLabels = {
+  'ui-language': 'UI Language Change',
+  'interaction-model': 'Interaction Model Change', 
+  'feature-removal': 'Feature Removal',
+  'reframing': 'Reframing',
+};
+
+const categoryLabels: Record<string, string> = {
+  'false-authority': 'False Authority',
+  'manipulation': 'Manipulation',
+  'surveillance': 'Surveillance',
+  'admin-abuse': 'Admin Abuse',
+  'ai-hallucination': 'AI Hallucination',
+};
 
 export function IssueCard({ issue }: IssueCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -27,7 +42,7 @@ export function IssueCard({ issue }: IssueCardProps) {
             <div className="flex items-center gap-2 flex-wrap">
               <SeverityBadge severity={issue.severity} size="sm" />
               <span className="text-xs text-muted-foreground uppercase tracking-wide">
-                {issue.category.replace('-', ' ')}
+                {categoryLabels[issue.category] || issue.category}
               </span>
             </div>
             <h4 className="font-medium text-foreground mt-2">
@@ -59,27 +74,56 @@ export function IssueCard({ issue }: IssueCardProps) {
                 </code>
               </div>
             )}
+
+            {/* Misuse Scenario - the key differentiator */}
+            {issue.misuseScenario && (
+              <div className="p-3 rounded-lg bg-[hsl(var(--ethics-high-bg))] border border-[hsl(var(--ethics-high)/0.2)]">
+                <div className="flex gap-2">
+                  <AlertCircle size={14} className="shrink-0 mt-0.5 text-[hsl(var(--ethics-high))]" />
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                      Misuse Scenario
+                    </p>
+                    <p className="text-sm text-foreground italic">
+                      "{issue.misuseScenario}"
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Why this is misuse-by-design */}
+            {issue.whyMisuseByDesign && (
+              <div className="flex gap-2">
+                <HelpCircle size={14} className="shrink-0 mt-0.5 text-muted-foreground" />
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                    Why This Is Misuse-by-Design
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {issue.whyMisuseByDesign}
+                  </p>
+                </div>
+              </div>
+            )}
             
+            {/* Mitigation */}
             <div>
-              <h5 className="text-sm font-medium text-foreground mb-1">
-                Recommendation
-              </h5>
-              <p className="text-sm text-muted-foreground">
-                {issue.recommendation}
+              <div className="flex items-center gap-2 mb-1">
+                <Lightbulb size={14} className="text-primary" />
+                <h5 className="text-sm font-medium text-foreground">
+                  Mitigation
+                </h5>
+                {issue.mitigationType && (
+                  <span className="text-xs px-1.5 py-0.5 bg-secondary rounded text-muted-foreground">
+                    {mitigationTypeLabels[issue.mitigationType]}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground pl-5">
+                {issue.mitigation}
               </p>
             </div>
-            
-            {issue.learnMoreUrl && (
-              <a
-                href={issue.learnMoreUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
-              >
-                Learn more
-                <ExternalLink size={12} />
-              </a>
-            )}
           </div>
         </div>
       )}
