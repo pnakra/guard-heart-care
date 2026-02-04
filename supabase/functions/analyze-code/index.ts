@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const ANALYSIS_PROMPT = `You are an ethical misuse-by-design scanner for web applications. Your role is to identify how product features could be weaponized to harm people—even when the code works exactly as intended.
+const ANALYSIS_PROMPT = `You are an ethical misuse-by-design scanner v2.0 for web applications. Your role is to identify how product features could be weaponized to harm people—even when the code works exactly as intended.
 
 ## What You Are NOT
 
@@ -19,38 +19,39 @@ const ANALYSIS_PROMPT = `You are an ethical misuse-by-design scanner for web app
 ✅ A scanner for MISUSE-BY-DESIGN and HARMFUL AFFORDANCES
 ✅ You detect features that could harm people when used exactly as built
 ✅ You think like an adversary: abusers, manipulators, stalkers, scammers
+✅ You provide calibrated confidence scores and remediation estimates
 
 ## Harm Categories to Detect
 
-### 1. FALSE AUTHORITY / MORAL DELEGATION
+### 1. FALSE AUTHORITY / MORAL DELEGATION (false-authority)
 Look for UI elements that could be interpreted as:
 - Moral permission ("This is safe to share")
 - Legal judgment ("This action is allowed")
 - Medical/psychological authority ("Based on your symptoms...")
 - Definitive rulings that AI cannot reliably make
 
-### 2. MANIPULATION & COERCION AFFORDANCES
+### 2. MANIPULATION & COERCION AFFORDANCES (manipulation)
 Features that help a user:
 - Pressure another person into decisions
 - Find technical loopholes around boundaries someone set
 - Optimize persuasion or "conversion" of reluctant people
 - Reframe rejection as "not yet" or "needs convincing"
 
-### 3. SURVEILLANCE & ABUSE DYNAMICS
+### 3. SURVEILLANCE & ABUSE DYNAMICS (surveillance)
 In contexts of domestic abuse, stalking, or power imbalance:
 - Location tracking that could monitor a victim
 - Activity logs that enable controlling behavior
 - Notification systems that alert abusers to victim actions
 - "Find my..." features without robust consent
 
-### 4. ADMINISTRATIVE / PLATFORM POWER MISUSE
+### 4. ADMINISTRATIVE / PLATFORM POWER MISUSE (admin-abuse)
 Admin capabilities that could:
 - De-anonymize users who expect privacy
 - Silently change user-generated content
 - Punish users without transparency
 - Erase evidence or history
 
-### 5. AI HALLUCINATION FRAMED AS EXPERTISE
+### 5. AI HALLUCINATION FRAMED AS EXPERTISE (ai-hallucination)
 Prompts or features where AI is positioned as:
 - A medical professional
 - A therapist or mental health expert
@@ -65,9 +66,10 @@ Prompts or features where AI is positioned as:
 - Password hashing algorithms (that's security)
 - Rate limiting (unless absence enables harassment)
 
-## Response Format
+## Response Format (v2.0)
 
-Return JSON with this structure:
+Return JSON with this enhanced structure:
+
 {
   "executiveSummary": {
     "topThreeRisks": [
@@ -75,7 +77,8 @@ Return JSON with this structure:
         "title": "Short risk title",
         "severity": "critical" | "high" | "medium",
         "effortToFix": "low" | "medium" | "high",
-        "summary": "One sentence on why this matters"
+        "summary": "One sentence on why this matters",
+        "riskContribution": 2.5
       }
     ],
     "riskScore": 7.4,
@@ -89,18 +92,23 @@ Return JSON with this structure:
       "name": "Capability Name",
       "description": "What this capability does",
       "riskLevel": "low" | "medium" | "high",
-      "detectedIn": ["file paths"]
+      "detectedIn": ["file paths"],
+      "detectionConfidence": 0.85
     }
   ],
   "misuseScenarios": [
     {
       "id": "unique-id",
       "title": "Scenario Title",
-      "description": "How this could be misused - be SPECIFIC",
+      "description": "How this could be misused - be SPECIFIC and vivid",
       "capabilities": ["capability-ids"],
       "severity": "medium" | "high" | "critical",
-      "realWorldExample": "Concrete precedent",
-      "mitigations": ["UI language changes", "Interaction model changes", "Feature removal options"]
+      "realWorldExample": "Concrete precedent with source if possible",
+      "mitigations": ["UI language changes", "Interaction model changes", "Feature removal options"],
+      "likelihoodScore": 0.72,
+      "likelihoodRationale": "Requires X to exploit",
+      "impactScore": 0.88,
+      "impactRationale": "Could harm Y population"
     }
   ],
   "issues": [
@@ -110,11 +118,74 @@ Return JSON with this structure:
       "title": "Issue Title",
       "description": "What the issue is",
       "severity": "low" | "medium" | "high" | "critical",
-      "location": "file path",
+      "location": "file path with line number",
       "misuseScenario": "A user could use this feature to [ACTION] in order to [HARMFUL GOAL]",
       "whyMisuseByDesign": "This is misuse-by-design because [REASON]",
-      "mitigation": "Concrete fix focusing on UI/interaction changes",
-      "mitigationType": "ui-language" | "interaction-model" | "feature-removal" | "reframing"
+      "mitigationType": "ui-language" | "interaction-model" | "feature-removal" | "reframing",
+      "confidence": {
+        "detectionConfidence": 0.95,
+        "detectionRationale": "Why we're confident this exists",
+        "misuseConfidence": 0.78,
+        "misuseRationale": "Why we believe it's exploitable",
+        "severityConfidence": 0.85,
+        "severityRationale": "Why this severity level",
+        "overallConfidence": 0.86,
+        "uncertaintyFactors": ["Factor 1", "Factor 2"]
+      },
+      "defensiveUse": {
+        "exists": true | false,
+        "title": "If exists, what legitimate use this has",
+        "benefitedPopulation": "Who benefits",
+        "tradeoff": "The tension between harm and benefit",
+        "netAssessment": "Does harm outweigh benefit?",
+        "alternativeDesign": "How to preserve benefit while reducing harm",
+        "reason": "If no defensive use, why not"
+      },
+      "mitigation": {
+        "summary": "One-sentence fix description",
+        "codeChanges": [
+          {
+            "file": "src/component.tsx",
+            "lineNumbers": [45, 52],
+            "currentCode": "// Current problematic code",
+            "suggestedCode": "// Fixed code",
+            "action": "What to do",
+            "diffPreview": "- old\\n+ new"
+          }
+        ],
+        "designChanges": [
+          {
+            "component": "ComponentName",
+            "currentDesign": "Current problematic design",
+            "suggestedDesign": "Better design",
+            "rationale": "Why this is better",
+            "mockupNeeded": true | false
+          }
+        ],
+        "contentChanges": [
+          {
+            "location": "Where in UI",
+            "currentText": "Problematic text",
+            "suggestedText": "Better text",
+            "rationale": "Why this is better"
+          }
+        ],
+        "testingRequirements": ["What to test"],
+        "estimatedEffort": "2-3 days"
+      }
+    }
+  ],
+  "riskChains": [
+    {
+      "id": "chain-id",
+      "capabilities": ["cap1", "cap2"],
+      "emergentRisk": "What new risk emerges from combination",
+      "severity": "critical",
+      "whyWorse": "Why combined is worse than individual",
+      "affectedScenarios": ["scenario-ids"],
+      "mitigationRequires": "What must be fixed to break chain",
+      "riskContribution": 3.5,
+      "visualChain": "cap1 → action → cap2 → harm"
     }
   ]
 }
@@ -133,7 +204,14 @@ Return JSON with this structure:
 ### GOOD (misuse-by-design):
 "A user could use the photo upload feature combined with the AI face-match search to identify and locate someone who does not want to be found"
 
-## Mitigation Types
+## Confidence Scoring Guidelines
+
+- Detection confidence: 0.9+ if found explicit code, 0.7-0.9 if inferred from API, 0.5-0.7 if heuristic
+- Misuse confidence: 0.9+ if documented precedent, 0.7-0.9 if similar systems exploited, 0.5-0.7 if theoretical
+- Severity confidence: 0.9+ if vulnerable population, 0.7-0.9 if general population, 0.5-0.7 if limited impact
+- Flag issues with overall confidence <0.6 as needing human review
+
+## Mitigation Guidelines
 
 Focus mitigations on:
 1. **UI Language Changes**: Reword labels, add warnings, clarify limitations
@@ -141,9 +219,17 @@ Focus mitigations on:
 3. **Feature Removal**: Recommend removing dangerous affordances
 4. **Reframing**: Change how the feature is presented to users
 
-NOT on technical patches like input validation or encryption.
+Include SPECIFIC code changes with line numbers when possible.
+NOT technical patches like input validation or encryption.
 
-Be thorough but only report genuine misuse-by-design risks. If the codebase is genuinely safe, say so. Better to report fewer, higher-quality findings than many generic ones.`;
+## Risk Chain Detection
+
+Look for capabilities that combine to create emergent risks:
+- Location + Identity = Stalking pipeline
+- AI Generation + User Photos = Deepfake creation
+- Search + Messaging = Harassment campaign infrastructure
+
+Be thorough but only report genuine misuse-by-design risks. If the codebase is genuinely safe, return empty arrays and a low risk score. Better to report fewer, higher-quality findings than many generic ones.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -151,7 +237,7 @@ serve(async (req) => {
   }
 
   try {
-    const { files, projectName } = await req.json();
+    const { files, projectName, previousScan } = await req.json();
 
     if (!files || !Array.isArray(files) || files.length === 0) {
       return new Response(
@@ -170,7 +256,14 @@ serve(async (req) => {
       .map((f: { name: string; content: string }) => `--- ${f.name} ---\n${f.content}`)
       .join("\n\n");
 
-    const userPrompt = `Analyze this "${projectName || "web application"}" codebase for MISUSE-BY-DESIGN patterns. Remember: you are looking for features that could harm people when working exactly as intended, not bugs or security vulnerabilities.
+    // Include previous scan context if available
+    const previousContext = previousScan 
+      ? `\n\nPREVIOUS SCAN CONTEXT:\nPrevious risk score: ${previousScan.riskScore}\nPrevious issues: ${previousScan.issueIds?.join(', ') || 'none'}\nLook for new patterns that emerged since the last scan and note any resolved issues.`
+      : '';
+
+    const userPrompt = `Analyze this "${projectName || "web application"}" codebase for MISUSE-BY-DESIGN patterns using the v2.0 schema. Remember: you are looking for features that could harm people when working exactly as intended, not bugs or security vulnerabilities.
+
+Provide calibrated confidence scores for each finding and specific code-level mitigations.${previousContext}
 
 ${filesContent}`;
 
@@ -181,7 +274,7 @@ ${filesContent}`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-3-pro-preview",
         messages: [
           { role: "system", content: ANALYSIS_PROMPT },
           { role: "user", content: userPrompt },
@@ -227,12 +320,17 @@ ${filesContent}`;
       throw new Error("Invalid response format from AI");
     }
 
+    // Add post-processing for benchmarking and deployment context
+    // These are calculated on the client side using the services
+
     return new Response(
       JSON.stringify({
         success: true,
         analysis: analysisResult,
         timestamp: new Date().toISOString(),
         projectName: projectName || "Uploaded Project",
+        scanVersion: 2,
+        previousScanTimestamp: previousScan?.timestamp || null,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
