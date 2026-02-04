@@ -150,6 +150,94 @@ export function exportAsJSON({ result, capabilities, misuseScenarios }: ExportDa
   }, null, 2);
 }
 
+export function generateLovablePrompt({ result, capabilities, misuseScenarios }: ExportData): string {
+  const lines: string[] = [];
+
+  lines.push(`I've run an ethical code review on this project and found several issues that need to be addressed. Please help me fix the following concerns:`);
+  lines.push('');
+
+  // Priority: Critical and High misuse scenarios first
+  const criticalScenarios = misuseScenarios.filter(s => s.severity === 'critical' || s.severity === 'high');
+  if (criticalScenarios.length > 0) {
+    lines.push('## 🔴 Critical Safety Issues');
+    lines.push('');
+    for (const scenario of criticalScenarios) {
+      lines.push(`### ${scenario.title}`);
+      lines.push(`**Problem:** ${scenario.description}`);
+      lines.push('');
+      lines.push('**Required mitigations:**');
+      for (const mitigation of scenario.mitigations) {
+        lines.push(`- ${mitigation}`);
+      }
+      lines.push('');
+    }
+  }
+
+  // Group issues by category and priority
+  const highPriorityIssues = result.issues.filter(i => i.severity === 'critical' || i.severity === 'high');
+  const mediumPriorityIssues = result.issues.filter(i => i.severity === 'medium');
+  const lowPriorityIssues = result.issues.filter(i => i.severity === 'low');
+
+  if (highPriorityIssues.length > 0) {
+    lines.push('## 🟠 High Priority Fixes');
+    lines.push('');
+    for (const issue of highPriorityIssues) {
+      lines.push(`**${issue.title}**`);
+      if (issue.location) {
+        lines.push(`Location: \`${issue.location}\``);
+      }
+      lines.push(`Issue: ${issue.description}`);
+      lines.push(`Fix: ${issue.recommendation}`);
+      lines.push('');
+    }
+  }
+
+  if (mediumPriorityIssues.length > 0) {
+    lines.push('## 🟡 Medium Priority Fixes');
+    lines.push('');
+    for (const issue of mediumPriorityIssues) {
+      lines.push(`**${issue.title}**`);
+      if (issue.location) {
+        lines.push(`Location: \`${issue.location}\``);
+      }
+      lines.push(`Issue: ${issue.description}`);
+      lines.push(`Fix: ${issue.recommendation}`);
+      lines.push('');
+    }
+  }
+
+  if (lowPriorityIssues.length > 0) {
+    lines.push('## 🟢 Low Priority Improvements');
+    lines.push('');
+    for (const issue of lowPriorityIssues) {
+      lines.push(`- **${issue.title}**: ${issue.recommendation}`);
+    }
+    lines.push('');
+  }
+
+  // Add context about detected capabilities
+  const highRiskCaps = capabilities.filter(c => c.riskLevel === 'high');
+  if (highRiskCaps.length > 0) {
+    lines.push('## ⚠️ High-Risk Capabilities to Review');
+    lines.push('');
+    lines.push('These features have been flagged as potentially risky and should include appropriate safeguards:');
+    lines.push('');
+    for (const cap of highRiskCaps) {
+      lines.push(`- **${cap.name}**: ${cap.description}`);
+      if (cap.detectedIn.length > 0) {
+        lines.push(`  - Found in: ${cap.detectedIn.map(f => `\`${f}\``).join(', ')}`);
+      }
+    }
+    lines.push('');
+  }
+
+  lines.push('---');
+  lines.push('');
+  lines.push('Please address these issues in priority order, starting with the critical safety issues. For each fix, explain what you changed and why.');
+
+  return lines.join('\n');
+}
+
 export function downloadFile(content: string, filename: string, mimeType: string) {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
@@ -160,6 +248,10 @@ export function downloadFile(content: string, filename: string, mimeType: string
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+}
+
+export function copyToClipboard(text: string): Promise<void> {
+  return navigator.clipboard.writeText(text);
 }
 
 export function exportReport(data: ExportData, format: 'markdown' | 'json') {

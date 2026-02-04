@@ -8,9 +8,10 @@ import { MisuseScenarios } from './MisuseScenarios';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { RefreshCw, X, Filter, AlertTriangle, Shield, Download, FileText, FileJson } from 'lucide-react';
-import { exportReport } from '@/utils/exportReport';
+import { RefreshCw, X, Filter, AlertTriangle, Shield, Download, FileText, FileJson, Copy, Sparkles } from 'lucide-react';
+import { exportReport, generateLovablePrompt, copyToClipboard } from '@/utils/exportReport';
 import { toast } from 'sonner';
+import { DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 
 interface EthicsReviewPanelProps {
   result: EthicsReviewResult;
@@ -45,6 +46,14 @@ export function EthicsReviewPanel({
     exportReport({ result, capabilities, misuseScenarios }, format);
     toast.success(`Report exported as ${format.toUpperCase()}`, {
       description: `Your ethics review has been downloaded.`,
+    });
+  };
+
+  const handleCopyFixPrompt = async () => {
+    const prompt = generateLovablePrompt({ result, capabilities, misuseScenarios });
+    await copyToClipboard(prompt);
+    toast.success('Fix prompt copied!', {
+      description: 'Paste this into Lovable to address the issues.',
     });
   };
 
@@ -105,6 +114,11 @@ export function EthicsReviewPanel({
                   <DropdownMenuItem onClick={() => handleExport('json')} className="gap-2">
                     <FileJson size={14} />
                     Export as JSON
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleCopyFixPrompt} className="gap-2">
+                    <Sparkles size={14} />
+                    Copy Fix Prompt for Lovable
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
