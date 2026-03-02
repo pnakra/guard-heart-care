@@ -132,6 +132,8 @@ Return JSON with this enhanced structure:
         "overallConfidence": 0.86,
         "uncertaintyFactors": ["Factor 1", "Factor 2"]
       },
+      "mitigationsFound": ["Hedging language in heading", "Disclaimer present"],
+      "mitigationGaps": ["No disclaimer on all outcome levels"],
       "defensiveUse": {
         "exists": true | false,
         "title": "If exists, what legitimate use this has",
@@ -229,7 +231,58 @@ Look for capabilities that combine to create emergent risks:
 - AI Generation + User Photos = Deepfake creation
 - Search + Messaging = Harassment campaign infrastructure
 
-Be thorough but only report genuine misuse-by-design risks. If the codebase is genuinely safe, return empty arrays and a low risk score. Better to report fewer, higher-quality findings than many generic ones.`;
+Be thorough but only report genuine misuse-by-design risks. If the codebase is genuinely safe, return empty arrays and a low risk score. Better to report fewer, higher-quality findings than many generic ones.
+
+## Mitigation Verification Protocol (Two-Pass Analysis)
+
+You MUST perform two passes before finalizing any finding:
+
+### Pass 1: Pattern Detection
+Identify potentially risky capabilities (e.g., simulated perspectives, risk badges, persistent storage, back-navigation in guided flows).
+
+### Pass 2: Mitigation Verification
+For EACH flagged pattern, actively search for counter-evidence before assigning severity. A finding is only valid if mitigations are absent or insufficient.
+
+#### Verification Checklist by Category:
+
+**Simulated Perspective / Ventriloquism**
+- Does the heading use hedging language? ("One way...", "might have", "could have")
+- Is there a disclaimer within the same component stating the AI cannot know the other person's mind?
+- Is the output labeled as speculative rather than authoritative?
+→ If 2+ checks pass, downgrade from critical to "mitigated-with-residual-risk" and note what mitigations exist.
+
+**Risk Badge / Traffic Light Absolution**
+- Trace the internal enum value (e.g., green) to its RENDERED className and label — do not assume the enum name matches the UI
+- Does the lowest-risk level use neutral styling (gray, muted) rather than green/positive colors?
+- Does the lowest-risk level use non-permissive labels (e.g., "No flag" vs "All clear" vs "Safe")?
+- Is there a mandatory disclaimer on ALL outcome levels?
+- Does the disclaimer explicitly state that absence of a flag is not permission?
+→ If the UI label, styling, and disclaimer are all non-permissive, mark as "mitigated" not "high."
+
+**Persistent Storage / Forensic Traceability**
+- Check the EXACT storage API: sessionStorage (tab-scoped, auto-clears) vs localStorage (persistent)
+- If sessionStorage: the data is not forensically persistent — note this explicitly
+- Check for "Clear Data" or "Quick Exit" features
+→ sessionStorage usage alone downgrades storage persistence from "high" to "low." Quick Exit absence can remain a valid suggestion.
+
+**Gaming / A-B Testing Risk Levels**
+- Does the risk classification function operate on cumulative state or per-input state?
+- Look for high-water-mark logic (risk only escalates, never resets within a session)
+- Does navigating back reset the risk state or preserve it?
+→ If cumulative + high-water-mark, mark "gaming" scenario as "mitigated by architecture."
+
+### Output Rules
+- Every finding MUST include a mitigationsFound array listing what counter-evidence you detected
+- Every finding MUST include a mitigationGaps array listing what's still missing
+- Severity is assigned AFTER mitigation verification, not before
+- If a pattern is fully mitigated, still report it as severity "info" with mitigations noted — do not silently drop it
+- NEVER assign severity based solely on the existence of a code pattern without checking its rendered UI behavior and surrounding context
+
+### Anti-Hallucination Rules
+- Do not infer UI appearance from variable names — trace to actual className and label values
+- Do not assume storage persistence without checking which API is used
+- Do not assume state resets without checking the state management logic
+- Report only what you can verify from the code you were given`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
