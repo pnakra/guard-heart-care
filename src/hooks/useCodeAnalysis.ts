@@ -198,6 +198,10 @@ export function useCodeAnalysis() {
           estimatedEffort: remediationImpact.timeToFix.estimate,
         };
 
+        const aiIssue = (analysis.issues || []).find((i: any) => i.id === issue.id);
+        const mitigationsFound: string[] = aiIssue?.mitigationsFound || [];
+        const mitigationGaps: string[] = aiIssue?.mitigationGaps || [];
+
         return {
           ...issue,
           confidence,
@@ -205,6 +209,8 @@ export function useCodeAnalysis() {
           fixComplexity,
           defensiveUse,
           mitigation: enhancedMitigation,
+          mitigationsFound,
+          mitigationGaps,
         };
       });
 

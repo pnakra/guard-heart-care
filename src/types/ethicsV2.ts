@@ -239,6 +239,8 @@ export interface EthicsIssueV2 {
   fixComplexity: FixComplexity;
   defensiveUse: DefensiveUse;
   mitigation: EnhancedMitigation;
+  mitigationsFound: string[];
+  mitigationGaps: string[];
   override?: IssueOverride;
 }
 
