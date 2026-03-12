@@ -19,7 +19,9 @@ interface ProjectUploadProps {
 
 const ALLOWED_EXTENSIONS = [
   '.ts', '.tsx', '.js', '.jsx', '.vue', '.svelte',
-  '.html', '.css', '.scss', '.json', '.md'
+  '.html', '.css', '.scss', '.json', '.md',
+  '.py', '.rb', '.go', '.rs', '.java', '.kt', '.swift',
+  '.c', '.cpp', '.h', '.php', '.dart', '.yaml', '.yml',
 ];
 
 export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
