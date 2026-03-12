@@ -118,30 +118,39 @@ serve(async (req) => {
     const { files: tree, resolvedBranch } = await fetchRepoTree(owner, repo, branch);
 
     // Filter to allowed file types
+    const SKIP_PATTERNS = [
+      'node_modules/', 'dist/', 'build/', '.next/', 'coverage/',
+      '__tests__/', '.test.', '.spec.', 'test/fixtures/',
+      'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml',
+      'fixtures/', '.d.ts', '.min.js', '.min.css',
+    ];
     const candidateFiles = tree.filter((file: any) => {
       if (file.type !== 'blob') return false;
       const ext = '.' + file.path.split('.').pop()?.toLowerCase();
       if (!ALLOWED_EXTENSIONS.includes(ext)) return false;
       if (file.size && file.size > MAX_FILE_SIZE) return false;
-      if (file.path.includes('node_modules/')) return false;
-      if (file.path.includes('dist/')) return false;
-      if (file.path.includes('build/')) return false;
-      if (file.path.includes('.next/')) return false;
-      if (file.path.includes('coverage/')) return false;
-      if (file.path.includes('__tests__/')) return false;
-      if (file.path.includes('.test.')) return false;
-      if (file.path.includes('.spec.')) return false;
-      if (file.path.includes('package-lock.json')) return false;
-      if (file.path.includes('yarn.lock')) return false;
+      if (SKIP_PATTERNS.some(p => file.path.includes(p))) return false;
       return true;
     });
 
-    // Prioritize src folder files, then by size (smaller first for more coverage)
+    // Prioritize: src/ > app/ > lib/ > components/ > pages/ > rest
+    const getPriority = (path: string) => {
+      if (path.startsWith('src/')) return 0;
+      if (path.startsWith('app/')) return 1;
+      if (path.startsWith('lib/') || path.startsWith('components/') || path.startsWith('pages/')) return 2;
+      if (path.includes('/src/')) return 3;
+      if (path.includes('/components/') || path.includes('/lib/')) return 4;
+      return 5;
+    };
     const sortedFiles = candidateFiles.sort((a: any, b: any) => {
-      const aInSrc = a.path.startsWith('src/') ? 0 : 1;
-      const bInSrc = b.path.startsWith('src/') ? 0 : 1;
-      if (aInSrc !== bInSrc) return aInSrc - bInSrc;
-      return (a.size || 0) - (b.size || 0);
+      const pa = getPriority(a.path);
+      const pb = getPriority(b.path);
+      if (pa !== pb) return pa - pb;
+      // Prefer .tsx/.ts/.jsx/.js over .css/.json
+      const codeExts = ['.tsx', '.ts', '.jsx', '.js'];
+      const aIsCode = codeExts.some(e => a.path.endsWith(e)) ? 0 : 1;
+      const bIsCode = codeExts.some(e => b.path.endsWith(e)) ? 0 : 1;
+      return aIsCode - bIsCode;
     });
 
     const filesToFetch = sortedFiles.slice(0, MAX_FILES);
