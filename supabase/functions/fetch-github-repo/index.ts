@@ -5,7 +5,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const ALLOWED_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.vue', '.svelte', '.html', '.css', '.scss', '.json'];
+const ALLOWED_EXTENSIONS = [
+  '.ts', '.tsx', '.js', '.jsx', '.vue', '.svelte', '.html', '.css', '.scss', '.json',
+  '.py', '.rb', '.go', '.rs', '.java', '.kt', '.swift', '.c', '.cpp', '.h',
+  '.php', '.dart', '.lua', '.r', '.scala', '.ex', '.exs', '.ml', '.hs',
+  '.yaml', '.yml', '.toml', '.md', '.txt', '.env.example', '.sh',
+];
 const MAX_FILE_SIZE = 500000; // 500KB per file
 const MAX_FILES = 50;
 const MAX_TOTAL_CONTENT_SIZE = 800000; // ~800KB total to stay within AI context limits
