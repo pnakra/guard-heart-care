@@ -97,9 +97,10 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
 
       setFiles(data.files);
       setProjectName(data.repoName);
+      const sizeNote = data.sizeLimitReached ? ' (content size limit reached)' : '';
       toast.success(`Fetched ${data.fileCount} files from ${data.owner}/${data.repoName}`, {
         description: data.totalFiles > data.fileCount 
-          ? `Showing first ${data.fileCount} of ${data.totalFiles} files`
+          ? `Analyzing ${data.fileCount} of ${data.totalFiles} eligible files${sizeNote}`
           : undefined,
       });
     } catch (err) {
