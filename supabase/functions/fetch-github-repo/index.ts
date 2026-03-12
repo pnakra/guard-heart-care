@@ -134,11 +134,23 @@ serve(async (req) => {
     });
 
     // Prioritize: src/ > app/ > lib/ > components/ > pages/ > rest
+    const getPriority = (path: string) => {
+      if (path.startsWith('src/')) return 0;
+      if (path.startsWith('app/')) return 1;
+      if (path.startsWith('lib/') || path.startsWith('components/') || path.startsWith('pages/')) return 2;
+      if (path.includes('/src/')) return 3;
+      if (path.includes('/components/') || path.includes('/lib/')) return 4;
+      return 5;
+    };
     const sortedFiles = candidateFiles.sort((a: any, b: any) => {
-      const aInSrc = a.path.startsWith('src/') ? 0 : 1;
-      const bInSrc = b.path.startsWith('src/') ? 0 : 1;
-      if (aInSrc !== bInSrc) return aInSrc - bInSrc;
-      return (a.size || 0) - (b.size || 0);
+      const pa = getPriority(a.path);
+      const pb = getPriority(b.path);
+      if (pa !== pb) return pa - pb;
+      // Prefer .tsx/.ts/.jsx/.js over .css/.json
+      const codeExts = ['.tsx', '.ts', '.jsx', '.js'];
+      const aIsCode = codeExts.some(e => a.path.endsWith(e)) ? 0 : 1;
+      const bIsCode = codeExts.some(e => b.path.endsWith(e)) ? 0 : 1;
+      return aIsCode - bIsCode;
     });
 
     const filesToFetch = sortedFiles.slice(0, MAX_FILES);
