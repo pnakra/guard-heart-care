@@ -46,10 +46,6 @@ export interface EthicsIssue {
   populationTags?: string[];
   forkClassification?: ForkClassification;
 }
-  customRule?: boolean;
-  customRuleName?: string;
-  populationTags?: string[];
-}
 
 export interface ExecutiveSummary {
   topThreeRisks: {
