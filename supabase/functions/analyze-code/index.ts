@@ -58,6 +58,15 @@ Prompts or features where AI is positioned as:
 - A legal authority
 - An expert on human behavior or relationships
 
+### 6. DARK PATTERNS & COERCIVE UX (dark-patterns)
+Features that manipulate users into unintended actions:
+- Fake urgency timers or scarcity indicators not tied to real data
+- Hidden or friction-heavy unsubscribe/cancel flows
+- Confirm-shaming copy ('No thanks, I hate saving money')
+- Roach motel patterns — easy in, hard out
+- Misleading free trial flows with buried auto-charge
+- Pre-checked consent boxes
+
 ## DO NOT REPORT
 
 - Generic "file upload could contain malware" (that's security, not misuse)

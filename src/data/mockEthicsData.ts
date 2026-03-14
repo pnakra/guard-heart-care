@@ -62,6 +62,18 @@ export const mockIssues: EthicsIssue[] = [
     mitigation: 'Reframe all outputs: "This is not a diagnosis. Please consult a healthcare provider." Remove confident language like "likely" or "probably".',
     mitigationType: 'reframing',
   },
+  {
+    id: '6',
+    category: 'dark-patterns',
+    title: 'Confirm-Shaming Cancel Flow',
+    description: 'The subscription cancellation flow uses confirm-shaming copy ("No thanks, I prefer to waste money") and requires 5 clicks to complete.',
+    severity: 'high',
+    location: 'src/components/CancelSubscription.tsx:22',
+    misuseScenario: 'A user trying to cancel is psychologically pressured into staying subscribed through guilt-tripping copy and excessive friction',
+    whyMisuseByDesign: 'The flow is intentionally designed to discourage cancellation through emotional manipulation and unnecessary steps, not to inform',
+    mitigation: 'Replace confirm-shaming copy with neutral language. Reduce cancellation to a 2-step process with clear confirmation.',
+    mitigationType: 'ui-language',
+  },
 ];
 
 export const mockCategories: CategorySummary[] = [
@@ -105,6 +117,14 @@ export const mockCategories: CategorySummary[] = [
     issueCount: 1,
     highestSeverity: 'high',
   },
+  {
+    category: 'dark-patterns',
+    label: 'Dark Patterns',
+    description: 'Coercive UX that manipulates users into unintended actions',
+    icon: 'zap',
+    issueCount: 1,
+    highestSeverity: 'high',
+  },
 ];
 
 export const mockExecutiveSummary: ExecutiveSummary = {
@@ -129,9 +149,9 @@ export const mockExecutiveSummary: ExecutiveSummary = {
     },
   ],
   riskScore: 7.4,
-  totalIssueCount: 5,
+  totalIssueCount: 6,
   criticalCount: 2,
-  highCount: 3,
+  highCount: 4,
 };
 
 export const calculateOverallStatus = (issues: EthicsIssue[]): SeverityLevel => {
