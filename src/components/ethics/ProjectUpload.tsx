@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, FileCode, X, FolderOpen, Loader2, Github, ArrowRight } from 'lucide-react';
+import { Upload, FileCode, X, FolderOpen, Loader2, Github, ArrowRight, Settings2, ChevronDown, ChevronRight, AlertCircle, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -12,8 +12,19 @@ interface UploadedFile {
   size: number;
 }
 
+export interface CustomRulesConfig {
+  disabledCategories?: string[];
+  elevatedCategories?: string[];
+  customPatterns?: {
+    name: string;
+    description: string;
+    category: string;
+    severity: string;
+  }[];
+}
+
 interface ProjectUploadProps {
-  onAnalyze: (files: UploadedFile[], projectName: string) => void;
+  onAnalyze: (files: UploadedFile[], projectName: string, customRules?: CustomRulesConfig) => void;
   isAnalyzing: boolean;
 }
 
@@ -24,6 +35,62 @@ const ALLOWED_EXTENSIONS = [
   '.c', '.cpp', '.h', '.php', '.dart', '.yaml', '.yml',
 ];
 
+const CUSTOM_RULES_KEY = 'gfc-custom-rules';
+
+const VALID_CATEGORIES = ['false-authority', 'manipulation', 'surveillance', 'admin-abuse', 'ai-hallucination'];
+const VALID_SEVERITIES = ['safe', 'low', 'medium', 'high', 'critical'];
+
+const DEFAULT_RULES = `{
+  "disabledCategories": [],
+  "elevatedCategories": [],
+  "customPatterns": []
+}`;
+
+function validateCustomRules(jsonStr: string): { valid: boolean; parsed?: CustomRulesConfig; error?: string } {
+  if (!jsonStr.trim()) return { valid: true, parsed: undefined };
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(jsonStr);
+  } catch (e) {
+    return { valid: false, error: `Invalid JSON: ${(e as Error).message}` };
+  }
+
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    return { valid: false, error: 'Root must be a JSON object' };
+  }
+
+  if (parsed.disabledCategories !== undefined) {
+    if (!Array.isArray(parsed.disabledCategories)) return { valid: false, error: '"disabledCategories" must be an array' };
+    for (const cat of parsed.disabledCategories) {
+      if (!VALID_CATEGORIES.includes(cat)) return { valid: false, error: `Invalid category "${cat}". Valid: ${VALID_CATEGORIES.join(', ')}` };
+    }
+  }
+
+  if (parsed.elevatedCategories !== undefined) {
+    if (!Array.isArray(parsed.elevatedCategories)) return { valid: false, error: '"elevatedCategories" must be an array' };
+    for (const cat of parsed.elevatedCategories) {
+      if (!VALID_CATEGORIES.includes(cat)) return { valid: false, error: `Invalid category "${cat}". Valid: ${VALID_CATEGORIES.join(', ')}` };
+    }
+  }
+
+  if (parsed.customPatterns !== undefined) {
+    if (!Array.isArray(parsed.customPatterns)) return { valid: false, error: '"customPatterns" must be an array' };
+    for (let i = 0; i < parsed.customPatterns.length; i++) {
+      const p = parsed.customPatterns[i];
+      if (!p.name || typeof p.name !== 'string') return { valid: false, error: `customPatterns[${i}].name is required (string)` };
+      if (p.name.length > 200) return { valid: false, error: `customPatterns[${i}].name exceeds 200 chars` };
+      if (!p.description || typeof p.description !== 'string') return { valid: false, error: `customPatterns[${i}].description is required (string)` };
+      if (p.description.length > 1000) return { valid: false, error: `customPatterns[${i}].description exceeds 1000 chars` };
+      if (!VALID_CATEGORIES.includes(p.category)) return { valid: false, error: `customPatterns[${i}].category "${p.category}" invalid` };
+      if (!VALID_SEVERITIES.includes(p.severity)) return { valid: false, error: `customPatterns[${i}].severity "${p.severity}" invalid` };
+    }
+    if (parsed.customPatterns.length > 20) return { valid: false, error: 'Maximum 20 custom patterns allowed' };
+  }
+
+  return { valid: true, parsed: parsed as CustomRulesConfig };
+}
+
 export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [projectName, setProjectName] = useState('');
@@ -31,6 +98,22 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
   const [githubUrl, setGithubUrl] = useState('');
   const [isFetchingGithub, setIsFetchingGithub] = useState(false);
   const [inputMode, setInputMode] = useState<'upload' | 'github'>('upload');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [customRulesText, setCustomRulesText] = useState(() => {
+    try { return sessionStorage.getItem(CUSTOM_RULES_KEY) || DEFAULT_RULES; } catch { return DEFAULT_RULES; }
+  });
+  const [rulesValidation, setRulesValidation] = useState<{ valid: boolean; error?: string }>({ valid: true });
+
+  // Validate on change
+  useEffect(() => {
+    const result = validateCustomRules(customRulesText);
+    setRulesValidation({ valid: result.valid, error: result.error });
+  }, [customRulesText]);
+
+  // Persist to sessionStorage
+  useEffect(() => {
+    try { sessionStorage.setItem(CUSTOM_RULES_KEY, customRulesText); } catch { /* ignore */ }
+  }, [customRulesText]);
 
   const processFiles = useCallback(async (fileList: FileList) => {
     const newFiles: UploadedFile[] = [];
@@ -38,7 +121,7 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
     for (const file of Array.from(fileList)) {
       const ext = '.' + file.name.split('.').pop()?.toLowerCase();
       if (!ALLOWED_EXTENSIONS.includes(ext)) continue;
-      if (file.size > 500000) continue; // Skip files > 500KB
+      if (file.size > 500000) continue;
 
       try {
         const content = await file.text();
@@ -117,7 +200,9 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
 
   const handleAnalyze = () => {
     if (files.length > 0) {
-      onAnalyze(files, projectName || 'Uploaded Project');
+      const validation = validateCustomRules(customRulesText);
+      const customRules = showAdvanced && validation.valid ? validation.parsed : undefined;
+      onAnalyze(files, projectName || 'Uploaded Project', customRules);
     }
   };
 
@@ -127,6 +212,13 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
+
+  const hasCustomRulesContent = (() => {
+    try {
+      const parsed = JSON.parse(customRulesText);
+      return (parsed.disabledCategories?.length > 0) || (parsed.elevatedCategories?.length > 0) || (parsed.customPatterns?.length > 0);
+    } catch { return false; }
+  })();
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -324,10 +416,79 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
           </div>
         )}
 
+        {/* Advanced: Custom Rules */}
+        <div className="border border-border rounded-lg overflow-hidden">
+          <button
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors bg-card"
+          >
+            <span className="flex items-center gap-2">
+              <Settings2 size={14} />
+              Advanced: Custom Rules
+              {hasCustomRulesContent && (
+                <span className="px-1.5 py-0.5 text-xs rounded-full bg-primary/10 text-primary">Active</span>
+              )}
+            </span>
+            {showAdvanced ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          </button>
+
+          {showAdvanced && (
+            <div className="px-4 pb-4 pt-2 bg-card border-t border-border/50 space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Configure custom scan rules as JSON. Disable or elevate categories, and add custom patterns to detect.
+              </p>
+              <div className="relative">
+                <textarea
+                  value={customRulesText}
+                  onChange={(e) => setCustomRulesText(e.target.value)}
+                  spellCheck={false}
+                  className={cn(
+                    'w-full h-48 px-4 py-3 rounded-lg border font-mono text-xs leading-relaxed resize-y',
+                    'bg-background text-foreground',
+                    'focus:outline-none focus:ring-2 focus:ring-primary/50',
+                    rulesValidation.valid
+                      ? 'border-border'
+                      : 'border-[hsl(var(--ethics-high))] bg-[hsl(var(--ethics-high-bg))]'
+                  )}
+                />
+                {/* Validation indicator */}
+                <div className="absolute top-2 right-2">
+                  {rulesValidation.valid ? (
+                    <span className="flex items-center gap-1 text-xs text-[hsl(var(--ethics-safe))]">
+                      <Check size={12} />
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-xs text-[hsl(var(--ethics-high))]">
+                      <AlertCircle size={12} />
+                    </span>
+                  )}
+                </div>
+              </div>
+              {!rulesValidation.valid && rulesValidation.error && (
+                <div className="flex items-start gap-2 px-3 py-2 rounded-md bg-[hsl(var(--ethics-high-bg))] border border-[hsl(var(--ethics-high)/0.3)]">
+                  <AlertCircle size={12} className="shrink-0 mt-0.5 text-[hsl(var(--ethics-high))]" />
+                  <p className="text-xs text-[hsl(var(--ethics-high))]">{rulesValidation.error}</p>
+                </div>
+              )}
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => setCustomRulesText(DEFAULT_RULES)}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Reset to defaults
+                </button>
+                <p className="text-xs text-muted-foreground">
+                  Max 20 custom patterns
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Analyze Button */}
         <Button
           onClick={handleAnalyze}
-          disabled={files.length === 0 || isAnalyzing}
+          disabled={files.length === 0 || isAnalyzing || (showAdvanced && !rulesValidation.valid)}
           className="w-full gap-2"
           size="lg"
         >

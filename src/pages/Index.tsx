@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ProjectUpload } from '@/components/ethics/ProjectUpload';
+import { ProjectUpload, CustomRulesConfig } from '@/components/ethics/ProjectUpload';
 import { ScanningScreen } from '@/components/ethics/ScanningScreen';
 import { EthicsReviewPanel } from '@/components/ethics/EthicsReviewPanel';
 import { PublishGate } from '@/components/ethics/PublishGate';
@@ -26,11 +26,11 @@ const Index = () => {
   
   const { analyzeCode, isAnalyzing } = useCodeAnalysis();
 
-  const handleAnalyze = async (files: UploadedFile[], name: string) => {
+  const handleAnalyze = async (files: UploadedFile[], name: string, customRules?: CustomRulesConfig) => {
     setProjectName(name);
     setAppState('scanning');
 
-    const result = await analyzeCode(files, name);
+    const result = await analyzeCode(files, name, customRules);
     
     if (result) {
       setAnalysisResult(result.result);

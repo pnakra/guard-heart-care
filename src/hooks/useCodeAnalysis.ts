@@ -75,7 +75,7 @@ function getLatestScan(): ScanHistoryEntry | null {
 export function useCodeAnalysis() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const analyzeCode = async (files: UploadedFile[], projectName: string): Promise<AnalysisResult | null> => {
+  const analyzeCode = async (files: UploadedFile[], projectName: string, customRules?: any): Promise<AnalysisResult | null> => {
     setIsAnalyzing(true);
 
     try {
@@ -85,6 +85,7 @@ export function useCodeAnalysis() {
         body: { 
           files, 
           projectName,
+          customRules: customRules || null,
           previousScan: previousScan ? {
             timestamp: previousScan.timestamp,
             riskScore: previousScan.riskScore,
@@ -141,6 +142,8 @@ export function useCodeAnalysis() {
         whyMisuseByDesign: i.whyMisuseByDesign || '',
         mitigation: typeof i.mitigation === 'string' ? i.mitigation : i.mitigation?.summary || i.recommendation || '',
         mitigationType: i.mitigationType || 'ui-language',
+        customRule: i.customRule || false,
+        customRuleName: i.customRuleName || undefined,
       }));
 
       // Calculate base risk score

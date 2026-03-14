@@ -104,6 +104,11 @@ export function IssueCard({ issue }: IssueCardProps) {
                     {confidenceBadge.label}
                   </span>
                 )}
+                {issue.customRule && (
+                  <span className="text-xs px-1.5 py-0.5 rounded-full border bg-primary/10 text-primary border-primary/20">
+                    Custom Rule{issue.customRuleName ? `: ${issue.customRuleName}` : ''}
+                  </span>
+                )}
                 <span className="text-xs text-muted-foreground uppercase tracking-wide">
                   {categoryLabels[issue.category] || issue.category}
                 </span>

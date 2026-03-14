@@ -30,6 +30,8 @@ export interface EthicsIssue {
   mitigationType: 'ui-language' | 'interaction-model' | 'feature-removal' | 'reframing';
   isNewSinceLast?: boolean; // For iteration awareness
   confidence?: IssueConfidenceSummary; // V2 confidence data
+  customRule?: boolean; // Triggered by a user-defined custom rule
+  customRuleName?: string; // Name of the triggering custom rule
 }
 
 export interface ExecutiveSummary {
