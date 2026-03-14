@@ -26,11 +26,11 @@ const Index = () => {
   
   const { analyzeCode, isAnalyzing } = useCodeAnalysis();
 
-  const handleAnalyze = async (files: UploadedFile[], name: string) => {
+  const handleAnalyze = async (files: UploadedFile[], name: string, customRules?: CustomRulesConfig) => {
     setProjectName(name);
     setAppState('scanning');
 
-    const result = await analyzeCode(files, name);
+    const result = await analyzeCode(files, name, customRules);
     
     if (result) {
       setAnalysisResult(result.result);

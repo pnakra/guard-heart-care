@@ -414,9 +414,14 @@ serve(async (req) => {
       : '';
     const verticalProfilePrompt = getVerticalProfilePrompt(detectedCategory);
 
+    // Custom rules from user
+    const customRulesPrompt = customRules && typeof customRules === 'object'
+      ? `\n\nCUSTOM RULES configured by user:\n${JSON.stringify(customRules)}\nApply these in addition to standard detection. If a finding is triggered by a custom pattern, include "customRule": true and "customRuleName": "<pattern name>" in that issue's JSON output.`
+      : '';
+
     const userPrompt = `Analyze this "${projectName || "web application"}" codebase for MISUSE-BY-DESIGN patterns using the v2.0 schema. Remember: you are looking for features that could harm people when working exactly as intended, not bugs or security vulnerabilities.
 
-Provide calibrated confidence scores for each finding and specific code-level mitigations.${categoryHint}${verticalProfilePrompt}${previousContext}
+Provide calibrated confidence scores for each finding and specific code-level mitigations.${categoryHint}${verticalProfilePrompt}${customRulesPrompt}${previousContext}
 
 ${filesContent}`;
 
