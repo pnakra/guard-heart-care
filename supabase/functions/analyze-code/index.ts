@@ -383,7 +383,7 @@ serve(async (req) => {
   }
 
   try {
-    const { files, projectName, previousScan } = await req.json();
+    const { files, projectName, previousScan, customRules } = await req.json();
 
     if (!files || !Array.isArray(files) || files.length === 0) {
       return new Response(
