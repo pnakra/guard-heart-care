@@ -199,11 +199,11 @@ export function EthicsReviewPanel({
           <div className="space-y-4">
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'issues' | 'misuse')}>
               <div className="flex items-center justify-between">
-                <TabsList className="bg-secondary/50">
-                  <TabsTrigger value="issues" className="gap-2">
+                <TabsList className="bg-secondary/50 font-mono">
+                  <TabsTrigger value="issues" className="gap-2 font-mono text-xs">
                     <Shield size={14} />
-                    Findings
-                    <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                    findings
+                    <span className="font-mono text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">
                       {result.issues.length}
                     </span>
                   </TabsTrigger>
