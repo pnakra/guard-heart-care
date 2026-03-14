@@ -95,7 +95,7 @@ export function EthicsReviewPanel({
             <div className="flex items-center gap-2">
               <Link
                 to="/taxonomy"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground border border-border rounded-md hover:bg-secondary/50 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 font-mono text-[10px] font-medium text-muted-foreground hover:text-primary border border-border rounded hover:border-primary/30 transition-colors"
               >
                 <BookOpen size={12} />
                 Taxonomy v1.0
