@@ -13,10 +13,12 @@ import { ModePillToggle } from './ModePillToggle';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users, GitPullRequest, ScanSearch, GitFork, ClipboardCheck } from 'lucide-react';
+import { Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users, GitPullRequest, ScanSearch, GitFork, ClipboardCheck, Award } from 'lucide-react';
 import { exportReport, generateLovablePrompt, generatePRComment, copyToClipboard } from '@/utils/exportReport';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useMode } from '@/contexts/ModeContext';
+import { getGFSBand } from '@/services/gfsCalculator';
+import { BadgeModal } from './BadgeModal';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -43,6 +45,10 @@ export function EthicsReviewPanel({
   const defaultTab: TabValue = result.isForkAnalysis ? 'fork' : isVibe ? 'checklist' : 'issues';
   const [selectedCategory, setSelectedCategory] = useState<HarmCategory | null>(null);
   const [activeTab, setActiveTab] = useState<TabValue>(defaultTab);
+  const [showBadgeModal, setShowBadgeModal] = useState(false);
+
+  const gfsScore = result.executiveSummary.riskScore * 10;
+  const gfsBand = getGFSBand(Math.round(Math.max(0, Math.min(100, gfsScore))));
 
   const handleCategoryClick = (category: HarmCategory) => {
     setSelectedCategory(prev => prev === category ? null : category);
@@ -176,6 +182,11 @@ export function EthicsReviewPanel({
                   <DropdownMenuItem onClick={handleCopyFixPrompt} className="gap-2">
                     <Sparkles size={14} />
                     Copy Fix Prompt for Lovable
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setShowBadgeModal(true)} className="gap-2">
+                    <Award size={14} />
+                    Generate Badge
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -351,6 +362,13 @@ export function EthicsReviewPanel({
           </div>
         </div>
       </footer>
+
+      <BadgeModal
+        open={showBadgeModal}
+        onOpenChange={setShowBadgeModal}
+        score={Math.round(Math.max(0, Math.min(100, gfsScore)))}
+        band={gfsBand}
+      />
     </div>
   );
 }
