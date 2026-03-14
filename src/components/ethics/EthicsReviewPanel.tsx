@@ -9,15 +9,16 @@ import { IssuesList } from './IssuesList';
 import { MisuseScenarios } from './MisuseScenarios';
 import { ForkAnalysisTab } from './ForkAnalysisTab';
 import { PreLaunchChecklist } from './PreLaunchChecklist';
+import { ModePillToggle } from './ModePillToggle';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { RefreshCw, Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users, GitPullRequest, ScanSearch, GitFork, Languages, ClipboardCheck } from 'lucide-react';
+import { Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users, GitPullRequest, ScanSearch, GitFork, ClipboardCheck } from 'lucide-react';
 import { exportReport, generateLovablePrompt, generatePRComment, copyToClipboard } from '@/utils/exportReport';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Switch } from '@/components/ui/switch';
-import { usePlainLanguage } from '@/contexts/PlainLanguageContext';
+import { useMode } from '@/contexts/ModeContext';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface EthicsReviewPanelProps {
   result: EthicsReviewResult;
@@ -28,6 +29,8 @@ interface EthicsReviewPanelProps {
   onPublish?: () => void;
 }
 
+type TabValue = 'issues' | 'misuse' | 'fork' | 'checklist';
+
 export function EthicsReviewPanel({ 
   result, 
   capabilities, 
@@ -36,9 +39,10 @@ export function EthicsReviewPanel({
   onRescan,
   onPublish 
 }: EthicsReviewPanelProps) {
+  const { isVibe } = useMode();
+  const defaultTab: TabValue = result.isForkAnalysis ? 'fork' : isVibe ? 'checklist' : 'issues';
   const [selectedCategory, setSelectedCategory] = useState<HarmCategory | null>(null);
-  const [activeTab, setActiveTab] = useState<'issues' | 'misuse' | 'fork' | 'checklist'>(result.isForkAnalysis ? 'fork' : 'issues');
-  const { isPlainLanguage, togglePlainLanguage } = usePlainLanguage();
+  const [activeTab, setActiveTab] = useState<TabValue>(defaultTab);
 
   const handleCategoryClick = (category: HarmCategory) => {
     setSelectedCategory(prev => prev === category ? null : category);
@@ -76,7 +80,10 @@ export function EthicsReviewPanel({
   };
 
   return (
-    <div className="min-h-screen bg-background scan-lines">
+    <div className={cn(
+      'min-h-screen bg-background transition-colors duration-300',
+      !isVibe && 'scan-lines'
+    )}>
       {/* Header */}
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border relative">
         <div className="container max-w-6xl mx-auto px-4 py-4">
@@ -98,40 +105,44 @@ export function EthicsReviewPanel({
                 </svg>
               </div>
               <div>
-                <h1 className="font-mono text-lg font-semibold text-foreground tracking-tight">
-                  gfc-scanner <span className="text-primary">v2.0</span>
+                <h1 className={cn(
+                  'text-lg font-semibold text-foreground tracking-tight',
+                  isVibe ? 'font-sans' : 'font-mono'
+                )}>
+                  {isVibe ? 'Ground Floor Check' : 'gfc-scanner'} <span className="text-primary">{isVibe ? '' : 'v2.0'}</span>
                 </h1>
-                <p className="font-mono text-[10px] text-muted-foreground tracking-wide">
-                  misuse-by-design detection
+                <p className={cn(
+                  'text-[10px] text-muted-foreground tracking-wide',
+                  isVibe ? 'font-sans' : 'font-mono'
+                )}>
+                  {isVibe ? 'Ethics review for your app' : 'misuse-by-design detection'}
                 </p>
               </div>
             </div>
             
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded border border-border">
-                <Languages size={13} className="text-muted-foreground" />
-                <span className="font-mono text-[10px] text-muted-foreground">Plain</span>
-                <Switch
-                  checked={isPlainLanguage}
-                  onCheckedChange={togglePlainLanguage}
-                  className="scale-75"
-                />
-              </div>
+              <ModePillToggle />
               <ThemeToggle />
               <Link
                 to="/taxonomy"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 font-mono text-[10px] font-medium text-muted-foreground hover:text-primary border border-border rounded hover:border-primary/30 transition-colors"
+                className={cn(
+                  'inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium text-muted-foreground hover:text-primary border border-border rounded hover:border-primary/30 transition-colors',
+                  isVibe ? 'font-sans' : 'font-mono'
+                )}
               >
                 <BookOpen size={12} />
-                Taxonomy v1.0
+                {isVibe ? 'Learn more' : 'Taxonomy v1.0'}
               </Link>
               <button
                 onClick={onRescan}
-                className="group inline-flex items-center gap-1.5 px-3 py-1.5 font-mono text-[11px] font-medium text-muted-foreground hover:text-primary border border-border rounded hover:border-primary/30 hover:terminal-glow transition-all"
+                className={cn(
+                  'group inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-primary border border-border rounded hover:border-primary/30 transition-all',
+                  isVibe ? 'font-sans' : 'font-mono hover:terminal-glow'
+                )}
               >
-                <span className="text-primary">{'>'}</span>
-                <span>run scan</span>
-                <span className="hidden group-hover:inline text-primary cursor-blink">▌</span>
+                {!isVibe && <span className="text-primary">{'>'}</span>}
+                <span>{isVibe ? 'New scan' : 'run scan'}</span>
+                {!isVibe && <span className="hidden group-hover:inline text-primary cursor-blink">▌</span>}
               </button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -183,7 +194,7 @@ export function EthicsReviewPanel({
 
       {/* Main Content */}
       <main className="container max-w-6xl mx-auto px-4 py-6">
-        {/* Executive Summary - New component */}
+        {/* Executive Summary */}
         <ExecutiveSummary 
           summary={result.executiveSummary}
           projectName={result.projectName}
@@ -213,8 +224,11 @@ export function EthicsReviewPanel({
         <div className="mt-6 grid lg:grid-cols-[320px,1fr] gap-6">
           {/* Categories Sidebar */}
           <div className="space-y-3">
-            <h3 className="font-mono font-medium text-[11px] text-muted-foreground uppercase tracking-widest px-1">
-              harm_categories
+            <h3 className={cn(
+              'font-medium text-[11px] text-muted-foreground uppercase tracking-widest px-1',
+              isVibe ? 'font-sans' : 'font-mono'
+            )}>
+              {isVibe ? 'Risk Categories' : 'harm_categories'}
             </h3>
             <div className="space-y-2">
               {result.categories.map(category => (
@@ -230,46 +244,49 @@ export function EthicsReviewPanel({
 
           {/* Tabbed Content Panel */}
           <div className="space-y-4">
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'issues' | 'misuse' | 'fork' | 'checklist')}>
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabValue)}>
               <div className="flex items-center justify-between">
-                <TabsList className="bg-secondary/50 font-mono">
-                  <TabsTrigger value="issues" className="gap-2 font-mono text-xs">
+                <TabsList className={cn('bg-secondary/50', isVibe ? 'font-sans' : 'font-mono')}>
+                  <TabsTrigger value="issues" className={cn('gap-2 text-xs', isVibe ? 'font-sans' : 'font-mono')}>
                     <Shield size={14} />
-                    findings
-                    <span className="font-mono text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                    {isVibe ? 'Findings' : 'findings'}
+                    <span className={cn('text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded', isVibe ? 'font-sans' : 'font-mono')}>
                       {result.issues.length}
                     </span>
                   </TabsTrigger>
-                  <TabsTrigger value="misuse" className="gap-2 font-mono text-xs">
+                  <TabsTrigger value="misuse" className={cn('gap-2 text-xs', isVibe ? 'font-sans' : 'font-mono')}>
                     <AlertTriangle size={14} />
-                    misuse_scenarios
+                    {isVibe ? 'Misuse Scenarios' : 'misuse_scenarios'}
                     {criticalMisuseCount > 0 && (
-                      <span className="font-mono text-[10px] bg-[hsl(var(--ethics-critical))] text-white px-1.5 py-0.5 rounded">
+                      <span className={cn('text-[10px] bg-[hsl(var(--ethics-critical))] text-white px-1.5 py-0.5 rounded', isVibe ? 'font-sans' : 'font-mono')}>
                         {criticalMisuseCount}
                       </span>
                     )}
                   </TabsTrigger>
                   {result.isForkAnalysis && result.forkSummary && (
-                    <TabsTrigger value="fork" className="gap-2 font-mono text-xs">
+                    <TabsTrigger value="fork" className={cn('gap-2 text-xs', isVibe ? 'font-sans' : 'font-mono')}>
                       <GitFork size={14} />
-                      fork_analysis
+                      {isVibe ? 'Fork Analysis' : 'fork_analysis'}
                       {result.forkSummary.introducedCount > 0 && (
-                        <span className="font-mono text-[10px] bg-[hsl(var(--ethics-critical))] text-white px-1.5 py-0.5 rounded">
+                        <span className={cn('text-[10px] bg-[hsl(var(--ethics-critical))] text-white px-1.5 py-0.5 rounded', isVibe ? 'font-sans' : 'font-mono')}>
                           {result.forkSummary.introducedCount}
                         </span>
                       )}
                     </TabsTrigger>
                   )}
-                  <TabsTrigger value="checklist" className="gap-2 font-mono text-xs">
+                  <TabsTrigger value="checklist" className={cn('gap-2 text-xs', isVibe ? 'font-sans' : 'font-mono')}>
                     <ClipboardCheck size={14} />
-                    pre_launch
+                    {isVibe ? 'Pre-Launch' : 'pre_launch'}
                   </TabsTrigger>
                 </TabsList>
 
                 {activeTab === 'issues' && selectedCategory && (
                   <button
                     onClick={() => setSelectedCategory(null)}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary font-mono text-[10px] rounded hover:bg-primary/20 transition-colors"
+                    className={cn(
+                      'inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-[10px] rounded hover:bg-primary/20 transition-colors',
+                      isVibe ? 'font-sans' : 'font-mono'
+                    )}
                   >
                     <Filter size={10} />
                     [{selectedCategoryLabel?.toUpperCase()}]
@@ -316,15 +333,20 @@ export function EthicsReviewPanel({
       {/* Footer */}
       <footer className="border-t border-border mt-12 relative z-[1]">
         <div className="container max-w-6xl mx-auto px-4 py-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[11px] text-muted-foreground">
+          <div className={cn(
+            'flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-muted-foreground',
+            isVibe ? 'font-sans' : 'font-mono'
+          )}>
             <p>
-              // identifies misuse-by-design patterns, not bugs or security vulnerabilities
+              {isVibe
+                ? 'Identifies misuse-by-design patterns, not bugs or security vulnerabilities.'
+                : '// identifies misuse-by-design patterns, not bugs or security vulnerabilities'}
             </p>
             <a 
               href="#" 
               className="text-primary hover:underline"
             >
-              methodology.md
+              {isVibe ? 'Methodology' : 'methodology.md'}
             </a>
           </div>
         </div>

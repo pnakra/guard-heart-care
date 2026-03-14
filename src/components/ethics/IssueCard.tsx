@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { getTemplatesForType, generateFixPrompt, MitigationType } from '@/data/remediationTemplates';
 import { toast } from 'sonner';
 import { useIssueStatus, IssueStatus, ISSUE_STATUS_CONFIG } from '@/contexts/IssueStatusContext';
-import { usePlainLanguage } from '@/contexts/PlainLanguageContext';
+import { useMode } from '@/contexts/ModeContext';
 import { PLAIN_CATEGORY_LABELS, getPlainTitle } from '@/data/plainLanguageMap';
 import {
   Select,
@@ -76,13 +76,14 @@ function ConfidenceBar({ label, value, rationale }: { label: string; value: numb
 }
 
 export function IssueCard({ issue }: IssueCardProps) {
+  const { isVibe } = useMode();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showConfidence, setShowConfidence] = useState(false);
+  const [showDiff, setShowDiff] = useState(!isVibe); // collapsed by default in vibe
   const [showTemplates, setShowTemplates] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const { getStatus, setStatus } = useIssueStatus();
-  const { isPlainLanguage } = usePlainLanguage();
   const currentStatus = getStatus(issue.id);
   const statusConfig = ISSUE_STATUS_CONFIG[currentStatus];
 
@@ -90,10 +91,19 @@ export function IssueCard({ issue }: IssueCardProps) {
   const isLowConfidence = confidence && confidence.overallConfidence < 0.6;
   const confidenceBadge = confidence ? getConfidenceBadge(confidence.overallConfidence) : null;
 
-  const displayTitle = isPlainLanguage ? getPlainTitle(issue.id, issue.title) : issue.title;
-  const displayCategory = isPlainLanguage
+  const displayTitle = isVibe ? getPlainTitle(issue.id, issue.title) : issue.title;
+  const displayCategory = isVibe
     ? PLAIN_CATEGORY_LABELS[issue.category] || issue.category
     : (categoryLabels[issue.category] || issue.category);
+
+  const handleCopyPrompt = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const prompt = generateFixPrompt(issue);
+    navigator.clipboard.writeText(prompt);
+    setCopiedPrompt(true);
+    toast.success('Fix prompt copied to clipboard');
+    setTimeout(() => setCopiedPrompt(false), 2000);
+  };
 
   return (
     <div 
@@ -126,7 +136,7 @@ export function IssueCard({ issue }: IssueCardProps) {
                 {issue.forkClassification && (
                   <ForkBadge classification={issue.forkClassification} />
                 )}
-                {confidenceBadge && (
+                {!isVibe && confidenceBadge && (
                   <span className={cn('text-xs px-1.5 py-0.5 rounded-full border', confidenceBadge.className)}>
                     {confidenceBadge.label}
                   </span>
@@ -141,16 +151,30 @@ export function IssueCard({ issue }: IssueCardProps) {
                     ⚠ Elevated: {populationLabels[tag] || tag}
                   </span>
                 ))}
-                <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
-                  {isPlainLanguage ? displayCategory : `[${displayCategory.toUpperCase()}]`}
+                <span className={cn(
+                  'text-[10px] text-muted-foreground uppercase tracking-widest',
+                  isVibe ? 'font-sans' : 'font-mono'
+                )}>
+                  {isVibe ? displayCategory : `[${displayCategory.toUpperCase()}]`}
                 </span>
               </div>
-              <h4 className="font-mono font-medium text-foreground mt-2 text-sm">
+              <h4 className={cn(
+                'font-medium text-foreground mt-2 text-sm',
+                isVibe ? 'font-sans' : 'font-mono'
+              )}>
                 {displayTitle}
               </h4>
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                {issue.description}
-              </p>
+
+              {/* In vibe mode, show misuse scenario prominently in collapsed view */}
+              {isVibe && issue.misuseScenario ? (
+                <p className="text-sm text-foreground mt-1.5 font-semibold line-clamp-2">
+                  {issue.misuseScenario}
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                  {issue.description}
+                </p>
+              )}
             </div>
             
             <ChevronRight 
@@ -161,6 +185,24 @@ export function IssueCard({ issue }: IssueCardProps) {
               size={20}
             />
           </div>
+
+          {/* Vibe mode: prominent copy fix prompt CTA in collapsed view */}
+          {isVibe && !isExpanded && (
+            <div className="mt-3" onClick={e => e.stopPropagation()}>
+              <button
+                onClick={handleCopyPrompt}
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full justify-center',
+                  copiedPrompt
+                    ? 'bg-[hsl(var(--ethics-safe)/0.15)] text-[hsl(var(--ethics-safe))] border border-[hsl(var(--ethics-safe)/0.3)]'
+                    : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                )}
+              >
+                {copiedPrompt ? <Check size={16} /> : <Wand2 size={16} />}
+                {copiedPrompt ? 'Copied!' : 'Copy fix prompt'}
+              </button>
+            </div>
+          )}
         </button>
 
         {/* Status dropdown */}
@@ -196,7 +238,8 @@ export function IssueCard({ issue }: IssueCardProps) {
       {isExpanded && (
         <div className="px-4 pb-4 pt-0 border-t border-border/50 mt-0 animate-slide-in">
           <div className="pt-4 space-y-4">
-            {issue.location && (
+            {/* Location - hidden in vibe mode unless expanded */}
+            {issue.location && !isVibe && (
               <div className="flex items-center gap-2 text-sm">
                 <FileCode size={14} className="text-muted-foreground shrink-0" />
                 <code className="font-mono text-[11px] bg-[hsl(210,28%,8%)] text-primary px-2.5 py-1 rounded border border-border">
@@ -215,8 +258,8 @@ export function IssueCard({ issue }: IssueCardProps) {
                        Misuse Scenario
                      </p>
                      <p className={cn(
-                       'text-sm text-foreground italic',
-                       isPlainLanguage && 'font-semibold not-italic'
+                       'text-sm text-foreground',
+                       isVibe ? 'font-semibold' : 'italic'
                      )}>
                        "{issue.misuseScenario}"
                      </p>
@@ -247,7 +290,7 @@ export function IssueCard({ issue }: IssueCardProps) {
                 <h5 className="text-sm font-medium text-foreground">
                   Mitigation
                 </h5>
-                {issue.mitigationType && (
+                {!isVibe && issue.mitigationType && (
                   <span className="text-xs px-1.5 py-0.5 bg-secondary rounded text-muted-foreground">
                     {mitigationTypeLabels[issue.mitigationType]}
                   </span>
@@ -256,74 +299,92 @@ export function IssueCard({ issue }: IssueCardProps) {
               <p className="text-sm text-muted-foreground pl-5">
                 {issue.mitigation}
               </p>
-              {isPlainLanguage && (
+              {isVibe && (
                 <div className="mt-2 ml-5 p-2.5 rounded-lg bg-primary/5 border border-primary/15 flex items-start gap-2">
                   <Info size={13} className="text-primary shrink-0 mt-0.5" />
                   <p className="text-xs text-muted-foreground">
-                    For a plain-language fix, use the <strong className="text-foreground">'Copy as prompt'</strong> button below and paste into your AI tool.
+                    For a plain-language fix, use the <strong className="text-foreground">'Copy fix prompt'</strong> button and paste into your AI tool.
                   </p>
                 </div>
               )}
             </div>
 
-            {/* Code Changes Diff Viewer */}
-            <div className="pl-5">
-              {issue.codeChanges && issue.codeChanges.length > 0 ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Code2 size={13} className="text-muted-foreground" />
-                    <span className="text-xs font-mono text-muted-foreground uppercase tracking-wide">
-                      Code Changes ({issue.codeChanges.length})
+            {/* Code Changes Diff Viewer - collapsed by default in vibe mode */}
+            {!isVibe ? (
+              <div className="pl-5">
+                {issue.codeChanges && issue.codeChanges.length > 0 ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Code2 size={13} className="text-muted-foreground" />
+                      <span className="text-xs font-mono text-muted-foreground uppercase tracking-wide">
+                        Code Changes ({issue.codeChanges.length})
+                      </span>
+                    </div>
+                    {issue.codeChanges.map((change, i) => (
+                      <DiffViewer key={i} codeChange={change} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed border-border bg-secondary/20">
+                    <Code2 size={13} className="text-muted-foreground/50" />
+                    <span className="text-xs font-mono text-muted-foreground/70">
+                      No code-level changes — see design and content changes below
                     </span>
                   </div>
-                  {issue.codeChanges.map((change, i) => (
-                    <DiffViewer key={i} codeChange={change} />
-                  ))}
+                )}
+              </div>
+            ) : (
+              issue.codeChanges && issue.codeChanges.length > 0 && (
+                <div className="pl-5">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setShowDiff(!showDiff); }}
+                    className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors w-full"
+                  >
+                    <Code2 size={14} />
+                    <span>View code changes ({issue.codeChanges.length})</span>
+                    {showDiff ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                  </button>
+                  {showDiff && (
+                    <div className="mt-2 space-y-3">
+                      {issue.codeChanges.map((change, i) => (
+                        <DiffViewer key={i} codeChange={change} />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed border-border bg-secondary/20">
-                  <Code2 size={13} className="text-muted-foreground/50" />
-                  <span className="text-xs font-mono text-muted-foreground/70">
-                    No code-level changes — see design and content changes below
-                  </span>
-                </div>
-              )}
-            </div>
+              )
+            )}
 
-            {/* Prompt-Ready Fix */}
+            {/* Prompt-Ready Fix — larger CTA in vibe mode */}
             <div className="border-t border-border/50 pt-3">
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const prompt = generateFixPrompt(issue);
-                  navigator.clipboard.writeText(prompt);
-                  setCopiedPrompt(true);
-                  toast.success('Fix prompt copied to clipboard');
-                  setTimeout(() => setCopiedPrompt(false), 2000);
-                }}
-                className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors w-full"
+                onClick={handleCopyPrompt}
+                className={cn(
+                  'flex items-center gap-2 font-medium transition-colors w-full',
+                  isVibe
+                    ? 'px-4 py-2.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-sm justify-center'
+                    : 'text-sm text-primary hover:text-primary/80'
+                )}
               >
-                <Wand2 size={14} />
-                <span>Prompt-Ready Fix</span>
-                <span className="ml-auto">
-                  {copiedPrompt ? <Check size={14} className="text-[hsl(var(--ethics-safe))]" /> : <Copy size={14} className="text-muted-foreground" />}
-                </span>
+                <Wand2 size={isVibe ? 16 : 14} />
+                <span>{isVibe ? 'Copy fix prompt' : 'Prompt-Ready Fix'}</span>
+                {!isVibe && (
+                  <span className="ml-auto">
+                    {copiedPrompt ? <Check size={14} className="text-[hsl(var(--ethics-safe))]" /> : <Copy size={14} className="text-muted-foreground" />}
+                  </span>
+                )}
+                {isVibe && copiedPrompt && <Check size={16} />}
               </button>
-              <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const prompt = generateFixPrompt(issue);
-                  navigator.clipboard.writeText(prompt);
-                  setCopiedPrompt(true);
-                  toast.success('Fix prompt copied to clipboard');
-                  setTimeout(() => setCopiedPrompt(false), 2000);
-                }}
-                className="mt-2 p-3 rounded-lg bg-secondary/70 border border-border cursor-pointer hover:bg-secondary transition-colors"
-              >
-                <code className="text-xs text-foreground font-mono whitespace-pre-wrap break-words leading-relaxed">
-                  {generateFixPrompt(issue)}
-                </code>
-              </div>
+              {!isVibe && (
+                <div
+                  onClick={handleCopyPrompt}
+                  className="mt-2 p-3 rounded-lg bg-secondary/70 border border-border cursor-pointer hover:bg-secondary transition-colors"
+                >
+                  <code className="text-xs text-foreground font-mono whitespace-pre-wrap break-words leading-relaxed">
+                    {generateFixPrompt(issue)}
+                  </code>
+                </div>
+              )}
             </div>
 
             {/* Template Library */}
@@ -379,7 +440,7 @@ export function IssueCard({ issue }: IssueCardProps) {
               </div>
             )}
 
-            {/* Confidence Section */}
+            {/* Confidence Section — collapsed by default in vibe, same behavior in dev */}
             {confidence && (
               <div className="border-t border-border/50 pt-3">
                 <button
