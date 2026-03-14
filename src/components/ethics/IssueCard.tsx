@@ -1,6 +1,7 @@
 import { EthicsIssue, IssueConfidenceSummary } from '@/types/ethics';
 import { SeverityBadge } from './SeverityBadge';
 import { DiffViewer } from './DiffViewer';
+import { ForkBadge } from './ForkBadge';
 import { ChevronRight, ChevronDown, FileCode, Lightbulb, AlertCircle, HelpCircle, BarChart3, AlertTriangle as AlertTriangleIcon, BookTemplate, Copy, Check, Wand2, Code2 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
