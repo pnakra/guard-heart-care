@@ -100,15 +100,14 @@ export function EthicsReviewPanel({
                 <BookOpen size={12} />
                 Taxonomy v1.0
               </Link>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <button
                 onClick={onRescan}
-                className="gap-2"
+                className="group inline-flex items-center gap-1.5 px-3 py-1.5 font-mono text-[11px] font-medium text-muted-foreground hover:text-primary border border-border rounded hover:border-primary/30 hover:terminal-glow transition-all"
               >
-                <RefreshCw size={14} />
-                Rescan
-              </Button>
+                <span className="text-primary">{'>'}</span>
+                <span>run scan</span>
+                <span className="hidden group-hover:inline text-primary cursor-blink">▌</span>
+              </button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
