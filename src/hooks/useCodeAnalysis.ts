@@ -76,24 +76,32 @@ function getLatestScan(): ScanHistoryEntry | null {
 export function useCodeAnalysis() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const analyzeCode = async (files: UploadedFile[], projectName: string, customRules?: any, populationModifiers?: string[]): Promise<AnalysisResult | null> => {
+  const analyzeCode = async (files: UploadedFile[], projectName: string, customRules?: any, populationModifiers?: string[], forkData?: any): Promise<AnalysisResult | null> => {
     setIsAnalyzing(true);
 
     try {
       const previousScan = getLatestScan();
       
+      const body: any = { 
+        files, 
+        projectName,
+        customRules: customRules || null,
+        populationModifiers: populationModifiers || null,
+        previousScan: previousScan ? {
+          timestamp: previousScan.timestamp,
+          riskScore: previousScan.riskScore,
+          issueIds: previousScan.issueIds,
+        } : null,
+      };
+
+      // Fork comparison mode
+      if (forkData) {
+        body.forkMode = true;
+        body.upstreamFiles = forkData.upstreamFiles;
+      }
+
       const { data, error } = await supabase.functions.invoke('analyze-code', {
-        body: { 
-          files, 
-          projectName,
-          customRules: customRules || null,
-          populationModifiers: populationModifiers || null,
-          previousScan: previousScan ? {
-            timestamp: previousScan.timestamp,
-            riskScore: previousScan.riskScore,
-            issueIds: previousScan.issueIds,
-          } : null,
-        },
+        body,
       });
 
       if (error) {
