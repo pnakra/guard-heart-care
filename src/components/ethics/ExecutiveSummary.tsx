@@ -128,6 +128,11 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                     </button>
                   )}
                 </div>
+                {/* Risk Profile Active badge */}
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-accent text-accent-foreground border border-border">
+                  <ShieldCheck size={10} />
+                  Risk Profile Active
+                </span>
               )}
             </div>
             <p className="text-muted-foreground">
