@@ -308,8 +308,16 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
 
       // Trigger analysis with fork data
       const validation = validateCustomRules(customRulesText);
-      const customRules = showAdvanced && validation.valid ? validation.parsed : undefined;
-      const populations = selectedPopulations.length > 0 ? selectedPopulations : undefined;
+      const quizElev = getQuizElevations(quizAnswers);
+      const mergedElevated = Array.from(new Set([
+        ...(showAdvanced && validation.valid && validation.parsed?.elevatedCategories || []),
+        ...quizElev.elevatedCategories,
+      ]));
+      const mergedPopulations = Array.from(new Set([...quizElev.populationMods])) as PopulationModifier[];
+      const customRules: CustomRulesConfig | undefined = mergedElevated.length > 0 || (showAdvanced && validation.valid && validation.parsed)
+        ? { ...(showAdvanced && validation.valid ? validation.parsed : {}), elevatedCategories: mergedElevated }
+        : undefined;
+      const populations = mergedPopulations.length > 0 ? mergedPopulations : undefined;
       const forkComparisonData: ForkComparisonData = {
         upstreamUrl,
         forkUrl,
