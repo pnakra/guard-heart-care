@@ -19,7 +19,8 @@ interface UploadedFile {
 }
 
 const Index = () => {
-  const [appState, setAppState] = useState<AppState>('upload');
+  const hasCompletedOnboarding = localStorage.getItem('gfc_onboarding_complete') === 'true';
+  const [appState, setAppState] = useState<AppState>(hasCompletedOnboarding ? 'upload' : 'onboarding');
   const [analysisResult, setAnalysisResult] = useState<EthicsReviewResult | null>(null);
   const [capabilities, setCapabilities] = useState<DetectedCapability[]>([]);
   const [misuseScenarios, setMisuseScenarios] = useState<MisuseScenario[]>([]);
