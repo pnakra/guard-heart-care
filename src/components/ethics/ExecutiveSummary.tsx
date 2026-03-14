@@ -156,7 +156,7 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                       {displayGFS}
                     </div>
                     <div className="flex items-center justify-center gap-1 mt-1">
-                      <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', styles.badge)}>
+                      <span className={cn('font-mono text-[10px] font-semibold px-2 py-0.5 rounded', styles.badge)}>
                         {bandLabel}
                       </span>
                       <Info size={12} className="text-muted-foreground" />
