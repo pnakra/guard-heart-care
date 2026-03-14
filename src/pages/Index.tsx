@@ -27,11 +27,12 @@ const Index = () => {
   
   const { analyzeCode, isAnalyzing } = useCodeAnalysis();
 
-  const handleAnalyze = async (files: UploadedFile[], name: string, customRules?: CustomRulesConfig) => {
+  const handleAnalyze = async (files: UploadedFile[], name: string, customRules?: CustomRulesConfig, populationModifiers?: PopulationModifier[]) => {
     setProjectName(name);
+    setActivePopulations(populationModifiers || []);
     setAppState('scanning');
 
-    const result = await analyzeCode(files, name, customRules);
+    const result = await analyzeCode(files, name, customRules, populationModifiers);
     
     if (result) {
       setAnalysisResult(result.result);
