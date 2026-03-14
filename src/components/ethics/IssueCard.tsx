@@ -1,6 +1,6 @@
-import { EthicsIssue } from '@/types/ethics';
+import { EthicsIssue, IssueConfidenceSummary } from '@/types/ethics';
 import { SeverityBadge } from './SeverityBadge';
-import { ChevronRight, FileCode, Lightbulb, AlertCircle, HelpCircle } from 'lucide-react';
+import { ChevronRight, ChevronDown, FileCode, Lightbulb, AlertCircle, HelpCircle, BarChart3, AlertTriangle as AlertTriangleIcon } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useIssueStatus, IssueStatus, ISSUE_STATUS_CONFIG } from '@/contexts/IssueStatusContext';
@@ -33,20 +33,63 @@ const categoryLabels: Record<string, string> = {
 
 const ALL_STATUSES: IssueStatus[] = ['unreviewed', 'in-review', 'fixed', 'wont-fix', 'accepted-risk'];
 
+function getConfidenceBadge(overall: number): { label: string; className: string } {
+  if (overall < 0.6) return { label: '⚠ Needs Review', className: 'bg-[hsl(var(--ethics-medium)/0.15)] text-[hsl(var(--ethics-medium))] border-[hsl(var(--ethics-medium)/0.3)]' };
+  if (overall <= 0.8) return { label: 'Moderate Confidence', className: 'bg-secondary text-muted-foreground border-border' };
+  return { label: 'High Confidence', className: 'bg-[hsl(var(--ethics-safe)/0.15)] text-[hsl(var(--ethics-safe))] border-[hsl(var(--ethics-safe)/0.3)]' };
+}
+
+function ConfidenceBar({ label, value, rationale }: { label: string; value: number; rationale: string }) {
+  const percent = Math.round(value * 100);
+  const barColor =
+    percent >= 80 ? 'bg-[hsl(var(--ethics-safe))]' :
+    percent >= 60 ? 'bg-[hsl(var(--ethics-low))]' :
+    'bg-[hsl(var(--ethics-medium))]';
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-foreground">{label}</span>
+        <span className="text-xs tabular-nums text-muted-foreground">{percent}%</span>
+      </div>
+      <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+        <div className={cn('h-full rounded-full transition-all', barColor)} style={{ width: `${percent}%` }} />
+      </div>
+      <p className="text-xs text-muted-foreground">{rationale}</p>
+    </div>
+  );
+}
+
 export function IssueCard({ issue }: IssueCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showConfidence, setShowConfidence] = useState(false);
   const { getStatus, setStatus } = useIssueStatus();
   const currentStatus = getStatus(issue.id);
   const statusConfig = ISSUE_STATUS_CONFIG[currentStatus];
 
+  const confidence = issue.confidence;
+  const isLowConfidence = confidence && confidence.overallConfidence < 0.6;
+  const confidenceBadge = confidence ? getConfidenceBadge(confidence.overallConfidence) : null;
+
   return (
     <div 
       className={cn(
-        'bg-card border border-border rounded-lg overflow-hidden transition-all duration-200',
-        'hover:shadow-md hover:border-border/80',
+        'bg-card border rounded-lg overflow-hidden transition-all duration-200',
+        'hover:shadow-md',
+        isLowConfidence
+          ? 'border-dashed border-[hsl(var(--ethics-medium)/0.5)]'
+          : 'border-border hover:border-border/80',
         (currentStatus === 'fixed' || currentStatus === 'wont-fix') && 'opacity-60'
       )}
     >
+      {/* Low confidence flag */}
+      {isLowConfidence && (
+        <div className="px-4 py-1.5 bg-[hsl(var(--ethics-medium)/0.08)] border-b border-dashed border-[hsl(var(--ethics-medium)/0.3)] flex items-center gap-1.5">
+          <AlertTriangleIcon size={11} className="text-[hsl(var(--ethics-medium))]" />
+          <span className="text-xs font-medium text-[hsl(var(--ethics-medium))]">Flagged for human review</span>
+        </div>
+      )}
+
       <div className="flex items-start">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
@@ -56,6 +99,11 @@ export function IssueCard({ issue }: IssueCardProps) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <SeverityBadge severity={issue.severity} size="sm" />
+                {confidenceBadge && (
+                  <span className={cn('text-xs px-1.5 py-0.5 rounded-full border', confidenceBadge.className)}>
+                    {confidenceBadge.label}
+                  </span>
+                )}
                 <span className="text-xs text-muted-foreground uppercase tracking-wide">
                   {categoryLabels[issue.category] || issue.category}
                 </span>
@@ -120,7 +168,7 @@ export function IssueCard({ issue }: IssueCardProps) {
               </div>
             )}
 
-            {/* Misuse Scenario - the key differentiator */}
+            {/* Misuse Scenario */}
             {issue.misuseScenario && (
               <div className="p-3 rounded-lg bg-[hsl(var(--ethics-high-bg))] border border-[hsl(var(--ethics-high)/0.2)]">
                 <div className="flex gap-2">
@@ -169,6 +217,43 @@ export function IssueCard({ issue }: IssueCardProps) {
                 {issue.mitigation}
               </p>
             </div>
+
+            {/* Confidence Section */}
+            {confidence && (
+              <div className="border-t border-border/50 pt-3">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowConfidence(!showConfidence); }}
+                  className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors w-full"
+                >
+                  <BarChart3 size={14} />
+                  <span>Confidence Scores</span>
+                  <span className="text-xs tabular-nums ml-auto mr-1">
+                    {Math.round(confidence.overallConfidence * 100)}% overall
+                  </span>
+                  {showConfidence ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                </button>
+                
+                {showConfidence && (
+                  <div className="mt-3 space-y-4 pl-5">
+                    <ConfidenceBar
+                      label="Detection Confidence"
+                      value={confidence.detectionConfidence}
+                      rationale={confidence.detectionRationale}
+                    />
+                    <ConfidenceBar
+                      label="Misuse Confidence"
+                      value={confidence.misuseConfidence}
+                      rationale={confidence.misuseRationale}
+                    />
+                    <ConfidenceBar
+                      label="Severity Confidence"
+                      value={confidence.severityConfidence}
+                      rationale={confidence.severityRationale}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -29,6 +29,8 @@ interface ExecutiveSummaryProps {
   detectedCategory?: string;
   /** Issue IDs for triage tracking */
   issueIds?: string[];
+  /** Count of issues with confidence < 0.6 */
+  lowConfidenceCount?: number;
 }
 
 const effortLabels = {
@@ -60,7 +62,7 @@ const gfsBandStyles = {
   },
 };
 
-export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, detectedCategory, issueIds = [] }: ExecutiveSummaryProps) {
+export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, detectedCategory, issueIds = [], lowConfidenceCount = 0 }: ExecutiveSummaryProps) {
   const hasTopRisks = summary.topThreeRisks && summary.topThreeRisks.length > 0;
   const [categoryOverride, setCategoryOverride] = useState<string | null>(null);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
@@ -226,6 +228,16 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                 style={{ width: `${triagePercent}%` }}
               />
             </div>
+          </div>
+        )}
+
+        {/* Low confidence notice */}
+        {lowConfidenceCount > 0 && (
+          <div className="mt-3 flex items-center gap-2 text-xs text-[hsl(var(--ethics-medium))]">
+            <AlertTriangle size={12} />
+            <span>
+              {lowConfidenceCount} {lowConfidenceCount === 1 ? 'issue' : 'issues'} flagged for human review due to low confidence
+            </span>
           </div>
         )}
       </div>

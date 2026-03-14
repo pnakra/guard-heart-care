@@ -312,11 +312,31 @@ export function useCodeAnalysis() {
         executiveSummary.highCount > 0 ? 'high' : 
         issues.length > 0 ? 'medium' : 'safe';
 
+      // Backfill confidence data into v1 issues for UI display
+      const issuesWithConfidence: EthicsIssue[] = issues.map((issue) => {
+        const enhanced = enhancedIssues.find(e => e.id === issue.id);
+        if (enhanced?.confidence) {
+          return {
+            ...issue,
+            confidence: {
+              detectionConfidence: enhanced.confidence.detectionConfidence,
+              detectionRationale: enhanced.confidence.detectionRationale,
+              misuseConfidence: enhanced.confidence.misuseConfidence,
+              misuseRationale: enhanced.confidence.misuseRationale,
+              severityConfidence: enhanced.confidence.severityConfidence,
+              severityRationale: enhanced.confidence.severityRationale,
+              overallConfidence: enhanced.confidence.overallConfidence,
+            },
+          };
+        }
+        return issue;
+      });
+
       // V1 result (backwards compatible)
       const result: EthicsReviewResult = {
         executiveSummary,
         overallStatus,
-        issues,
+        issues: issuesWithConfidence,
         categories,
         timestamp,
         projectName: data.projectName,
