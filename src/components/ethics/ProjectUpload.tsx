@@ -396,7 +396,53 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
           />
         </div>
 
-        {inputMode === 'github' ? (
+        {inputMode === 'fork' ? (
+          /* Fork Comparison */
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Upstream Repository URL
+              </label>
+              <Input
+                placeholder="https://github.com/original-org/repo"
+                value={upstreamUrl}
+                onChange={(e) => setUpstreamUrl(e.target.value)}
+                className="bg-card"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Your Fork URL
+              </label>
+              <Input
+                placeholder="https://github.com/your-username/repo"
+                value={forkUrl}
+                onChange={(e) => setForkUrl(e.target.value)}
+                className="bg-card"
+              />
+            </div>
+            <Button
+              onClick={handleFetchFork}
+              disabled={isFetchingFork || !upstreamUrl.trim() || !forkUrl.trim()}
+              className="w-full gap-2"
+            >
+              {isFetchingFork ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  {forkStatus || 'Fetching...'}
+                </>
+              ) : (
+                <>
+                  <GitFork size={16} />
+                  Compare Fork Against Upstream
+                </>
+              )}
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Both must be public repos. We'll fetch and diff both, then classify each issue as inherited, introduced, or remediated.
+            </p>
+          </div>
+        ) : inputMode === 'github' ? (
           /* GitHub Import */
           <div className="space-y-4">
             <div className="space-y-2">
