@@ -151,9 +151,9 @@ const CATEGORIES: CategorySection[] = [
   },
   {
     id: 'dark-patterns',
-    title: 'Dark Patterns & Coercive UX',
-    icon: 'zap',
-    definition: 'UX patterns that manipulate users into taking actions they did not intend, through deception, friction asymmetry, or psychological pressure.',
+    name: 'Dark Patterns & Coercive UX',
+    shortDef: 'UX patterns that manipulate users into taking actions they did not intend, through deception, friction asymmetry, or psychological pressure.',
+    icon: <Zap size={20} />,
     whyMisuseByDesign:
       'Dark patterns are not accidents — they are deliberately designed interactions that exploit cognitive biases and user trust. A confirm-shaming modal that says "No thanks, I don\'t care about my health" is working exactly as intended. The harm is the design.',
     examples: [
