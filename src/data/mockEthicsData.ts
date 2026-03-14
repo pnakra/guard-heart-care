@@ -33,6 +33,14 @@ export const mockIssues: EthicsIssue[] = [
     whyMisuseByDesign: 'The feature explicitly helps overcome rejection, treating human boundaries as obstacles to optimize around',
     mitigation: 'Remove or reframe: Either remove the post-rejection messaging feature or add friction with "This person has already declined. Are you sure?"',
     mitigationType: 'feature-removal',
+    codeChanges: [
+      {
+        file: 'src/components/MessageCraft.tsx',
+        action: 'Add rejection-aware guard before message generation',
+        currentCode: 'function handleCraftMessage(recipientId: string) {\n  const response = generatePersuasiveMessage(context);\n  return response;\n}',
+        suggestedCode: 'function handleCraftMessage(recipientId: string) {\n  if (hasDeclined(recipientId)) {\n    showConfirmation("This person has already declined. Are you sure you want to continue?");\n    return null;\n  }\n  const response = generateMessage(context);\n  return response;\n}',
+      },
+    ],
   },
   {
     id: '3',
