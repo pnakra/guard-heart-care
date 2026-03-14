@@ -260,6 +260,10 @@ export function EthicsReviewPanel({
                       )}
                     </TabsTrigger>
                   )}
+                  <TabsTrigger value="checklist" className="gap-2 font-mono text-xs">
+                    <ClipboardCheck size={14} />
+                    pre_launch
+                  </TabsTrigger>
                 </TabsList>
 
                 {activeTab === 'issues' && selectedCategory && (
