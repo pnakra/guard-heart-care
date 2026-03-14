@@ -5,7 +5,8 @@ export type HarmCategory =
   | 'manipulation'
   | 'surveillance'
   | 'admin-abuse'
-  | 'ai-hallucination';
+  | 'ai-hallucination'
+  | 'dark-patterns';
 
 export interface IssueConfidenceSummary {
   detectionConfidence: number;

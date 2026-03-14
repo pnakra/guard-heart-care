@@ -5,6 +5,7 @@ import {
   Scale,
   Sparkles,
   AlertTriangle,
+  Zap,
   LucideIcon
 } from 'lucide-react';
 
@@ -15,6 +16,7 @@ const iconMap: Record<string, LucideIcon> = {
   scale: Scale,
   sparkles: Sparkles,
   'alert-triangle': AlertTriangle,
+  zap: Zap,
 };
 
 interface CategoryIconProps {

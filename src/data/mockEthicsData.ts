@@ -117,6 +117,14 @@ export const mockCategories: CategorySummary[] = [
     issueCount: 1,
     highestSeverity: 'high',
   },
+  {
+    category: 'dark-patterns',
+    label: 'Dark Patterns',
+    description: 'Coercive UX that manipulates users into unintended actions',
+    icon: 'zap',
+    issueCount: 1,
+    highestSeverity: 'high',
+  },
 ];
 
 export const mockExecutiveSummary: ExecutiveSummary = {
