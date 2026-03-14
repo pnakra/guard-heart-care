@@ -7,6 +7,7 @@ import { ExecutiveSummary } from './ExecutiveSummary';
 import { CategoryCard } from './CategoryCard';
 import { IssuesList } from './IssuesList';
 import { MisuseScenarios } from './MisuseScenarios';
+import { ForkAnalysisTab } from './ForkAnalysisTab';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
