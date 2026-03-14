@@ -734,6 +734,65 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
           </div>
         </div>
 
+        {/* Category Quiz */}
+        <div className="border border-border rounded-lg bg-card p-4 space-y-3">
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-foreground">
+              Quick Context Quiz
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Answer these to automatically tune the scan for your app's context.
+            </p>
+          </div>
+          <div className="space-y-2">
+            {QUIZ_QUESTIONS.map(q => (
+              <button
+                key={q.key}
+                type="button"
+                onClick={() => setQuizAnswers(prev => ({ ...prev, [q.key]: !prev[q.key] }))}
+                className={cn(
+                  'w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-sm transition-all text-left',
+                  quizAnswers[q.key]
+                    ? 'bg-primary/8 border-primary/30 text-foreground'
+                    : 'bg-card border-border text-muted-foreground hover:border-border/80 hover:text-foreground'
+                )}
+              >
+                <span>{q.label}</span>
+                <span className={cn(
+                  'shrink-0 ml-3 px-2 py-0.5 rounded text-xs font-medium transition-colors',
+                  quizAnswers[q.key]
+                    ? 'bg-primary/15 text-primary'
+                    : 'bg-secondary text-muted-foreground'
+                )}>
+                  {quizAnswers[q.key] ? 'Yes' : 'No'}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Scan config summary */}
+          {(() => {
+            const elev = getQuizElevations(quizAnswers);
+            const allCats = Array.from(new Set([...elev.elevatedCategories]));
+            const allPops = Array.from(new Set([...selectedPopulations, ...elev.populationMods]));
+            if (allCats.length === 0 && allPops.length === 0) return null;
+            return (
+              <div className="px-3 py-2 rounded-lg bg-primary/5 border border-primary/10">
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">Scan config: </span>
+                  {allCats.length > 0 && (
+                    <span>Elevated: {allCats.map(c => c.replace('-', ' ')).join(', ')}</span>
+                  )}
+                  {allCats.length > 0 && allPops.length > 0 && <span> | </span>}
+                  {allPops.length > 0 && (
+                    <span>Population: {allPops.join(', ')}</span>
+                  )}
+                </p>
+              </div>
+            );
+          })()}
+        </div>
+
         {/* Analyze Button */}
         <Button
           onClick={handleAnalyze}
