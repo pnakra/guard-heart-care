@@ -123,7 +123,11 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [githubUrl, setGithubUrl] = useState('');
   const [isFetchingGithub, setIsFetchingGithub] = useState(false);
-  const [inputMode, setInputMode] = useState<'upload' | 'github'>('upload');
+  const [inputMode, setInputMode] = useState<'upload' | 'github' | 'fork'>('upload');
+  const [upstreamUrl, setUpstreamUrl] = useState('');
+  const [forkUrl, setForkUrl] = useState('');
+  const [isFetchingFork, setIsFetchingFork] = useState(false);
+  const [forkStatus, setForkStatus] = useState<string>('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [selectedPopulations, setSelectedPopulations] = useState<PopulationModifier[]>(() => {
     try {
