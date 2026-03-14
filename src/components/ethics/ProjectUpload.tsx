@@ -106,6 +106,8 @@ function validateCustomRules(jsonStr: string): { valid: boolean; parsed?: Custom
   return { valid: true, parsed: parsed as CustomRulesConfig };
 }
 
+const POPULATION_STORAGE_KEY = 'gfc-population-modifiers';
+
 export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [projectName, setProjectName] = useState('');
@@ -114,6 +116,12 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
   const [isFetchingGithub, setIsFetchingGithub] = useState(false);
   const [inputMode, setInputMode] = useState<'upload' | 'github'>('upload');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [selectedPopulations, setSelectedPopulations] = useState<PopulationModifier[]>(() => {
+    try {
+      const stored = sessionStorage.getItem(POPULATION_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch { return []; }
+  });
   const [customRulesText, setCustomRulesText] = useState(() => {
     try { return sessionStorage.getItem(CUSTOM_RULES_KEY) || DEFAULT_RULES; } catch { return DEFAULT_RULES; }
   });
