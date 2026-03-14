@@ -5,7 +5,7 @@ import { CategoryIcon } from './CategoryIcon';
 import { cn } from '@/lib/utils';
 import { Copy, Check, Rocket, CircleDashed, CircleCheck, CircleDot } from 'lucide-react';
 import { toast } from 'sonner';
-import { usePlainLanguage } from '@/contexts/PlainLanguageContext';
+import { useMode } from '@/contexts/ModeContext';
 import { PLAIN_CATEGORY_LABELS } from '@/data/plainLanguageMap';
 
 type CheckState = 'unchecked' | 'acknowledged' | 'resolved';
@@ -38,7 +38,7 @@ interface PreLaunchChecklistProps {
 
 export function PreLaunchChecklist({ categories, issues, timestamp }: PreLaunchChecklistProps) {
   const storageKey = `gfc_checklist_${timestamp}`;
-  const { isPlainLanguage } = usePlainLanguage();
+  const { isVibe } = useMode();
   const [copiedChecklist, setCopiedChecklist] = useState(false);
 
   const [states, setStates] = useState<Record<string, CheckState>>(() => {
@@ -88,7 +88,7 @@ export function PreLaunchChecklist({ categories, issues, timestamp }: PreLaunchC
         const state = getState(cat.category);
         const check = state === 'resolved' ? 'x' : state === 'acknowledged' ? '~' : ' ';
         const topIssue = topIssuePerCategory[cat.category];
-        const label = isPlainLanguage
+        const label = isVibe
           ? PLAIN_CATEGORY_LABELS[cat.category as HarmCategory] || cat.label
           : cat.label;
         const issueLine = topIssue ? ` — ${topIssue.title} (${topIssue.severity})` : ' — No issues';
@@ -113,13 +113,14 @@ export function PreLaunchChecklist({ categories, issues, timestamp }: PreLaunchC
       {/* Progress */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="font-mono text-xs text-muted-foreground">
+          <span className={cn('text-xs text-muted-foreground', isVibe ? 'font-sans' : 'font-mono')}>
             {reviewedCount} of {totalCount} categories reviewed
           </span>
           <button
             onClick={handleCopy}
             className={cn(
-              'inline-flex items-center gap-1.5 px-3 py-1.5 rounded border text-xs font-mono transition-colors',
+              'inline-flex items-center gap-1.5 px-3 py-1.5 rounded border text-xs transition-colors',
+              isVibe ? 'font-sans' : 'font-mono',
               copiedChecklist
                 ? 'border-[hsl(var(--ethics-safe)/0.4)] text-[hsl(var(--ethics-safe))] bg-[hsl(var(--ethics-safe)/0.08)]'
                 : 'border-border text-muted-foreground hover:text-foreground hover:border-primary/30'
@@ -160,7 +161,7 @@ export function PreLaunchChecklist({ categories, issues, timestamp }: PreLaunchC
           const config = checkConfig[state];
           const Icon = config.icon;
           const topIssue = topIssuePerCategory[cat.category];
-          const displayLabel = isPlainLanguage
+          const displayLabel = isVibe
             ? PLAIN_CATEGORY_LABELS[cat.category as HarmCategory] || cat.label
             : cat.label;
 
@@ -176,7 +177,6 @@ export function PreLaunchChecklist({ categories, issues, timestamp }: PreLaunchC
                   : 'border-border bg-card hover:border-border/80'
               )}
             >
-              {/* Cycle checkbox */}
               <button
                 onClick={() => cycleState(cat.category)}
                 className={cn('shrink-0 transition-colors', config.className)}
@@ -185,14 +185,15 @@ export function PreLaunchChecklist({ categories, issues, timestamp }: PreLaunchC
                 <Icon size={22} />
               </button>
 
-              {/* Category icon */}
               <div className="p-1.5 rounded bg-secondary/60 shrink-0">
                 <CategoryIcon icon={cat.icon} size={16} />
               </div>
 
-              {/* Content */}
               <div className="flex-1 min-w-0">
-                <p className="font-mono text-sm font-medium text-foreground truncate">
+                <p className={cn(
+                  'text-sm font-medium text-foreground truncate',
+                  isVibe ? 'font-sans' : 'font-mono'
+                )}>
                   {displayLabel}
                 </p>
                 {topIssue ? (
@@ -204,13 +205,15 @@ export function PreLaunchChecklist({ categories, issues, timestamp }: PreLaunchC
                 )}
               </div>
 
-              {/* Severity badge */}
               {topIssue && (
                 <SeverityBadge severity={topIssue.severity} size="sm" />
               )}
 
-              {/* State label */}
-              <span className={cn('font-mono text-[10px] shrink-0 w-20 text-right', config.className)}>
+              <span className={cn(
+                'text-[10px] shrink-0 w-20 text-right',
+                isVibe ? 'font-sans' : 'font-mono',
+                config.className
+              )}>
                 {config.label}
               </span>
             </div>

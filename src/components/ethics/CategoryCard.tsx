@@ -2,7 +2,7 @@ import { CategorySummary, HarmCategory } from '@/types/ethics';
 import { CategoryIcon } from './CategoryIcon';
 import { SeverityBadge } from './SeverityBadge';
 import { cn } from '@/lib/utils';
-import { usePlainLanguage } from '@/contexts/PlainLanguageContext';
+import { useMode } from '@/contexts/ModeContext';
 import { PLAIN_CATEGORY_LABELS } from '@/data/plainLanguageMap';
 
 interface CategoryCardProps {
@@ -12,10 +12,11 @@ interface CategoryCardProps {
 }
 
 export function CategoryCard({ category, isSelected, onClick }: CategoryCardProps) {
-  const { isPlainLanguage } = usePlainLanguage();
-  const displayLabel = isPlainLanguage
+  const { isVibe } = useMode();
+  const displayLabel = isVibe
     ? PLAIN_CATEGORY_LABELS[category.category as HarmCategory] || category.label
     : category.label;
+
   return (
     <button
       onClick={onClick}
@@ -38,8 +39,11 @@ export function CategoryCard({ category, isSelected, onClick }: CategoryCardProp
           </div>
           
           <div className="min-w-0 flex-1">
-            <h3 className="font-mono font-medium text-foreground text-sm truncate">
-              {isPlainLanguage ? displayLabel : `[${category.label.toUpperCase()}]`}
+            <h3 className={cn(
+              'font-medium text-foreground text-sm truncate',
+              isVibe ? 'font-sans' : 'font-mono'
+            )}>
+              {isVibe ? displayLabel : `[${category.label.toUpperCase()}]`}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
               {category.description}
@@ -51,7 +55,10 @@ export function CategoryCard({ category, isSelected, onClick }: CategoryCardProp
           {category.issueCount > 0 ? (
             <>
               <SeverityBadge severity={category.highestSeverity} size="sm" showLabel={false} />
-              <span className="font-mono text-[10px] text-muted-foreground">
+              <span className={cn(
+                'text-[10px] text-muted-foreground',
+                isVibe ? 'font-sans' : 'font-mono'
+              )}>
                 {category.issueCount} {category.issueCount === 1 ? 'issue' : 'issues'}
               </span>
             </>

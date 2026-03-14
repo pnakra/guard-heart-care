@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { SeverityLevel } from '@/types/ethics';
-import { usePlainLanguage } from '@/contexts/PlainLanguageContext';
+import { useMode } from '@/contexts/ModeContext';
 import { PLAIN_SEVERITY_LABELS } from '@/data/plainLanguageMap';
 
 interface SeverityBadgeProps {
@@ -43,16 +43,17 @@ const sizeConfig = {
 
 export function SeverityBadge({ severity, showLabel = true, size = 'md' }: SeverityBadgeProps) {
   const config = severityConfig[severity];
-  const { isPlainLanguage } = usePlainLanguage();
+  const { isVibe } = useMode();
 
-  const displayLabel = isPlainLanguage
+  const displayLabel = isVibe
     ? PLAIN_SEVERITY_LABELS[severity]
     : config.label;
 
   return (
     <span
       className={cn(
-        'inline-flex items-center font-mono font-semibold tracking-wider border rounded',
+        'inline-flex items-center font-semibold tracking-wider border rounded',
+        isVibe ? 'font-sans' : 'font-mono',
         config.className,
         sizeConfig[size]
       )}
