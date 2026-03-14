@@ -155,6 +155,7 @@ export function EthicsReviewPanel({
           timestamp={result.timestamp}
           detectedCategory={result.detectedCategory}
           issueIds={result.issues.map(i => i.id)}
+          lowConfidenceCount={result.issues.filter(i => i.confidence && i.confidence.overallConfidence < 0.6).length}
         />
 
         {/* Two Column Layout */}
