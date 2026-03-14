@@ -171,6 +171,12 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
   const [customRulesText, setCustomRulesText] = useState(() => {
     try { return sessionStorage.getItem(CUSTOM_RULES_KEY) || DEFAULT_RULES; } catch { return DEFAULT_RULES; }
   });
+  const [quizAnswers, setQuizAnswers] = useState<QuizAnswers>(() => {
+    try {
+      const stored = sessionStorage.getItem(QUIZ_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : DEFAULT_QUIZ;
+    } catch { return DEFAULT_QUIZ; }
+  });
   const [rulesValidation, setRulesValidation] = useState<{ valid: boolean; error?: string }>({ valid: true });
 
   // Validate on change
