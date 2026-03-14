@@ -76,7 +76,7 @@ function getLatestScan(): ScanHistoryEntry | null {
 export function useCodeAnalysis() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const analyzeCode = async (files: UploadedFile[], projectName: string, customRules?: any): Promise<AnalysisResult | null> => {
+  const analyzeCode = async (files: UploadedFile[], projectName: string, customRules?: any, populationModifiers?: string[]): Promise<AnalysisResult | null> => {
     setIsAnalyzing(true);
 
     try {
