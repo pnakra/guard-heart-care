@@ -1,6 +1,7 @@
 import { EthicsIssue, IssueConfidenceSummary } from '@/types/ethics';
 import { SeverityBadge } from './SeverityBadge';
-import { ChevronRight, ChevronDown, FileCode, Lightbulb, AlertCircle, HelpCircle, BarChart3, AlertTriangle as AlertTriangleIcon, BookTemplate, Copy, Check, Wand2 } from 'lucide-react';
+import { DiffViewer } from './DiffViewer';
+import { ChevronRight, ChevronDown, FileCode, Lightbulb, AlertCircle, HelpCircle, BarChart3, AlertTriangle as AlertTriangleIcon, BookTemplate, Copy, Check, Wand2, Code2 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { getTemplatesForType, generateFixPrompt, MitigationType } from '@/data/remediationTemplates';
@@ -240,6 +241,30 @@ export function IssueCard({ issue }: IssueCardProps) {
               <p className="text-sm text-muted-foreground pl-5">
                 {issue.mitigation}
               </p>
+            </div>
+
+            {/* Code Changes Diff Viewer */}
+            <div className="pl-5">
+              {issue.codeChanges && issue.codeChanges.length > 0 ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Code2 size={13} className="text-muted-foreground" />
+                    <span className="text-xs font-mono text-muted-foreground uppercase tracking-wide">
+                      Code Changes ({issue.codeChanges.length})
+                    </span>
+                  </div>
+                  {issue.codeChanges.map((change, i) => (
+                    <DiffViewer key={i} codeChange={change} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed border-border bg-secondary/20">
+                  <Code2 size={13} className="text-muted-foreground/50" />
+                  <span className="text-xs font-mono text-muted-foreground/70">
+                    No code-level changes — see design and content changes below
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Prompt-Ready Fix */}

@@ -13,6 +13,14 @@ export const mockIssues: EthicsIssue[] = [
     whyMisuseByDesign: 'The AI is positioned as an authority on human relationships without disclaimers, making its outputs appear as expert endorsement',
     mitigation: 'Add prominent disclaimer: "I\'m an AI and cannot provide relationship advice. Please consult a licensed therapist."',
     mitigationType: 'ui-language',
+    codeChanges: [
+      {
+        file: 'src/components/ChatInterface.tsx',
+        action: 'Add AI disclaimer before response output',
+        currentCode: 'return (\n  <div className="chat-response">\n    <p>{response}</p>\n  </div>\n);',
+        suggestedCode: 'return (\n  <div className="chat-response">\n    <p className="disclaimer">⚠️ I\'m an AI and cannot provide relationship advice. Please consult a licensed therapist.</p>\n    <p>{response}</p>\n  </div>\n);',
+      },
+    ],
   },
   {
     id: '2',
@@ -25,6 +33,14 @@ export const mockIssues: EthicsIssue[] = [
     whyMisuseByDesign: 'The feature explicitly helps overcome rejection, treating human boundaries as obstacles to optimize around',
     mitigation: 'Remove or reframe: Either remove the post-rejection messaging feature or add friction with "This person has already declined. Are you sure?"',
     mitigationType: 'feature-removal',
+    codeChanges: [
+      {
+        file: 'src/components/MessageCraft.tsx',
+        action: 'Add rejection-aware guard before message generation',
+        currentCode: 'function handleCraftMessage(recipientId: string) {\n  const response = generatePersuasiveMessage(context);\n  return response;\n}',
+        suggestedCode: 'function handleCraftMessage(recipientId: string) {\n  if (hasDeclined(recipientId)) {\n    showConfirmation("This person has already declined. Are you sure you want to continue?");\n    return null;\n  }\n  const response = generateMessage(context);\n  return response;\n}',
+      },
+    ],
   },
   {
     id: '3',
@@ -37,6 +53,15 @@ export const mockIssues: EthicsIssue[] = [
     whyMisuseByDesign: 'The one-time consent model assumes ongoing consent, which is exploitable in coercive relationships where initial "consent" was under duress',
     mitigation: 'Require weekly consent renewal with visible indicator that sharing is active. Add easy "stop sharing" in prominent location.',
     mitigationType: 'interaction-model',
+    codeChanges: [
+      {
+        file: 'src/hooks/useLocation.ts',
+        action: 'Add consent expiry check to location sharing',
+        currentCode: '',
+        suggestedCode: '',
+        diffPreview: ' function startLocationSharing(userId: string) {\n-  setSharing(true);\n-  trackLocation(userId);\n+  const consent = await renewConsent(userId);\n+  if (!consent.granted) return;\n+  setSharing(true, { expiresIn: "7d" });\n+  trackLocation(userId);\n+  showActiveIndicator();\n }',
+      },
+    ],
   },
   {
     id: '4',

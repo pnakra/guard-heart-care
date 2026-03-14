@@ -18,6 +18,14 @@ export interface IssueConfidenceSummary {
   overallConfidence: number;
 }
 
+export interface CodeChange {
+  file: string;
+  action: string;
+  currentCode: string;
+  suggestedCode: string;
+  diffPreview?: string; // Raw unified diff, used instead of split view if present
+}
+
 export interface EthicsIssue {
   id: string;
   category: HarmCategory;
@@ -25,15 +33,16 @@ export interface EthicsIssue {
   description: string;
   severity: SeverityLevel;
   location?: string;
-  misuseScenario: string; // "A user could use this feature to ___ in order to ___"
-  whyMisuseByDesign: string; // Why this is misuse-by-design, not a bug
+  misuseScenario: string;
+  whyMisuseByDesign: string;
   mitigation: string;
   mitigationType: 'ui-language' | 'interaction-model' | 'feature-removal' | 'reframing';
-  isNewSinceLast?: boolean; // For iteration awareness
-  confidence?: IssueConfidenceSummary; // V2 confidence data
-  customRule?: boolean; // Triggered by a user-defined custom rule
-  customRuleName?: string; // Name of the triggering custom rule
-  populationTags?: string[]; // Population modifiers relevant to this issue
+  codeChanges?: CodeChange[];
+  isNewSinceLast?: boolean;
+  confidence?: IssueConfidenceSummary;
+  customRule?: boolean;
+  customRuleName?: string;
+  populationTags?: string[];
 }
 
 export interface ExecutiveSummary {
