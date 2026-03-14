@@ -38,8 +38,17 @@ export const POPULATION_MODIFIERS: { id: PopulationModifier; label: string; shor
   { id: 'elderly', label: 'Elderly users are a primary audience', shortLabel: 'Elderly' },
 ];
 
+interface ForkComparisonData {
+  upstreamUrl: string;
+  forkUrl: string;
+  upstreamFiles: UploadedFile[];
+  forkFiles: UploadedFile[];
+  upstreamRepo: string;
+  forkRepo: string;
+}
+
 interface ProjectUploadProps {
-  onAnalyze: (files: UploadedFile[], projectName: string, customRules?: CustomRulesConfig, populationModifiers?: PopulationModifier[]) => void;
+  onAnalyze: (files: UploadedFile[], projectName: string, customRules?: CustomRulesConfig, populationModifiers?: PopulationModifier[], forkData?: ForkComparisonData) => void;
   isAnalyzing: boolean;
 }
 
