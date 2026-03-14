@@ -118,6 +118,11 @@ export function IssueCard({ issue }: IssueCardProps) {
                     Custom Rule{issue.customRuleName ? `: ${issue.customRuleName}` : ''}
                   </span>
                 )}
+                {issue.populationTags && issue.populationTags.length > 0 && issue.populationTags.map(tag => (
+                  <span key={tag} className="text-xs px-1.5 py-0.5 rounded-full border bg-[hsl(var(--ethics-medium)/0.1)] text-[hsl(var(--ethics-medium))] border-[hsl(var(--ethics-medium)/0.2)]">
+                    ⚠ Elevated: {populationLabels[tag] || tag}
+                  </span>
+                ))}
                 <span className="text-xs text-muted-foreground uppercase tracking-wide">
                   {categoryLabels[issue.category] || issue.category}
                 </span>
