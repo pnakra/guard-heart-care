@@ -207,11 +207,11 @@ export function EthicsReviewPanel({
                       {result.issues.length}
                     </span>
                   </TabsTrigger>
-                  <TabsTrigger value="misuse" className="gap-2">
+                  <TabsTrigger value="misuse" className="gap-2 font-mono text-xs">
                     <AlertTriangle size={14} />
-                    Misuse Scenarios
+                    misuse_scenarios
                     {criticalMisuseCount > 0 && (
-                      <span className="text-xs bg-[hsl(var(--ethics-critical))] text-white px-1.5 py-0.5 rounded-full">
+                      <span className="font-mono text-[10px] bg-[hsl(var(--ethics-critical))] text-white px-1.5 py-0.5 rounded">
                         {criticalMisuseCount}
                       </span>
                     )}
