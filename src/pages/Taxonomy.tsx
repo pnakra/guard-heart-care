@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, Scale, Brain, Eye, ShieldAlert, Sparkles } from 'lucide-react';
+import { ArrowLeft, Scale, Brain, Eye, ShieldAlert, Sparkles, Zap } from 'lucide-react';
 
 interface CategorySection {
   id: string;
