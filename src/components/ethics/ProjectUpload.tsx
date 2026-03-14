@@ -350,7 +350,6 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
         ...quizElev.elevatedCategories,
       ]));
       const mergedPopulations = Array.from(new Set([
-        ...selectedPopulations,
         ...quizElev.populationMods,
       ])) as PopulationModifier[];
 
