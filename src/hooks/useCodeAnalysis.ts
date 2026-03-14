@@ -155,6 +155,7 @@ export function useCodeAnalysis() {
         customRule: i.customRule || false,
         customRuleName: i.customRuleName || undefined,
         populationTags: Array.isArray(i.populationTags) ? i.populationTags : undefined,
+        forkClassification: i.forkClassification || undefined,
       }));
 
       // Calculate base risk score
