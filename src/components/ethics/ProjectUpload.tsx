@@ -345,8 +345,23 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
   const handleAnalyze = () => {
     if (files.length > 0) {
       const validation = validateCustomRules(customRulesText);
-      const customRules = showAdvanced && validation.valid ? validation.parsed : undefined;
-      const populations = selectedPopulations.length > 0 ? selectedPopulations : undefined;
+      const baseRules = showAdvanced && validation.valid ? validation.parsed : undefined;
+
+      // Merge quiz elevations into custom rules
+      const quizElev = getQuizElevations(quizAnswers);
+      const mergedElevated = Array.from(new Set([
+        ...(baseRules?.elevatedCategories || []),
+        ...quizElev.elevatedCategories,
+      ]));
+      const mergedPopulations = Array.from(new Set([
+        ...selectedPopulations,
+        ...quizElev.populationMods,
+      ])) as PopulationModifier[];
+
+      const customRules: CustomRulesConfig | undefined = mergedElevated.length > 0 || baseRules
+        ? { ...baseRules, elevatedCategories: mergedElevated }
+        : undefined;
+      const populations = mergedPopulations.length > 0 ? mergedPopulations : undefined;
       onAnalyze(files, projectName || 'Uploaded Project', customRules, populations);
     }
   };
