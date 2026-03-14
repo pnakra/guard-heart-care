@@ -208,11 +208,19 @@ export function getTemplatesForType(type: MitigationType): RemediationTemplate[]
 export function generateFixPrompt(issue: {
   location?: string;
   title: string;
+  description: string;
   mitigation: string;
   mitigationType: string;
+  codeChanges?: { action: string }[];
 }): string {
   const location = issue.location || 'the relevant component';
-  const fileRef = issue.location?.split(':')[0] || 'the affected file';
-  
-  return `In ${fileRef}, ${issue.mitigation} Specifically: address the "${issue.title}" issue by applying a ${issue.mitigationType.replace('-', ' ')} change. Do not change any other functionality.`;
+
+  // Try to find a specific remediation detail
+  const specific = issue.codeChanges?.[0]?.action;
+
+  if (specific) {
+    return `In ${location}, there is a misuse-by-design issue: ${issue.title}. ${issue.description}\n\nFix: ${issue.mitigation}\n\nSpecifically: ${specific}\n\nDo not change any other functionality. Do not add new features. Only address this specific issue.`;
+  }
+
+  return `Fix the following issue without changing other functionality: ${issue.description}. Suggested approach: ${issue.mitigationType.replace('-', ' ')}`;
 }
