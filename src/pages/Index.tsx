@@ -94,6 +94,7 @@ const Index = () => {
         result={analysisResult}
         capabilities={capabilities}
         misuseScenarios={misuseScenarios}
+        activePopulations={activePopulations}
         onRescan={handleRescan}
         onPublish={handlePublishClick}
       />
