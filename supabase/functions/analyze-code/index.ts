@@ -284,6 +284,36 @@ For EACH flagged pattern, actively search for counter-evidence before assigning 
 - Do not assume state resets without checking the state management logic
 - Report only what you can verify from the code you were given`;
 
+// Inline category detection for edge function (mirrors src/services/categoryDetector.ts)
+const CATEGORY_SIGNALS: Record<string, string[]> = {
+  fitness: ['workout', 'calories', 'weight', 'exercise', 'reps', 'sets', 'gym', 'training', 'fitness', 'bmi'],
+  dating: ['match', 'swipe', 'profile', 'like', 'message', 'dating', 'tinder', 'crush', 'unmatch'],
+  fintech: ['invoice', 'payment', 'subscription', 'billing', 'checkout', 'stripe', 'transaction', 'wallet', 'pricing'],
+  health: ['symptom', 'dose', 'health', 'mental', 'mood', 'therapy', 'diagnosis', 'patient', 'medication'],
+  productivity: ['task', 'todo', 'calendar', 'project', 'sprint', 'kanban', 'deadline', 'milestone', 'backlog'],
+  social: ['post', 'feed', 'follow', 'share', 'comment', 'timeline', 'newsfeed', 'hashtag', 'repost'],
+  b2b: ['admin', 'dashboard', 'team', 'role', 'permission', 'tenant', 'organization', 'workspace', 'member'],
+  gaming: ['score', 'level', 'achievement', 'leaderboard', 'player', 'quest', 'badge', 'xp', 'highscore'],
+};
+
+function detectAppCategoryEdge(files: { name: string; content: string }[]): string {
+  const fileNames = files.map(f => f.name.toLowerCase()).join(' ');
+  const corpus = files.map(f => f.content.toLowerCase()).join(' ');
+  let bestCategory = 'unknown';
+  let bestScore = 0;
+
+  for (const [category, signals] of Object.entries(CATEGORY_SIGNALS)) {
+    let score = 0;
+    for (const signal of signals) {
+      const re = new RegExp(`\\b${signal}\\b`, 'g');
+      score += (fileNames.match(re) || []).length * 3;
+      score += Math.min((corpus.match(re) || []).length, 20);
+    }
+    if (score > bestScore) { bestScore = score; bestCategory = category; }
+  }
+  return bestScore < 5 ? 'unknown' : bestCategory;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -314,9 +344,15 @@ serve(async (req) => {
       ? `\n\nPREVIOUS SCAN CONTEXT:\nPrevious risk score: ${previousScan.riskScore}\nPrevious issues: ${previousScan.issueIds?.join(', ') || 'none'}\nLook for new patterns that emerged since the last scan and note any resolved issues.`
       : '';
 
+    // Detect app category from file signals
+    const detectedCategory = detectAppCategoryEdge(files);
+    const categoryHint = detectedCategory !== 'unknown'
+      ? `\n\nDetected app category: ${detectedCategory}. Elevate risk sensitivity for harms most relevant to this category.`
+      : '';
+
     const userPrompt = `Analyze this "${projectName || "web application"}" codebase for MISUSE-BY-DESIGN patterns using the v2.0 schema. Remember: you are looking for features that could harm people when working exactly as intended, not bugs or security vulnerabilities.
 
-Provide calibrated confidence scores for each finding and specific code-level mitigations.${previousContext}
+Provide calibrated confidence scores for each finding and specific code-level mitigations.${categoryHint}${previousContext}
 
 ${filesContent}`;
 
@@ -383,6 +419,7 @@ ${filesContent}`;
         timestamp: new Date().toISOString(),
         projectName: projectName || "Uploaded Project",
         scanVersion: 2,
+        detectedCategory,
         previousScanTimestamp: previousScan?.timestamp || null,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

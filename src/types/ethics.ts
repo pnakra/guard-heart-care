@@ -51,6 +51,7 @@ export interface EthicsReviewResult {
   timestamp: string;
   projectName: string;
   scanVersion?: number; // For iteration tracking
+  detectedCategory?: string; // Auto-detected app category
 }
 
 // Legacy type alias for backwards compat

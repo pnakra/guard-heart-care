@@ -320,6 +320,7 @@ export function useCodeAnalysis() {
         categories,
         timestamp,
         projectName: data.projectName,
+        detectedCategory: data.detectedCategory || 'unknown',
       };
 
       // V2 result (enhanced - all derived from actual code)
