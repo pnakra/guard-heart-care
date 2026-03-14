@@ -29,6 +29,8 @@ interface ExecutiveSummaryProps {
   detectedCategory?: string;
   /** Issue IDs for triage tracking */
   issueIds?: string[];
+  /** Count of issues with confidence < 0.6 */
+  lowConfidenceCount?: number;
 }
 
 const effortLabels = {
