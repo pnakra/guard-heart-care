@@ -1,12 +1,22 @@
 import { ExecutiveSummary as ExecutiveSummaryType, SeverityLevel } from '@/types/ethics';
+import { EthicsReviewResultV2 } from '@/types/ethicsV2';
 import { SeverityBadge } from './SeverityBadge';
 import { cn } from '@/lib/utils';
-import { AlertTriangle, Clock, TrendingUp } from 'lucide-react';
+import { AlertTriangle, Clock, TrendingUp, Info } from 'lucide-react';
+import { calculateGFS, getGFSBand, getGFSLabel } from '@/services/gfsCalculator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface ExecutiveSummaryProps {
   summary: ExecutiveSummaryType;
   projectName: string;
   timestamp: string;
+  /** Pass the full V2 result to compute GFS; falls back to riskScore×10 if absent */
+  fullResult?: EthicsReviewResultV2;
 }
 
 const effortLabels = {
@@ -15,35 +25,46 @@ const effortLabels = {
   high: { label: 'Significant work', className: 'text-[hsl(var(--ethics-high))]' },
 };
 
-function getRiskScoreColor(score: number): string {
-  if (score >= 8) return 'text-[hsl(var(--ethics-critical))]';
-  if (score >= 6) return 'text-[hsl(var(--ethics-high))]';
-  if (score >= 4) return 'text-[hsl(var(--ethics-medium))]';
-  if (score >= 2) return 'text-[hsl(var(--ethics-low))]';
-  return 'text-[hsl(var(--ethics-safe))]';
-}
+const gfsBandStyles = {
+  low: {
+    text: 'text-[hsl(var(--ethics-safe))]',
+    bg: 'bg-[hsl(var(--ethics-safe-bg))] border-[hsl(var(--ethics-safe)/0.3)]',
+    badge: 'bg-[hsl(var(--ethics-safe)/0.15)] text-[hsl(var(--ethics-safe))] border border-[hsl(var(--ethics-safe)/0.3)]',
+  },
+  moderate: {
+    text: 'text-[hsl(var(--ethics-medium))]',
+    bg: 'bg-[hsl(var(--ethics-medium-bg))] border-[hsl(var(--ethics-medium)/0.3)]',
+    badge: 'bg-[hsl(var(--ethics-medium)/0.15)] text-[hsl(var(--ethics-medium))] border border-[hsl(var(--ethics-medium)/0.3)]',
+  },
+  high: {
+    text: 'text-[hsl(var(--ethics-high))]',
+    bg: 'bg-[hsl(var(--ethics-high-bg))] border-[hsl(var(--ethics-high)/0.3)]',
+    badge: 'bg-[hsl(var(--ethics-high)/0.15)] text-[hsl(var(--ethics-high))] border border-[hsl(var(--ethics-high)/0.3)]',
+  },
+  critical: {
+    text: 'text-[hsl(var(--ethics-critical))]',
+    bg: 'bg-[hsl(var(--ethics-critical-bg))] border-[hsl(var(--ethics-critical)/0.3)]',
+    badge: 'bg-[hsl(var(--ethics-critical)/0.15)] text-[hsl(var(--ethics-critical))] border border-[hsl(var(--ethics-critical)/0.3)]',
+  },
+};
 
-function getRiskScoreBg(score: number): string {
-  if (score >= 8) return 'bg-[hsl(var(--ethics-critical-bg))] border-[hsl(var(--ethics-critical)/0.3)]';
-  if (score >= 6) return 'bg-[hsl(var(--ethics-high-bg))] border-[hsl(var(--ethics-high)/0.3)]';
-  if (score >= 4) return 'bg-[hsl(var(--ethics-medium-bg))] border-[hsl(var(--ethics-medium)/0.3)]';
-  return 'bg-card border-border';
-}
-
-export function ExecutiveSummary({ summary, projectName, timestamp }: ExecutiveSummaryProps) {
+export function ExecutiveSummary({ summary, projectName, timestamp, fullResult }: ExecutiveSummaryProps) {
   const hasTopRisks = summary.topThreeRisks && summary.topThreeRisks.length > 0;
+
+  // Compute GFS
+  const gfs = fullResult ? calculateGFS(fullResult) : Math.round(summary.riskScore * 10);
+  const band = getGFSBand(gfs);
+  const bandLabel = getGFSLabel(band);
+  const styles = gfsBandStyles[band];
 
   return (
     <div className="space-y-4">
-      {/* Header with risk score */}
-      <div className={cn(
-        'rounded-xl p-6 border',
-        getRiskScoreBg(summary.riskScore)
-      )}>
+      {/* Header with GFS */}
+      <div className={cn('rounded-xl p-6 border', styles.bg)}>
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="space-y-1">
             <h2 className="font-serif text-2xl font-semibold text-foreground">
-              Misuse-by-Design Scan
+              Ground Floor Check
             </h2>
             <p className="text-muted-foreground">
               {projectName}
@@ -52,19 +73,33 @@ export function ExecutiveSummary({ summary, projectName, timestamp }: ExecutiveS
               Scanned: {new Date(timestamp).toLocaleString()}
             </p>
           </div>
-          
+
           <div className="flex items-center gap-6">
-            {/* Risk Score */}
-            <div className="text-center">
-              <div className={cn(
-                'text-4xl font-bold tabular-nums',
-                getRiskScoreColor(summary.riskScore)
-              )}>
-                {summary.riskScore.toFixed(1)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">Risk Score / 10</p>
-            </div>
-            
+            {/* GFS Score */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="text-center cursor-help">
+                    <div className={cn('text-5xl font-bold tabular-nums', styles.text)}>
+                      {gfs}
+                    </div>
+                    <div className="flex items-center justify-center gap-1 mt-1">
+                      <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', styles.badge)}>
+                        {bandLabel}
+                      </span>
+                      <Info size={12} className="text-muted-foreground" />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">GFS / 100</p>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-[240px] text-center">
+                  <p className="text-xs">
+                    Composite score factoring risk severity, deployment context, and population vulnerability
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
             {/* Issue counts */}
             <div className="flex gap-4 text-sm">
               {summary.criticalCount > 0 && (
@@ -101,7 +136,7 @@ export function ExecutiveSummary({ summary, projectName, timestamp }: ExecutiveS
             <AlertTriangle size={14} />
             Top Risks to Address Before Shipping
           </h3>
-          
+
           <div className="grid gap-3">
             {summary.topThreeRisks.map((risk, index) => (
               <div
@@ -121,7 +156,7 @@ export function ExecutiveSummary({ summary, projectName, timestamp }: ExecutiveS
                 )}>
                   {index + 1}
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <h4 className="font-medium text-foreground">{risk.title}</h4>
@@ -129,7 +164,7 @@ export function ExecutiveSummary({ summary, projectName, timestamp }: ExecutiveS
                   </div>
                   <p className="text-sm text-muted-foreground">{risk.summary}</p>
                 </div>
-                
+
                 <div className="shrink-0 flex items-center gap-1.5 text-xs">
                   <Clock size={12} className={effortLabels[risk.effortToFix].className} />
                   <span className={effortLabels[risk.effortToFix].className}>
