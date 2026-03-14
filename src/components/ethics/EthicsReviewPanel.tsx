@@ -362,6 +362,13 @@ export function EthicsReviewPanel({
           </div>
         </div>
       </footer>
+
+      <BadgeModal
+        open={showBadgeModal}
+        onOpenChange={setShowBadgeModal}
+        score={Math.round(Math.max(0, Math.min(100, gfsScore)))}
+        band={gfsBand}
+      />
     </div>
   );
 }
