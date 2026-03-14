@@ -300,6 +300,14 @@ export function EthicsReviewPanel({
                   />
                 </TabsContent>
               )}
+
+              <TabsContent value="checklist" className="mt-4">
+                <PreLaunchChecklist
+                  categories={result.categories}
+                  issues={result.issues}
+                  timestamp={result.timestamp}
+                />
+              </TabsContent>
             </Tabs>
           </div>
         </div>
