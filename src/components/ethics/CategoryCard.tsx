@@ -39,7 +39,7 @@ export function CategoryCard({ category, isSelected, onClick }: CategoryCardProp
           
           <div className="min-w-0 flex-1">
             <h3 className="font-mono font-medium text-foreground text-sm truncate">
-              [{category.label.toUpperCase()}]
+              {isPlainLanguage ? displayLabel : `[${category.label.toUpperCase()}]`}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
               {category.description}

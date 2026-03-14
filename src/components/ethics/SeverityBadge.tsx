@@ -1,5 +1,7 @@
 import { cn } from '@/lib/utils';
 import { SeverityLevel } from '@/types/ethics';
+import { usePlainLanguage } from '@/contexts/PlainLanguageContext';
+import { PLAIN_SEVERITY_LABELS } from '@/data/plainLanguageMap';
 
 interface SeverityBadgeProps {
   severity: SeverityLevel;
@@ -41,6 +43,11 @@ const sizeConfig = {
 
 export function SeverityBadge({ severity, showLabel = true, size = 'md' }: SeverityBadgeProps) {
   const config = severityConfig[severity];
+  const { isPlainLanguage } = usePlainLanguage();
+
+  const displayLabel = isPlainLanguage
+    ? PLAIN_SEVERITY_LABELS[severity]
+    : config.label;
 
   return (
     <span
@@ -50,7 +57,7 @@ export function SeverityBadge({ severity, showLabel = true, size = 'md' }: Sever
         sizeConfig[size]
       )}
     >
-      {showLabel ? config.label : config.label.charAt(0)}
+      {showLabel ? displayLabel : displayLabel.charAt(0)}
     </span>
   );
 }
