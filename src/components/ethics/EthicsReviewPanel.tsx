@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { EthicsReviewResult, HarmCategory } from '@/types/ethics';
 import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
 import { ExecutiveSummary } from './ExecutiveSummary';
