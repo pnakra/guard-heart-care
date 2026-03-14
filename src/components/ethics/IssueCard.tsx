@@ -74,6 +74,9 @@ function ConfidenceBar({ label, value, rationale }: { label: string; value: numb
 export function IssueCard({ issue }: IssueCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showConfidence, setShowConfidence] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
   const { getStatus, setStatus } = useIssueStatus();
   const currentStatus = getStatus(issue.id);
   const statusConfig = ISSUE_STATUS_CONFIG[currentStatus];
