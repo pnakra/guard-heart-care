@@ -167,12 +167,6 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
   const [isFetchingFork, setIsFetchingFork] = useState(false);
   const [forkStatus, setForkStatus] = useState<string>('');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [selectedPopulations, setSelectedPopulations] = useState<PopulationModifier[]>(() => {
-    try {
-      const stored = sessionStorage.getItem(POPULATION_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch { return []; }
-  });
   const [customRulesText, setCustomRulesText] = useState(() => {
     try { return sessionStorage.getItem(CUSTOM_RULES_KEY) || DEFAULT_RULES; } catch { return DEFAULT_RULES; }
   });
@@ -190,21 +184,10 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
     setRulesValidation({ valid: result.valid, error: result.error });
   }, [customRulesText]);
 
-  // Persist population modifiers
-  useEffect(() => {
-    try { sessionStorage.setItem(POPULATION_STORAGE_KEY, JSON.stringify(selectedPopulations)); } catch { /* ignore */ }
-  }, [selectedPopulations]);
-
   // Persist quiz answers
   useEffect(() => {
     try { sessionStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(quizAnswers)); } catch { /* ignore */ }
   }, [quizAnswers]);
-
-  const togglePopulation = (mod: PopulationModifier) => {
-    setSelectedPopulations(prev =>
-      prev.includes(mod) ? prev.filter(m => m !== mod) : [...prev, mod]
-    );
-  };
 
   // Persist to sessionStorage
   useEffect(() => {
