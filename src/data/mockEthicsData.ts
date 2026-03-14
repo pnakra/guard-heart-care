@@ -13,6 +13,14 @@ export const mockIssues: EthicsIssue[] = [
     whyMisuseByDesign: 'The AI is positioned as an authority on human relationships without disclaimers, making its outputs appear as expert endorsement',
     mitigation: 'Add prominent disclaimer: "I\'m an AI and cannot provide relationship advice. Please consult a licensed therapist."',
     mitigationType: 'ui-language',
+    codeChanges: [
+      {
+        file: 'src/components/ChatInterface.tsx',
+        action: 'Add AI disclaimer before response output',
+        currentCode: 'return (\n  <div className="chat-response">\n    <p>{response}</p>\n  </div>\n);',
+        suggestedCode: 'return (\n  <div className="chat-response">\n    <p className="disclaimer">⚠️ I\'m an AI and cannot provide relationship advice. Please consult a licensed therapist.</p>\n    <p>{response}</p>\n  </div>\n);',
+      },
+    ],
   },
   {
     id: '2',
