@@ -3,13 +3,14 @@ import { ProjectUpload, CustomRulesConfig, PopulationModifier } from '@/componen
 import { ScanningScreen } from '@/components/ethics/ScanningScreen';
 import { EthicsReviewPanel } from '@/components/ethics/EthicsReviewPanel';
 import { PublishGate } from '@/components/ethics/PublishGate';
+import { OnboardingFlow } from '@/components/ethics/OnboardingFlow';
 import { useCodeAnalysis } from '@/hooks/useCodeAnalysis';
 import { EthicsReviewResult } from '@/types/ethics';
 import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
 import { IssueStatusProvider } from '@/contexts/IssueStatusContext';
 import { toast } from 'sonner';
 
-type AppState = 'upload' | 'scanning' | 'results' | 'publish-gate';
+type AppState = 'onboarding' | 'upload' | 'scanning' | 'results' | 'publish-gate';
 
 interface UploadedFile {
   name: string;
