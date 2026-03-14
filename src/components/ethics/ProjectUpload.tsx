@@ -364,7 +364,21 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
           >
             <span className="flex items-center gap-2">
               <Github size={16} />
-              Import from GitHub
+              GitHub
+            </span>
+          </button>
+          <button
+            onClick={() => setInputMode('fork')}
+            className={cn(
+              'px-4 py-2 rounded-md text-sm font-medium transition-all',
+              inputMode === 'fork' 
+                ? 'bg-background text-foreground shadow-sm' 
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <span className="flex items-center gap-2">
+              <GitFork size={16} />
+              Fork Comparison
             </span>
           </button>
         </div>
