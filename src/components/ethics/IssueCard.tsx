@@ -256,6 +256,14 @@ export function IssueCard({ issue }: IssueCardProps) {
               <p className="text-sm text-muted-foreground pl-5">
                 {issue.mitigation}
               </p>
+              {isPlainLanguage && (
+                <div className="mt-2 ml-5 p-2.5 rounded-lg bg-primary/5 border border-primary/15 flex items-start gap-2">
+                  <Info size={13} className="text-primary shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted-foreground">
+                    For a plain-language fix, use the <strong className="text-foreground">'Copy as prompt'</strong> button below and paste into your AI tool.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Code Changes Diff Viewer */}
