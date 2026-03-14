@@ -442,7 +442,7 @@ serve(async (req) => {
 
     const userPrompt = `Analyze this "${projectName || "web application"}" codebase for MISUSE-BY-DESIGN patterns using the v2.0 schema. Remember: you are looking for features that could harm people when working exactly as intended, not bugs or security vulnerabilities.
 
-Provide calibrated confidence scores for each finding and specific code-level mitigations.${categoryHint}${verticalProfilePrompt}${customRulesPrompt}${previousContext}
+Provide calibrated confidence scores for each finding and specific code-level mitigations.${categoryHint}${verticalProfilePrompt}${customRulesPrompt}${populationPrompt}${previousContext}
 
 ${filesContent}`;
 
