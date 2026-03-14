@@ -180,8 +180,8 @@ export function EthicsReviewPanel({
         <div className="mt-6 grid lg:grid-cols-[320px,1fr] gap-6">
           {/* Categories Sidebar */}
           <div className="space-y-3">
-            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide px-1">
-              Harm Categories
+            <h3 className="font-mono font-medium text-[11px] text-muted-foreground uppercase tracking-widest px-1">
+              harm_categories
             </h3>
             <div className="space-y-2">
               {result.categories.map(category => (
