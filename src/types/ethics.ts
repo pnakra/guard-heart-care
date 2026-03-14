@@ -44,6 +44,11 @@ export interface EthicsIssue {
   customRule?: boolean;
   customRuleName?: string;
   populationTags?: string[];
+  forkClassification?: ForkClassification;
+}
+  customRule?: boolean;
+  customRuleName?: string;
+  populationTags?: string[];
 }
 
 export interface ExecutiveSummary {
