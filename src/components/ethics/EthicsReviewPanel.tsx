@@ -10,8 +10,8 @@ import { MisuseScenarios } from './MisuseScenarios';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { RefreshCw, Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users } from 'lucide-react';
-import { exportReport, generateLovablePrompt, copyToClipboard } from '@/utils/exportReport';
+import { RefreshCw, Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users, GitPullRequest, ScanSearch } from 'lucide-react';
+import { exportReport, generateLovablePrompt, generatePRComment, copyToClipboard } from '@/utils/exportReport';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { toast } from 'sonner';
 
@@ -46,10 +46,19 @@ export function EthicsReviewPanel({
 
   const criticalMisuseCount = misuseScenarios.filter(s => s.severity === 'critical').length;
 
-  const handleExport = (format: 'markdown' | 'json' | 'pdf') => {
+  const handleExport = (format: 'markdown' | 'json' | 'pdf' | 'sarif') => {
     exportReport({ result, capabilities, misuseScenarios }, format);
-    toast.success(`Report exported as ${format.toUpperCase()}`, {
-      description: `Your misuse-by-design scan has been downloaded.`,
+    const label = format === 'sarif' ? 'SARIF' : format.toUpperCase();
+    toast.success(`Report exported as ${label}`, {
+      description: format === 'sarif' ? 'Upload to GitHub Code Scanning.' : 'Your misuse-by-design scan has been downloaded.',
+    });
+  };
+
+  const handleCopyPRComment = async () => {
+    const comment = generatePRComment({ result, capabilities, misuseScenarios });
+    await copyToClipboard(comment);
+    toast.success('PR comment copied!', {
+      description: 'Paste into your GitHub pull request.',
     });
   };
 
@@ -130,7 +139,15 @@ export function EthicsReviewPanel({
                     <FileJson size={14} />
                     Export as JSON
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExport('sarif')} className="gap-2">
+                    <ScanSearch size={14} />
+                    Export as SARIF (GitHub)
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleCopyPRComment} className="gap-2">
+                    <GitPullRequest size={14} />
+                    Copy PR Comment
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleCopyFixPrompt} className="gap-2">
                     <Sparkles size={14} />
                     Copy Fix Prompt for Lovable
