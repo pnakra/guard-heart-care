@@ -45,7 +45,7 @@ export function CategoryCard({ category, isSelected, onClick }: CategoryCardProp
           {category.issueCount > 0 ? (
             <>
               <SeverityBadge severity={category.highestSeverity} size="sm" showLabel={false} />
-              <span className="text-xs text-muted-foreground">
+              <span className="font-mono text-[10px] text-muted-foreground">
                 {category.issueCount} {category.issueCount === 1 ? 'issue' : 'issues'}
               </span>
             </>
