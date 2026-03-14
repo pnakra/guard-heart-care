@@ -4,8 +4,9 @@ import { EthicsReviewResultV2 } from '@/types/ethicsV2';
 import { SeverityBadge } from './SeverityBadge';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, Clock, TrendingUp, Info, Pencil } from 'lucide-react';
-import { calculateGFS, getGFSBand, getGFSLabel } from '@/services/gfsCalculator';
+import { calculateGFS, calculateAdjustedGFS, getGFSBand, getGFSLabel } from '@/services/gfsCalculator';
 import { AppCategory, getAppCategoryLabel } from '@/services/categoryDetector';
+import { useIssueStatus, REVIEWED_STATUSES } from '@/contexts/IssueStatusContext';
 import {
   Tooltip,
   TooltipContent,
@@ -24,10 +25,10 @@ interface ExecutiveSummaryProps {
   summary: ExecutiveSummaryType;
   projectName: string;
   timestamp: string;
-  /** Pass the full V2 result to compute GFS; falls back to riskScore×10 if absent */
   fullResult?: EthicsReviewResultV2;
-  /** Auto-detected app category from the scanner */
   detectedCategory?: string;
+  /** Issue IDs for triage tracking */
+  issueIds?: string[];
 }
 
 const effortLabels = {
@@ -59,19 +60,30 @@ const gfsBandStyles = {
   },
 };
 
-export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, detectedCategory }: ExecutiveSummaryProps) {
+export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, detectedCategory, issueIds = [] }: ExecutiveSummaryProps) {
   const hasTopRisks = summary.topThreeRisks && summary.topThreeRisks.length > 0;
   const [categoryOverride, setCategoryOverride] = useState<string | null>(null);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
+  const { getStatus, getAllStatuses } = useIssueStatus();
 
   const activeCategory = (categoryOverride || detectedCategory || 'unknown') as AppCategory;
   const categoryLabel = getAppCategoryLabel(activeCategory);
 
   // Compute GFS
-  const gfs = fullResult ? calculateGFS(fullResult) : Math.round(summary.riskScore * 10);
-  const band = getGFSBand(gfs);
+  const allStatuses = getAllStatuses();
+  const gfs = fullResult ? calculateGFS(fullResult, allStatuses) : Math.round(summary.riskScore * 10);
+  const adjustedGFS = calculateAdjustedGFS(gfs, issueIds.length, allStatuses, issueIds);
+  
+  const displayGFS = adjustedGFS ?? gfs;
+  const band = getGFSBand(displayGFS);
   const bandLabel = getGFSLabel(band);
   const styles = gfsBandStyles[band];
+  const isAdjusted = adjustedGFS !== null;
+
+  // Triage progress
+  const totalIssues = issueIds.length;
+  const reviewedCount = issueIds.filter(id => REVIEWED_STATUSES.includes(getStatus(id))).length;
+  const triagePercent = totalIssues > 0 ? Math.round((reviewedCount / totalIssues) * 100) : 0;
 
   const ALL_CATEGORIES: AppCategory[] = ['fitness', 'dating', 'fintech', 'health', 'productivity', 'social', 'b2b', 'gaming', 'unknown'];
 
@@ -133,7 +145,7 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                 <TooltipTrigger asChild>
                   <div className="text-center cursor-help">
                     <div className={cn('text-5xl font-bold tabular-nums', styles.text)}>
-                      {gfs}
+                      {displayGFS}
                     </div>
                     <div className="flex items-center justify-center gap-1 mt-1">
                       <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', styles.badge)}>
@@ -141,12 +153,16 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                       </span>
                       <Info size={12} className="text-muted-foreground" />
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">GFS / 100</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {isAdjusted ? 'Adjusted GFS / 100' : 'GFS / 100'}
+                    </p>
                   </div>
                 </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-[240px] text-center">
+                <TooltipContent side="bottom" className="max-w-[260px] text-center">
                   <p className="text-xs">
-                    Composite score factoring risk severity, deployment context, and population vulnerability
+                    {isAdjusted
+                      ? `Adjusted from ${gfs} → ${displayGFS} after excluding accepted-risk and won't-fix issues. Composite score factoring risk severity, deployment context, and population vulnerability.`
+                      : 'Composite score factoring risk severity, deployment context, and population vulnerability'}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -179,6 +195,33 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
             </div>
           </div>
         </div>
+
+        {/* Triage Progress Bar */}
+        {totalIssues > 0 && (
+          <div className="mt-4 pt-4 border-t border-border/30">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium text-muted-foreground">
+                Triage Progress
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {reviewedCount} of {totalIssues} reviewed ({triagePercent}%)
+              </span>
+            </div>
+            <div className="h-2 bg-secondary rounded-full overflow-hidden">
+              <div
+                className={cn(
+                  'h-full rounded-full transition-all duration-500',
+                  triagePercent === 100
+                    ? 'bg-[hsl(var(--ethics-safe))]'
+                    : triagePercent > 50
+                    ? 'bg-[hsl(var(--ethics-low))]'
+                    : 'bg-primary'
+                )}
+                style={{ width: `${triagePercent}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Top 3 Risks */}

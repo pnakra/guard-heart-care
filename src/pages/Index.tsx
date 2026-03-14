@@ -6,6 +6,7 @@ import { PublishGate } from '@/components/ethics/PublishGate';
 import { useCodeAnalysis } from '@/hooks/useCodeAnalysis';
 import { EthicsReviewResult } from '@/types/ethics';
 import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
+import { IssueStatusProvider } from '@/contexts/IssueStatusContext';
 import { toast } from 'sonner';
 
 type AppState = 'upload' | 'scanning' | 'results' | 'publish-gate';
@@ -37,7 +38,6 @@ const Index = () => {
       setMisuseScenarios(result.misuseScenarios);
       setAppState('results');
     } else {
-      // Analysis failed, go back to upload
       setAppState('upload');
     }
   };
@@ -77,7 +77,7 @@ const Index = () => {
     return (
       <ScanningScreen 
         projectName={projectName}
-        onComplete={() => {}} // Will transition via analyzeCode callback
+        onComplete={() => {}}
       />
     );
   }
@@ -87,7 +87,7 @@ const Index = () => {
   }
 
   return (
-    <>
+    <IssueStatusProvider>
       <EthicsReviewPanel 
         result={analysisResult}
         capabilities={capabilities}
@@ -105,7 +105,7 @@ const Index = () => {
           onCancel={handlePublishCancel}
         />
       )}
-    </>
+    </IssueStatusProvider>
   );
 };
 
