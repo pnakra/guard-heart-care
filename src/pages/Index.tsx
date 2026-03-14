@@ -23,6 +23,7 @@ const Index = () => {
   const [capabilities, setCapabilities] = useState<DetectedCapability[]>([]);
   const [misuseScenarios, setMisuseScenarios] = useState<MisuseScenario[]>([]);
   const [projectName, setProjectName] = useState('');
+  const [activePopulations, setActivePopulations] = useState<PopulationModifier[]>([]);
   
   const { analyzeCode, isAnalyzing } = useCodeAnalysis();
 
