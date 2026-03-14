@@ -8,7 +8,7 @@ import { useCodeAnalysis } from '@/hooks/useCodeAnalysis';
 import { EthicsReviewResult } from '@/types/ethics';
 import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
 import { IssueStatusProvider } from '@/contexts/IssueStatusContext';
-import { PlainLanguageProvider } from '@/contexts/PlainLanguageContext';
+import { ModeProvider } from '@/contexts/ModeContext';
 import { toast } from 'sonner';
 
 type AppState = 'onboarding' | 'upload' | 'scanning' | 'results' | 'publish-gate';
@@ -97,7 +97,7 @@ const Index = () => {
   }
 
   return (
-    <PlainLanguageProvider>
+    <ModeProvider>
       <IssueStatusProvider>
         <EthicsReviewPanel 
           result={analysisResult}
@@ -118,7 +118,7 @@ const Index = () => {
           />
         )}
       </IssueStatusProvider>
-    </PlainLanguageProvider>
+    </ModeProvider>
   );
 };
 
