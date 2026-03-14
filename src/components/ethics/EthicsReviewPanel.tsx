@@ -183,6 +183,11 @@ export function EthicsReviewPanel({
                     <Sparkles size={14} />
                     Copy Fix Prompt for Lovable
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setShowBadgeModal(true)} className="gap-2">
+                    <Award size={14} />
+                    Generate Badge
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               <Button 
