@@ -8,6 +8,7 @@ import { useCodeAnalysis } from '@/hooks/useCodeAnalysis';
 import { EthicsReviewResult } from '@/types/ethics';
 import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
 import { IssueStatusProvider } from '@/contexts/IssueStatusContext';
+import { PlainLanguageProvider } from '@/contexts/PlainLanguageContext';
 import { toast } from 'sonner';
 
 type AppState = 'onboarding' | 'upload' | 'scanning' | 'results' | 'publish-gate';
