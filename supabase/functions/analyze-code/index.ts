@@ -419,6 +419,7 @@ ${filesContent}`;
         timestamp: new Date().toISOString(),
         projectName: projectName || "Uploaded Project",
         scanVersion: 2,
+        detectedCategory,
         previousScanTimestamp: previousScan?.timestamp || null,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
