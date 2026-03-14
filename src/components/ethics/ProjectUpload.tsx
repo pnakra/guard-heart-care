@@ -236,7 +236,8 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
     if (files.length > 0) {
       const validation = validateCustomRules(customRulesText);
       const customRules = showAdvanced && validation.valid ? validation.parsed : undefined;
-      onAnalyze(files, projectName || 'Uploaded Project', customRules);
+      const populations = selectedPopulations.length > 0 ? selectedPopulations : undefined;
+      onAnalyze(files, projectName || 'Uploaded Project', customRules, populations);
     }
   };
 
