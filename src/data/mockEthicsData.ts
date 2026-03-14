@@ -62,6 +62,18 @@ export const mockIssues: EthicsIssue[] = [
     mitigation: 'Reframe all outputs: "This is not a diagnosis. Please consult a healthcare provider." Remove confident language like "likely" or "probably".',
     mitigationType: 'reframing',
   },
+  {
+    id: '6',
+    category: 'dark-patterns',
+    title: 'Confirm-Shaming Cancel Flow',
+    description: 'The subscription cancellation flow uses confirm-shaming copy ("No thanks, I prefer to waste money") and requires 5 clicks to complete.',
+    severity: 'high',
+    location: 'src/components/CancelSubscription.tsx:22',
+    misuseScenario: 'A user trying to cancel is psychologically pressured into staying subscribed through guilt-tripping copy and excessive friction',
+    whyMisuseByDesign: 'The flow is intentionally designed to discourage cancellation through emotional manipulation and unnecessary steps, not to inform',
+    mitigation: 'Replace confirm-shaming copy with neutral language. Reduce cancellation to a 2-step process with clear confirmation.',
+    mitigationType: 'ui-language',
+  },
 ];
 
 export const mockCategories: CategorySummary[] = [
