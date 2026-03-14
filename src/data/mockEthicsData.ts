@@ -53,6 +53,15 @@ export const mockIssues: EthicsIssue[] = [
     whyMisuseByDesign: 'The one-time consent model assumes ongoing consent, which is exploitable in coercive relationships where initial "consent" was under duress',
     mitigation: 'Require weekly consent renewal with visible indicator that sharing is active. Add easy "stop sharing" in prominent location.',
     mitigationType: 'interaction-model',
+    codeChanges: [
+      {
+        file: 'src/hooks/useLocation.ts',
+        action: 'Add consent expiry check to location sharing',
+        currentCode: '',
+        suggestedCode: '',
+        diffPreview: ' function startLocationSharing(userId: string) {\n-  setSharing(true);\n-  trackLocation(userId);\n+  const consent = await renewConsent(userId);\n+  if (!consent.granted) return;\n+  setSharing(true, { expiresIn: "7d" });\n+  trackLocation(userId);\n+  showActiveIndicator();\n }',
+      },
+    ],
   },
   {
     id: '4',
