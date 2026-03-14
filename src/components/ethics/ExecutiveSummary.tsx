@@ -1,15 +1,24 @@
+import { useState } from 'react';
 import { ExecutiveSummary as ExecutiveSummaryType, SeverityLevel } from '@/types/ethics';
 import { EthicsReviewResultV2 } from '@/types/ethicsV2';
 import { SeverityBadge } from './SeverityBadge';
 import { cn } from '@/lib/utils';
-import { AlertTriangle, Clock, TrendingUp, Info } from 'lucide-react';
+import { AlertTriangle, Clock, TrendingUp, Info, Pencil } from 'lucide-react';
 import { calculateGFS, getGFSBand, getGFSLabel } from '@/services/gfsCalculator';
+import { AppCategory, getAppCategoryLabel } from '@/services/categoryDetector';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface ExecutiveSummaryProps {
   summary: ExecutiveSummaryType;
@@ -17,6 +26,8 @@ interface ExecutiveSummaryProps {
   timestamp: string;
   /** Pass the full V2 result to compute GFS; falls back to riskScore×10 if absent */
   fullResult?: EthicsReviewResultV2;
+  /** Auto-detected app category from the scanner */
+  detectedCategory?: string;
 }
 
 const effortLabels = {
