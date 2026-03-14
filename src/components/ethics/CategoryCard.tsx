@@ -12,6 +12,10 @@ interface CategoryCardProps {
 }
 
 export function CategoryCard({ category, isSelected, onClick }: CategoryCardProps) {
+  const { isPlainLanguage } = usePlainLanguage();
+  const displayLabel = isPlainLanguage
+    ? PLAIN_CATEGORY_LABELS[category.category as HarmCategory] || category.label
+    : category.label;
   return (
     <button
       onClick={onClick}
