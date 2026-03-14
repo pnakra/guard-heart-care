@@ -139,7 +139,15 @@ export function EthicsReviewPanel({
                     <FileJson size={14} />
                     Export as JSON
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExport('sarif')} className="gap-2">
+                    <ScanSearch size={14} />
+                    Export as SARIF (GitHub)
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleCopyPRComment} className="gap-2">
+                    <GitPullRequest size={14} />
+                    Copy PR Comment
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleCopyFixPrompt} className="gap-2">
                     <Sparkles size={14} />
                     Copy Fix Prompt for Lovable
