@@ -17,6 +17,8 @@ import { Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, 
 import { exportReport, generateLovablePrompt, generatePRComment, copyToClipboard } from '@/utils/exportReport';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useMode } from '@/contexts/ModeContext';
+import { getGFSBand } from '@/services/gfsCalculator';
+import { BadgeModal } from './BadgeModal';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
