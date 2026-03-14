@@ -152,7 +152,7 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="text-center cursor-help">
-                    <div className={cn('text-5xl font-bold tabular-nums', styles.text)}>
+                    <div className={cn('text-5xl font-mono font-bold tabular-nums', styles.text)}>
                       {displayGFS}
                     </div>
                     <div className="flex items-center justify-center gap-1 mt-1">
