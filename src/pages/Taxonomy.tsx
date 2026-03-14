@@ -149,6 +149,33 @@ const CATEGORIES: CategorySection[] = [
       'Content Change — Add confidence indicators and source attribution to AI responses',
     ],
   },
+  {
+    id: 'dark-patterns',
+    title: 'Dark Patterns & Coercive UX',
+    icon: 'zap',
+    definition: 'UX patterns that manipulate users into taking actions they did not intend, through deception, friction asymmetry, or psychological pressure.',
+    whyMisuseByDesign:
+      'Dark patterns are not accidents — they are deliberately designed interactions that exploit cognitive biases and user trust. A confirm-shaming modal that says "No thanks, I don\'t care about my health" is working exactly as intended. The harm is the design.',
+    examples: [
+      { appType: 'SaaS Platform', example: 'A subscription cancellation flow that requires 5 clicks, a phone call, and a guilt-tripping survey — while signup takes one click.' },
+      { appType: 'E-commerce', example: 'Fake urgency timers ("Only 2 left! 3 people viewing this!") that reset on page reload and are not tied to real inventory data.' },
+      { appType: 'Mobile App', example: 'Pre-checked consent boxes for marketing emails and data sharing buried in a lengthy signup flow, relying on users not noticing.' },
+    ],
+    detectionSignals: [
+      'Countdown timers or scarcity indicators not connected to real-time data sources',
+      'Cancel/unsubscribe flows with significantly more steps than subscribe flows',
+      'Copy that uses shame or guilt to discourage a user choice (confirm-shaming)',
+      'Pre-selected checkboxes for consent, marketing, or data sharing',
+      'Free trial flows where payment terms are visually de-emphasized or hidden',
+      'Asymmetric friction — easy to opt in, hard to opt out (roach motel pattern)',
+    ],
+    mitigationTypes: [
+      'Interaction Model — Ensure cancel/unsubscribe flows have equal or fewer steps than signup',
+      'UI Language Change — Replace confirm-shaming copy with neutral alternatives',
+      'Feature Removal — Remove fake urgency/scarcity indicators not tied to real data',
+      'Reframing — Default consent checkboxes to unchecked; make opt-in explicit',
+    ],
+  },
 ];
 
 export default function Taxonomy() {
