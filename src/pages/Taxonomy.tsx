@@ -230,7 +230,7 @@ export default function Taxonomy() {
             Harm Taxonomy
           </h1>
           <p className="text-muted-foreground mt-2 max-w-2xl">
-            Reference documentation for the five harm categories detected by Ground Floor Check.
+            Reference documentation for the six harm categories detected by Ground Floor Check.
             Each category describes a class of <em>misuse-by-design</em> — features that cause harm
             when working exactly as intended, not through bugs or security vulnerabilities.
           </p>
