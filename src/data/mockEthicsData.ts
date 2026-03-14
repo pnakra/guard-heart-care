@@ -149,9 +149,9 @@ export const mockExecutiveSummary: ExecutiveSummary = {
     },
   ],
   riskScore: 7.4,
-  totalIssueCount: 5,
+  totalIssueCount: 6,
   criticalCount: 2,
-  highCount: 3,
+  highCount: 4,
 };
 
 export const calculateOverallStatus = (issues: EthicsIssue[]): SeverityLevel => {
