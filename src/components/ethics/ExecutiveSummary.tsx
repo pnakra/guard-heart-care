@@ -138,11 +138,11 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                 </>
               )}
             </div>
-            <p className="text-muted-foreground">
+            <p className="font-mono text-sm text-muted-foreground">
               {projectName}
             </p>
-            <p className="text-xs text-muted-foreground">
-              Scanned: {new Date(timestamp).toLocaleString()}
+            <p className="font-mono text-[10px] text-muted-foreground tabular-nums">
+              scanned: {new Date(timestamp).toISOString()}
             </p>
           </div>
 
