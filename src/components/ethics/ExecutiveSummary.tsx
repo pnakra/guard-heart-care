@@ -208,11 +208,11 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
         {totalIssues > 0 && (
           <div className="mt-4 pt-4 border-t border-border/30">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-medium text-muted-foreground">
-                Triage Progress
+              <span className="font-mono text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+                triage_progress
               </span>
-              <span className="text-xs text-muted-foreground">
-                {reviewedCount} of {totalIssues} reviewed ({triagePercent}%)
+              <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+                {reviewedCount}/{totalIssues} ({triagePercent}%)
               </span>
             </div>
             <div className="h-2 bg-secondary rounded-full overflow-hidden">
