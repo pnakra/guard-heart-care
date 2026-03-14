@@ -142,6 +142,8 @@ export function useCodeAnalysis() {
         whyMisuseByDesign: i.whyMisuseByDesign || '',
         mitigation: typeof i.mitigation === 'string' ? i.mitigation : i.mitigation?.summary || i.recommendation || '',
         mitigationType: i.mitigationType || 'ui-language',
+        customRule: i.customRule || false,
+        customRuleName: i.customRuleName || undefined,
       }));
 
       // Calculate base risk score
