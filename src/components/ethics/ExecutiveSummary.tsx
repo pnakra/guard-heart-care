@@ -245,9 +245,9 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
       {/* Top 3 Risks */}
       {hasTopRisks && (
         <div className="space-y-3">
-          <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+          <h3 className="font-mono font-medium text-[11px] text-muted-foreground uppercase tracking-widest flex items-center gap-2">
             <AlertTriangle size={14} />
-            Top Risks to Address Before Shipping
+            top_risks // fix before shipping
           </h3>
 
           <div className="grid gap-3">
