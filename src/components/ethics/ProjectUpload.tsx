@@ -50,6 +50,7 @@ interface ForkComparisonData {
 interface ProjectUploadProps {
   onAnalyze: (files: UploadedFile[], projectName: string, customRules?: CustomRulesConfig, populationModifiers?: PopulationModifier[], forkData?: ForkComparisonData) => void;
   isAnalyzing: boolean;
+  onShowOnboarding?: () => void;
 }
 
 const ALLOWED_EXTENSIONS = [
@@ -117,7 +118,7 @@ function validateCustomRules(jsonStr: string): { valid: boolean; parsed?: Custom
 
 const POPULATION_STORAGE_KEY = 'gfc-population-modifiers';
 
-export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
+export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: ProjectUploadProps) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [projectName, setProjectName] = useState('');
   const [isDragging, setIsDragging] = useState(false);
@@ -699,6 +700,17 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
         <p className="text-xs text-center text-muted-foreground">
           Your code is analyzed securely and not stored. Analysis powered by AI.
         </p>
+        {onShowOnboarding && (
+          <button
+            onClick={() => {
+              localStorage.removeItem('gfc_onboarding_complete');
+              onShowOnboarding();
+            }}
+            className="text-xs text-center text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors w-full"
+          >
+            Show intro again
+          </button>
+        )}
       </div>
     </div>
   );

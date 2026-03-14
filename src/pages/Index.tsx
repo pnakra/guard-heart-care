@@ -3,13 +3,14 @@ import { ProjectUpload, CustomRulesConfig, PopulationModifier } from '@/componen
 import { ScanningScreen } from '@/components/ethics/ScanningScreen';
 import { EthicsReviewPanel } from '@/components/ethics/EthicsReviewPanel';
 import { PublishGate } from '@/components/ethics/PublishGate';
+import { OnboardingFlow } from '@/components/ethics/OnboardingFlow';
 import { useCodeAnalysis } from '@/hooks/useCodeAnalysis';
 import { EthicsReviewResult } from '@/types/ethics';
 import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
 import { IssueStatusProvider } from '@/contexts/IssueStatusContext';
 import { toast } from 'sonner';
 
-type AppState = 'upload' | 'scanning' | 'results' | 'publish-gate';
+type AppState = 'onboarding' | 'upload' | 'scanning' | 'results' | 'publish-gate';
 
 interface UploadedFile {
   name: string;
@@ -18,7 +19,8 @@ interface UploadedFile {
 }
 
 const Index = () => {
-  const [appState, setAppState] = useState<AppState>('upload');
+  const hasCompletedOnboarding = localStorage.getItem('gfc_onboarding_complete') === 'true';
+  const [appState, setAppState] = useState<AppState>(hasCompletedOnboarding ? 'upload' : 'onboarding');
   const [analysisResult, setAnalysisResult] = useState<EthicsReviewResult | null>(null);
   const [capabilities, setCapabilities] = useState<DetectedCapability[]>([]);
   const [misuseScenarios, setMisuseScenarios] = useState<MisuseScenario[]>([]);
@@ -66,11 +68,16 @@ const Index = () => {
     setAppState('results');
   };
 
+  if (appState === 'onboarding') {
+    return <OnboardingFlow onComplete={() => setAppState('upload')} />;
+  }
+
   if (appState === 'upload') {
     return (
       <ProjectUpload 
         onAnalyze={handleAnalyze}
         isAnalyzing={isAnalyzing}
+        onShowOnboarding={() => setAppState('onboarding')}
       />
     );
   }
