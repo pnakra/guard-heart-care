@@ -116,7 +116,6 @@ function validateCustomRules(jsonStr: string): { valid: boolean; parsed?: Custom
   return { valid: true, parsed: parsed as CustomRulesConfig };
 }
 
-const POPULATION_STORAGE_KEY = 'gfc-population-modifiers';
 const QUIZ_STORAGE_KEY = 'gfc-category-quiz';
 
 interface QuizAnswers {
@@ -125,9 +124,11 @@ interface QuizAnswers {
   social: boolean;
   health: boolean;
   finance: boolean;
+  domesticAbuse: boolean;
+  elderly: boolean;
 }
 
-const DEFAULT_QUIZ: QuizAnswers = { minors: false, location: false, social: false, health: false, finance: false };
+const DEFAULT_QUIZ: QuizAnswers = { minors: false, location: false, social: false, health: false, finance: false, domesticAbuse: false, elderly: false };
 
 const QUIZ_QUESTIONS: { key: keyof QuizAnswers; label: string }[] = [
   { key: 'minors', label: 'Could minors (under 18) use this app?' },
@@ -135,6 +136,8 @@ const QUIZ_QUESTIONS: { key: keyof QuizAnswers; label: string }[] = [
   { key: 'social', label: 'Does it connect users with each other (messaging, matching, social)?' },
   { key: 'health', label: 'Does it involve health, mental health, or body data?' },
   { key: 'finance', label: 'Does it involve money, credit, or financial decisions?' },
+  { key: 'domesticAbuse', label: 'Could users be in domestic abuse or coercive control situations?' },
+  { key: 'elderly', label: 'Are elderly users a primary audience?' },
 ];
 
 function getQuizElevations(answers: QuizAnswers): { elevatedCategories: string[]; populationMods: PopulationModifier[]; verticalProfiles: string[] } {
@@ -145,8 +148,10 @@ function getQuizElevations(answers: QuizAnswers): { elevatedCategories: string[]
   if (answers.minors) pops.push('minors');
   if (answers.location) cats.add('surveillance');
   if (answers.social) { cats.add('manipulation'); cats.add('surveillance'); }
-  if (answers.health) { cats.add('false-authority'); cats.add('ai-hallucination'); verticals.push('health'); }
-  if (answers.finance) { cats.add('dark-patterns'); verticals.push('fintech'); }
+  if (answers.health) { cats.add('false-authority'); cats.add('ai-hallucination'); verticals.push('health'); pops.push('mental-health'); }
+  if (answers.finance) { cats.add('dark-patterns'); verticals.push('fintech'); pops.push('financially-vulnerable'); }
+  if (answers.domesticAbuse) { cats.add('surveillance'); pops.push('domestic-abuse'); }
+  if (answers.elderly) pops.push('elderly');
 
   return { elevatedCategories: Array.from(cats), populationMods: pops, verticalProfiles: verticals };
 }
