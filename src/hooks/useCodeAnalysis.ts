@@ -347,6 +347,16 @@ export function useCodeAnalysis() {
         return issue;
       });
 
+      // Build fork summary if in fork mode
+      const isForkAnalysis = !!forkData;
+      const forkSummary = isForkAnalysis ? {
+        introducedCount: issuesWithConfidence.filter(i => i.forkClassification === 'introduced').length,
+        inheritedCount: issuesWithConfidence.filter(i => i.forkClassification === 'inherited').length,
+        remediatedCount: issuesWithConfidence.filter(i => i.forkClassification === 'remediated').length,
+        upstreamRepo: forkData.upstreamRepo || 'upstream',
+        forkRepo: forkData.forkRepo || 'fork',
+      } : undefined;
+
       // V1 result (backwards compatible)
       const result: EthicsReviewResult = {
         executiveSummary,
@@ -356,6 +366,8 @@ export function useCodeAnalysis() {
         timestamp,
         projectName: data.projectName,
         detectedCategory: data.detectedCategory || 'unknown',
+        isForkAnalysis,
+        forkSummary,
       };
 
       // V2 result (enhanced - all derived from actual code)
