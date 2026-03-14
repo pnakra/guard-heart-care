@@ -83,11 +83,11 @@ export function EthicsReviewPanel({
                 </svg>
               </div>
               <div>
-                <h1 className="font-serif text-xl font-semibold text-foreground">
-                  Misuse-by-Design Scanner
+                <h1 className="font-mono text-lg font-semibold text-foreground tracking-tight">
+                  gfc-scanner <span className="text-primary">v2.0</span>
                 </h1>
-                <p className="text-xs text-muted-foreground">
-                  Detecting harmful affordances in your application
+                <p className="font-mono text-[10px] text-muted-foreground tracking-wide">
+                  misuse-by-design detection
                 </p>
               </div>
             </div>
