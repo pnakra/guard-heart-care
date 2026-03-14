@@ -211,12 +211,15 @@ export function IssueCard({ issue }: IssueCardProps) {
                 <div className="flex gap-2">
                   <AlertCircle size={14} className="shrink-0 mt-0.5 text-[hsl(var(--ethics-high))]" />
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                      Misuse Scenario
-                    </p>
-                    <p className="text-sm text-foreground italic">
-                      "{issue.misuseScenario}"
-                    </p>
+                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                       Misuse Scenario
+                     </p>
+                     <p className={cn(
+                       'text-sm text-foreground italic',
+                       isPlainLanguage && 'font-semibold not-italic'
+                     )}>
+                       "{issue.misuseScenario}"
+                     </p>
                   </div>
                 </div>
               </div>
