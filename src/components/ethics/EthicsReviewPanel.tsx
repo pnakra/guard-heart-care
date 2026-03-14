@@ -249,17 +249,17 @@ export function EthicsReviewPanel({
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border mt-12">
+      <footer className="border-t border-border mt-12 relative z-[1]">
         <div className="container max-w-6xl mx-auto px-4 py-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[11px] text-muted-foreground">
             <p>
-              This scanner identifies misuse-by-design patterns, not bugs or security vulnerabilities.
+              // identifies misuse-by-design patterns, not bugs or security vulnerabilities
             </p>
             <a 
               href="#" 
               className="text-primary hover:underline"
             >
-              Learn about our methodology
+              methodology.md
             </a>
           </div>
         </div>
