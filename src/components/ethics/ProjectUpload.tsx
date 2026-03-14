@@ -118,7 +118,7 @@ function validateCustomRules(jsonStr: string): { valid: boolean; parsed?: Custom
 
 const POPULATION_STORAGE_KEY = 'gfc-population-modifiers';
 
-export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
+export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: ProjectUploadProps) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [projectName, setProjectName] = useState('');
   const [isDragging, setIsDragging] = useState(false);
