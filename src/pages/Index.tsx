@@ -68,11 +68,16 @@ const Index = () => {
     setAppState('results');
   };
 
+  if (appState === 'onboarding') {
+    return <OnboardingFlow onComplete={() => setAppState('upload')} />;
+  }
+
   if (appState === 'upload') {
     return (
       <ProjectUpload 
         onAnalyze={handleAnalyze}
         isAnalyzing={isAnalyzing}
+        onShowOnboarding={() => setAppState('onboarding')}
       />
     );
   }
