@@ -116,7 +116,6 @@ function validateCustomRules(jsonStr: string): { valid: boolean; parsed?: Custom
   return { valid: true, parsed: parsed as CustomRulesConfig };
 }
 
-const POPULATION_STORAGE_KEY = 'gfc-population-modifiers';
 const QUIZ_STORAGE_KEY = 'gfc-category-quiz';
 
 interface QuizAnswers {
@@ -125,9 +124,11 @@ interface QuizAnswers {
   social: boolean;
   health: boolean;
   finance: boolean;
+  domesticAbuse: boolean;
+  elderly: boolean;
 }
 
-const DEFAULT_QUIZ: QuizAnswers = { minors: false, location: false, social: false, health: false, finance: false };
+const DEFAULT_QUIZ: QuizAnswers = { minors: false, location: false, social: false, health: false, finance: false, domesticAbuse: false, elderly: false };
 
 const QUIZ_QUESTIONS: { key: keyof QuizAnswers; label: string }[] = [
   { key: 'minors', label: 'Could minors (under 18) use this app?' },
@@ -135,6 +136,8 @@ const QUIZ_QUESTIONS: { key: keyof QuizAnswers; label: string }[] = [
   { key: 'social', label: 'Does it connect users with each other (messaging, matching, social)?' },
   { key: 'health', label: 'Does it involve health, mental health, or body data?' },
   { key: 'finance', label: 'Does it involve money, credit, or financial decisions?' },
+  { key: 'domesticAbuse', label: 'Could users be in domestic abuse or coercive control situations?' },
+  { key: 'elderly', label: 'Are elderly users a primary audience?' },
 ];
 
 function getQuizElevations(answers: QuizAnswers): { elevatedCategories: string[]; populationMods: PopulationModifier[]; verticalProfiles: string[] } {
@@ -145,8 +148,10 @@ function getQuizElevations(answers: QuizAnswers): { elevatedCategories: string[]
   if (answers.minors) pops.push('minors');
   if (answers.location) cats.add('surveillance');
   if (answers.social) { cats.add('manipulation'); cats.add('surveillance'); }
-  if (answers.health) { cats.add('false-authority'); cats.add('ai-hallucination'); verticals.push('health'); }
-  if (answers.finance) { cats.add('dark-patterns'); verticals.push('fintech'); }
+  if (answers.health) { cats.add('false-authority'); cats.add('ai-hallucination'); verticals.push('health'); pops.push('mental-health'); }
+  if (answers.finance) { cats.add('dark-patterns'); verticals.push('fintech'); pops.push('financially-vulnerable'); }
+  if (answers.domesticAbuse) { cats.add('surveillance'); pops.push('domestic-abuse'); }
+  if (answers.elderly) pops.push('elderly');
 
   return { elevatedCategories: Array.from(cats), populationMods: pops, verticalProfiles: verticals };
 }
@@ -162,12 +167,6 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
   const [isFetchingFork, setIsFetchingFork] = useState(false);
   const [forkStatus, setForkStatus] = useState<string>('');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [selectedPopulations, setSelectedPopulations] = useState<PopulationModifier[]>(() => {
-    try {
-      const stored = sessionStorage.getItem(POPULATION_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch { return []; }
-  });
   const [customRulesText, setCustomRulesText] = useState(() => {
     try { return sessionStorage.getItem(CUSTOM_RULES_KEY) || DEFAULT_RULES; } catch { return DEFAULT_RULES; }
   });
@@ -185,21 +184,10 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
     setRulesValidation({ valid: result.valid, error: result.error });
   }, [customRulesText]);
 
-  // Persist population modifiers
-  useEffect(() => {
-    try { sessionStorage.setItem(POPULATION_STORAGE_KEY, JSON.stringify(selectedPopulations)); } catch { /* ignore */ }
-  }, [selectedPopulations]);
-
   // Persist quiz answers
   useEffect(() => {
     try { sessionStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(quizAnswers)); } catch { /* ignore */ }
   }, [quizAnswers]);
-
-  const togglePopulation = (mod: PopulationModifier) => {
-    setSelectedPopulations(prev =>
-      prev.includes(mod) ? prev.filter(m => m !== mod) : [...prev, mod]
-    );
-  };
 
   // Persist to sessionStorage
   useEffect(() => {
@@ -320,8 +308,16 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
 
       // Trigger analysis with fork data
       const validation = validateCustomRules(customRulesText);
-      const customRules = showAdvanced && validation.valid ? validation.parsed : undefined;
-      const populations = selectedPopulations.length > 0 ? selectedPopulations : undefined;
+      const quizElev = getQuizElevations(quizAnswers);
+      const mergedElevated = Array.from(new Set([
+        ...(showAdvanced && validation.valid && validation.parsed?.elevatedCategories || []),
+        ...quizElev.elevatedCategories,
+      ]));
+      const mergedPopulations = Array.from(new Set([...quizElev.populationMods])) as PopulationModifier[];
+      const customRules: CustomRulesConfig | undefined = mergedElevated.length > 0 || (showAdvanced && validation.valid && validation.parsed)
+        ? { ...(showAdvanced && validation.valid ? validation.parsed : {}), elevatedCategories: mergedElevated }
+        : undefined;
+      const populations = mergedPopulations.length > 0 ? mergedPopulations : undefined;
       const forkComparisonData: ForkComparisonData = {
         upstreamUrl,
         forkUrl,
@@ -354,7 +350,6 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
         ...quizElev.elevatedCategories,
       ]));
       const mergedPopulations = Array.from(new Set([
-        ...selectedPopulations,
         ...quizElev.populationMods,
       ])) as PopulationModifier[];
 
@@ -705,36 +700,7 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
           )}
         </div>
 
-        {/* Population Context */}
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-foreground">
-              Population Context
-            </label>
-            <p className="text-xs text-muted-foreground">
-              Select if any of these apply to your users — the scanner will elevate severity for relevant risks.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {POPULATION_MODIFIERS.map((mod) => (
-              <button
-                key={mod.id}
-                type="button"
-                onClick={() => togglePopulation(mod.id)}
-                className={cn(
-                  'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                  selectedPopulations.includes(mod.id)
-                    ? 'bg-primary/10 text-primary border-primary/30 shadow-sm'
-                    : 'bg-card text-muted-foreground border-border hover:border-primary/20 hover:text-foreground'
-                )}
-              >
-                {mod.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Category Quiz */}
+        {/* Context Quiz */}
         <div className="border border-border rounded-lg bg-card p-4 space-y-3">
           <div className="space-y-1">
             <label className="text-sm font-medium text-foreground">
@@ -774,18 +740,18 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
           {(() => {
             const elev = getQuizElevations(quizAnswers);
             const allCats = Array.from(new Set([...elev.elevatedCategories]));
-            const allPops = Array.from(new Set([...selectedPopulations, ...elev.populationMods]));
+            const allPops = Array.from(new Set([...elev.populationMods]));
             if (allCats.length === 0 && allPops.length === 0) return null;
             return (
               <div className="px-3 py-2 rounded-lg bg-primary/5 border border-primary/10">
                 <p className="text-xs text-muted-foreground">
-                  <span className="font-medium text-foreground">Scan config: </span>
+                  <span className="font-medium text-foreground">Scanning with: </span>
                   {allCats.length > 0 && (
-                    <span>Elevated: {allCats.map(c => c.replace('-', ' ')).join(', ')}</span>
+                    <span>{allCats.map(c => c.replace('-', ' ')).join(', ')}</span>
                   )}
                   {allCats.length > 0 && allPops.length > 0 && <span> | </span>}
                   {allPops.length > 0 && (
-                    <span>Population: {allPops.join(', ')}</span>
+                    <span>{allPops.join(', ')}</span>
                   )}
                 </p>
               </div>
