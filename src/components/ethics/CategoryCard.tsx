@@ -1,7 +1,9 @@
-import { CategorySummary } from '@/types/ethics';
+import { CategorySummary, HarmCategory } from '@/types/ethics';
 import { CategoryIcon } from './CategoryIcon';
 import { SeverityBadge } from './SeverityBadge';
 import { cn } from '@/lib/utils';
+import { usePlainLanguage } from '@/contexts/PlainLanguageContext';
+import { PLAIN_CATEGORY_LABELS } from '@/data/plainLanguageMap';
 
 interface CategoryCardProps {
   category: CategorySummary;
