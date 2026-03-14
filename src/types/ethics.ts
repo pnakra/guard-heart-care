@@ -7,6 +7,16 @@ export type HarmCategory =
   | 'admin-abuse'
   | 'ai-hallucination';
 
+export interface IssueConfidenceSummary {
+  detectionConfidence: number;
+  detectionRationale: string;
+  misuseConfidence: number;
+  misuseRationale: string;
+  severityConfidence: number;
+  severityRationale: string;
+  overallConfidence: number;
+}
+
 export interface EthicsIssue {
   id: string;
   category: HarmCategory;
@@ -19,6 +29,7 @@ export interface EthicsIssue {
   mitigation: string;
   mitigationType: 'ui-language' | 'interaction-model' | 'feature-removal' | 'reframing';
   isNewSinceLast?: boolean; // For iteration awareness
+  confidence?: IssueConfidenceSummary; // V2 confidence data
 }
 
 export interface ExecutiveSummary {
