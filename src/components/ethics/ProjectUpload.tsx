@@ -50,6 +50,7 @@ interface ForkComparisonData {
 interface ProjectUploadProps {
   onAnalyze: (files: UploadedFile[], projectName: string, customRules?: CustomRulesConfig, populationModifiers?: PopulationModifier[], forkData?: ForkComparisonData) => void;
   isAnalyzing: boolean;
+  onShowOnboarding?: () => void;
 }
 
 const ALLOWED_EXTENSIONS = [
