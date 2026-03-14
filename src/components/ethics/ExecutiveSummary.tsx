@@ -98,41 +98,42 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                 Ground Floor Check
               </h2>
               {activeCategory !== 'unknown' && (
-                <div className="flex items-center gap-1">
-                  {isEditingCategory ? (
-                    <Select
-                      value={activeCategory}
-                      onValueChange={(val) => {
-                        setCategoryOverride(val);
-                        setIsEditingCategory(false);
-                      }}
-                    >
-                      <SelectTrigger className="h-6 text-xs w-auto min-w-[120px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ALL_CATEGORIES.filter(c => c !== 'unknown').map(cat => (
-                          <SelectItem key={cat} value={cat} className="text-xs">
-                            {getAppCategoryLabel(cat)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <button
-                      onClick={() => setIsEditingCategory(true)}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
-                    >
-                      Detected: {categoryLabel}
-                      <Pencil size={10} />
-                    </button>
-                  )}
-                </div>
-                {/* Risk Profile Active badge */}
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-accent text-accent-foreground border border-border">
-                  <ShieldCheck size={10} />
-                  Risk Profile Active
-                </span>
+                <>
+                  <div className="flex items-center gap-1">
+                    {isEditingCategory ? (
+                      <Select
+                        value={activeCategory}
+                        onValueChange={(val) => {
+                          setCategoryOverride(val);
+                          setIsEditingCategory(false);
+                        }}
+                      >
+                        <SelectTrigger className="h-6 text-xs w-auto min-w-[120px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ALL_CATEGORIES.filter(c => c !== 'unknown').map(cat => (
+                            <SelectItem key={cat} value={cat} className="text-xs">
+                              {getAppCategoryLabel(cat)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <button
+                        onClick={() => setIsEditingCategory(true)}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
+                      >
+                        Detected: {categoryLabel}
+                        <Pencil size={10} />
+                      </button>
+                    )}
+                  </div>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-accent text-accent-foreground border border-border">
+                    <ShieldCheck size={10} />
+                    Risk Profile Active
+                  </span>
+                </>
               )}
             </div>
             <p className="text-muted-foreground">
