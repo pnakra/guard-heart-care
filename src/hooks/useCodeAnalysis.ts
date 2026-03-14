@@ -76,24 +76,32 @@ function getLatestScan(): ScanHistoryEntry | null {
 export function useCodeAnalysis() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const analyzeCode = async (files: UploadedFile[], projectName: string, customRules?: any, populationModifiers?: string[]): Promise<AnalysisResult | null> => {
+  const analyzeCode = async (files: UploadedFile[], projectName: string, customRules?: any, populationModifiers?: string[], forkData?: any): Promise<AnalysisResult | null> => {
     setIsAnalyzing(true);
 
     try {
       const previousScan = getLatestScan();
       
+      const body: any = { 
+        files, 
+        projectName,
+        customRules: customRules || null,
+        populationModifiers: populationModifiers || null,
+        previousScan: previousScan ? {
+          timestamp: previousScan.timestamp,
+          riskScore: previousScan.riskScore,
+          issueIds: previousScan.issueIds,
+        } : null,
+      };
+
+      // Fork comparison mode
+      if (forkData) {
+        body.forkMode = true;
+        body.upstreamFiles = forkData.upstreamFiles;
+      }
+
       const { data, error } = await supabase.functions.invoke('analyze-code', {
-        body: { 
-          files, 
-          projectName,
-          customRules: customRules || null,
-          populationModifiers: populationModifiers || null,
-          previousScan: previousScan ? {
-            timestamp: previousScan.timestamp,
-            riskScore: previousScan.riskScore,
-            issueIds: previousScan.issueIds,
-          } : null,
-        },
+        body,
       });
 
       if (error) {
@@ -147,6 +155,7 @@ export function useCodeAnalysis() {
         customRule: i.customRule || false,
         customRuleName: i.customRuleName || undefined,
         populationTags: Array.isArray(i.populationTags) ? i.populationTags : undefined,
+        forkClassification: i.forkClassification || undefined,
       }));
 
       // Calculate base risk score
@@ -338,6 +347,16 @@ export function useCodeAnalysis() {
         return issue;
       });
 
+      // Build fork summary if in fork mode
+      const isForkAnalysis = !!forkData;
+      const forkSummary = isForkAnalysis ? {
+        introducedCount: issuesWithConfidence.filter(i => i.forkClassification === 'introduced').length,
+        inheritedCount: issuesWithConfidence.filter(i => i.forkClassification === 'inherited').length,
+        remediatedCount: issuesWithConfidence.filter(i => i.forkClassification === 'remediated').length,
+        upstreamRepo: forkData.upstreamRepo || 'upstream',
+        forkRepo: forkData.forkRepo || 'fork',
+      } : undefined;
+
       // V1 result (backwards compatible)
       const result: EthicsReviewResult = {
         executiveSummary,
@@ -347,6 +366,8 @@ export function useCodeAnalysis() {
         timestamp,
         projectName: data.projectName,
         detectedCategory: data.detectedCategory || 'unknown',
+        isForkAnalysis,
+        forkSummary,
       };
 
       // V2 result (enhanced - all derived from actual code)

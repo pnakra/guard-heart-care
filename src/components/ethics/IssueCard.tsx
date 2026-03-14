@@ -1,6 +1,7 @@
 import { EthicsIssue, IssueConfidenceSummary } from '@/types/ethics';
 import { SeverityBadge } from './SeverityBadge';
 import { DiffViewer } from './DiffViewer';
+import { ForkBadge } from './ForkBadge';
 import { ChevronRight, ChevronDown, FileCode, Lightbulb, AlertCircle, HelpCircle, BarChart3, AlertTriangle as AlertTriangleIcon, BookTemplate, Copy, Check, Wand2, Code2 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -114,6 +115,9 @@ export function IssueCard({ issue }: IssueCardProps) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <SeverityBadge severity={issue.severity} size="sm" />
+                {issue.forkClassification && (
+                  <ForkBadge classification={issue.forkClassification} />
+                )}
                 {confidenceBadge && (
                   <span className={cn('text-xs px-1.5 py-0.5 rounded-full border', confidenceBadge.className)}>
                     {confidenceBadge.label}

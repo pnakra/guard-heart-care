@@ -1,4 +1,5 @@
 export type SeverityLevel = 'safe' | 'low' | 'medium' | 'high' | 'critical';
+export type ForkClassification = 'inherited' | 'introduced' | 'remediated';
 
 export type HarmCategory = 
   | 'false-authority'
@@ -43,6 +44,7 @@ export interface EthicsIssue {
   customRule?: boolean;
   customRuleName?: string;
   populationTags?: string[];
+  forkClassification?: ForkClassification;
 }
 
 export interface ExecutiveSummary {
@@ -74,8 +76,16 @@ export interface EthicsReviewResult {
   categories: CategorySummary[];
   timestamp: string;
   projectName: string;
-  scanVersion?: number; // For iteration tracking
-  detectedCategory?: string; // Auto-detected app category
+  scanVersion?: number;
+  detectedCategory?: string;
+  isForkAnalysis?: boolean;
+  forkSummary?: {
+    introducedCount: number;
+    inheritedCount: number;
+    remediatedCount: number;
+    upstreamRepo: string;
+    forkRepo: string;
+  };
 }
 
 // Legacy type alias for backwards compat

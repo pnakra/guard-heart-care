@@ -7,10 +7,11 @@ import { ExecutiveSummary } from './ExecutiveSummary';
 import { CategoryCard } from './CategoryCard';
 import { IssuesList } from './IssuesList';
 import { MisuseScenarios } from './MisuseScenarios';
+import { ForkAnalysisTab } from './ForkAnalysisTab';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { RefreshCw, Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users, GitPullRequest, ScanSearch } from 'lucide-react';
+import { RefreshCw, Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users, GitPullRequest, ScanSearch, GitFork } from 'lucide-react';
 import { exportReport, generateLovablePrompt, generatePRComment, copyToClipboard } from '@/utils/exportReport';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { toast } from 'sonner';
@@ -33,7 +34,7 @@ export function EthicsReviewPanel({
   onPublish 
 }: EthicsReviewPanelProps) {
   const [selectedCategory, setSelectedCategory] = useState<HarmCategory | null>(null);
-  const [activeTab, setActiveTab] = useState<'issues' | 'misuse'>('issues');
+  const [activeTab, setActiveTab] = useState<'issues' | 'misuse' | 'fork'>(result.isForkAnalysis ? 'fork' : 'issues');
 
   const handleCategoryClick = (category: HarmCategory) => {
     setSelectedCategory(prev => prev === category ? null : category);
@@ -216,7 +217,7 @@ export function EthicsReviewPanel({
 
           {/* Tabbed Content Panel */}
           <div className="space-y-4">
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'issues' | 'misuse')}>
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'issues' | 'misuse' | 'fork')}>
               <div className="flex items-center justify-between">
                 <TabsList className="bg-secondary/50 font-mono">
                   <TabsTrigger value="issues" className="gap-2 font-mono text-xs">
@@ -235,6 +236,17 @@ export function EthicsReviewPanel({
                       </span>
                     )}
                   </TabsTrigger>
+                  {result.isForkAnalysis && result.forkSummary && (
+                    <TabsTrigger value="fork" className="gap-2 font-mono text-xs">
+                      <GitFork size={14} />
+                      fork_analysis
+                      {result.forkSummary.introducedCount > 0 && (
+                        <span className="font-mono text-[10px] bg-[hsl(var(--ethics-critical))] text-white px-1.5 py-0.5 rounded">
+                          {result.forkSummary.introducedCount}
+                        </span>
+                      )}
+                    </TabsTrigger>
+                  )}
                 </TabsList>
 
                 {activeTab === 'issues' && selectedCategory && (
@@ -262,6 +274,15 @@ export function EthicsReviewPanel({
                   capabilities={capabilities}
                 />
               </TabsContent>
+
+              {result.isForkAnalysis && result.forkSummary && (
+                <TabsContent value="fork" className="mt-4">
+                  <ForkAnalysisTab
+                    issues={result.issues}
+                    forkSummary={result.forkSummary}
+                  />
+                </TabsContent>
+              )}
             </Tabs>
           </div>
         </div>

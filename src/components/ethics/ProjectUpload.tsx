@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, FileCode, X, FolderOpen, Loader2, Github, ArrowRight, Settings2, ChevronDown, ChevronRight, AlertCircle, Check } from 'lucide-react';
+import { Upload, FileCode, X, FolderOpen, Loader2, Github, ArrowRight, Settings2, ChevronDown, ChevronRight, AlertCircle, Check, GitFork } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -38,8 +38,17 @@ export const POPULATION_MODIFIERS: { id: PopulationModifier; label: string; shor
   { id: 'elderly', label: 'Elderly users are a primary audience', shortLabel: 'Elderly' },
 ];
 
+interface ForkComparisonData {
+  upstreamUrl: string;
+  forkUrl: string;
+  upstreamFiles: UploadedFile[];
+  forkFiles: UploadedFile[];
+  upstreamRepo: string;
+  forkRepo: string;
+}
+
 interface ProjectUploadProps {
-  onAnalyze: (files: UploadedFile[], projectName: string, customRules?: CustomRulesConfig, populationModifiers?: PopulationModifier[]) => void;
+  onAnalyze: (files: UploadedFile[], projectName: string, customRules?: CustomRulesConfig, populationModifiers?: PopulationModifier[], forkData?: ForkComparisonData) => void;
   isAnalyzing: boolean;
 }
 
@@ -114,7 +123,11 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [githubUrl, setGithubUrl] = useState('');
   const [isFetchingGithub, setIsFetchingGithub] = useState(false);
-  const [inputMode, setInputMode] = useState<'upload' | 'github'>('upload');
+  const [inputMode, setInputMode] = useState<'upload' | 'github' | 'fork'>('upload');
+  const [upstreamUrl, setUpstreamUrl] = useState('');
+  const [forkUrl, setForkUrl] = useState('');
+  const [isFetchingFork, setIsFetchingFork] = useState(false);
+  const [forkStatus, setForkStatus] = useState<string>('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [selectedPopulations, setSelectedPopulations] = useState<PopulationModifier[]>(() => {
     try {
@@ -232,6 +245,59 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
     }
   };
 
+  const handleFetchFork = async () => {
+    if (!upstreamUrl.trim() || !forkUrl.trim()) {
+      toast.error('Please enter both upstream and fork URLs');
+      return;
+    }
+
+    setIsFetchingFork(true);
+    setForkStatus('Fetching upstream repo...');
+    try {
+      // Fetch upstream
+      const { data: upstreamData, error: upstreamError } = await supabase.functions.invoke('fetch-github-repo', {
+        body: { url: upstreamUrl },
+      });
+      if (upstreamError || upstreamData?.error) throw new Error(upstreamData?.error || upstreamError?.message || 'Failed to fetch upstream');
+
+      setForkStatus('Fetching fork repo...');
+      // Fetch fork
+      const { data: forkData, error: forkError } = await supabase.functions.invoke('fetch-github-repo', {
+        body: { url: forkUrl },
+      });
+      if (forkError || forkData?.error) throw new Error(forkData?.error || forkError?.message || 'Failed to fetch fork');
+
+      setFiles(forkData.files);
+      setProjectName(`${forkData.repoName} (fork comparison)`);
+
+      toast.success(`Fetched both repos`, {
+        description: `Upstream: ${upstreamData.fileCount} files, Fork: ${forkData.fileCount} files`,
+      });
+
+      // Trigger analysis with fork data
+      const validation = validateCustomRules(customRulesText);
+      const customRules = showAdvanced && validation.valid ? validation.parsed : undefined;
+      const populations = selectedPopulations.length > 0 ? selectedPopulations : undefined;
+      const forkComparisonData: ForkComparisonData = {
+        upstreamUrl,
+        forkUrl,
+        upstreamFiles: upstreamData.files,
+        forkFiles: forkData.files,
+        upstreamRepo: `${upstreamData.owner}/${upstreamData.repoName}`,
+        forkRepo: `${forkData.owner}/${forkData.repoName}`,
+      };
+      onAnalyze(forkData.files, forkData.repoName, customRules, populations, forkComparisonData);
+    } catch (err) {
+      console.error('Fork fetch error:', err);
+      toast.error('Failed to fetch repositories', {
+        description: err instanceof Error ? err.message : 'Unknown error',
+      });
+    } finally {
+      setIsFetchingFork(false);
+      setForkStatus('');
+    }
+  };
+
   const handleAnalyze = () => {
     if (files.length > 0) {
       const validation = validateCustomRules(customRulesText);
@@ -298,7 +364,21 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
           >
             <span className="flex items-center gap-2">
               <Github size={16} />
-              Import from GitHub
+              GitHub
+            </span>
+          </button>
+          <button
+            onClick={() => setInputMode('fork')}
+            className={cn(
+              'px-4 py-2 rounded-md text-sm font-medium transition-all',
+              inputMode === 'fork' 
+                ? 'bg-background text-foreground shadow-sm' 
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <span className="flex items-center gap-2">
+              <GitFork size={16} />
+              Fork Comparison
             </span>
           </button>
         </div>
@@ -316,7 +396,53 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
           />
         </div>
 
-        {inputMode === 'github' ? (
+        {inputMode === 'fork' ? (
+          /* Fork Comparison */
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Upstream Repository URL
+              </label>
+              <Input
+                placeholder="https://github.com/original-org/repo"
+                value={upstreamUrl}
+                onChange={(e) => setUpstreamUrl(e.target.value)}
+                className="bg-card"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Your Fork URL
+              </label>
+              <Input
+                placeholder="https://github.com/your-username/repo"
+                value={forkUrl}
+                onChange={(e) => setForkUrl(e.target.value)}
+                className="bg-card"
+              />
+            </div>
+            <Button
+              onClick={handleFetchFork}
+              disabled={isFetchingFork || !upstreamUrl.trim() || !forkUrl.trim()}
+              className="w-full gap-2"
+            >
+              {isFetchingFork ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  {forkStatus || 'Fetching...'}
+                </>
+              ) : (
+                <>
+                  <GitFork size={16} />
+                  Compare Fork Against Upstream
+                </>
+              )}
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Both must be public repos. We'll fetch and diff both, then classify each issue as inherited, introduced, or remediated.
+            </p>
+          </div>
+        ) : inputMode === 'github' ? (
           /* GitHub Import */
           <div className="space-y-4">
             <div className="space-y-2">
