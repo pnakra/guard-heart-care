@@ -128,8 +128,8 @@ export function IssueCard({ issue }: IssueCardProps) {
                     ⚠ Elevated: {populationLabels[tag] || tag}
                   </span>
                 ))}
-                <span className="text-xs text-muted-foreground uppercase tracking-wide">
-                  {categoryLabels[issue.category] || issue.category}
+                <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
+                  [{(categoryLabels[issue.category] || issue.category).toUpperCase()}]
                 </span>
               </div>
               <h4 className="font-medium text-foreground mt-2">
