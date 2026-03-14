@@ -45,6 +45,10 @@ export function EthicsReviewPanel({
   const defaultTab: TabValue = result.isForkAnalysis ? 'fork' : isVibe ? 'checklist' : 'issues';
   const [selectedCategory, setSelectedCategory] = useState<HarmCategory | null>(null);
   const [activeTab, setActiveTab] = useState<TabValue>(defaultTab);
+  const [showBadgeModal, setShowBadgeModal] = useState(false);
+
+  const gfsScore = result.executiveSummary.riskScore * 10;
+  const gfsBand = getGFSBand(Math.round(Math.max(0, Math.min(100, gfsScore))));
 
   const handleCategoryClick = (category: HarmCategory) => {
     setSelectedCategory(prev => prev === category ? null : category);
