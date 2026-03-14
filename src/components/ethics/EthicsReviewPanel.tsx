@@ -230,7 +230,7 @@ export function EthicsReviewPanel({
 
           {/* Tabbed Content Panel */}
           <div className="space-y-4">
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'issues' | 'misuse' | 'fork')}>
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'issues' | 'misuse' | 'fork' | 'checklist')}>
               <div className="flex items-center justify-between">
                 <TabsList className="bg-secondary/50 font-mono">
                   <TabsTrigger value="issues" className="gap-2 font-mono text-xs">
