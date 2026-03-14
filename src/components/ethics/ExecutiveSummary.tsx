@@ -62,7 +62,7 @@ const gfsBandStyles = {
   },
 };
 
-export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, detectedCategory, issueIds = [] }: ExecutiveSummaryProps) {
+export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, detectedCategory, issueIds = [], lowConfidenceCount = 0 }: ExecutiveSummaryProps) {
   const hasTopRisks = summary.topThreeRisks && summary.topThreeRisks.length > 0;
   const [categoryOverride, setCategoryOverride] = useState<string | null>(null);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
