@@ -107,6 +107,15 @@ export function EthicsReviewPanel({
             </div>
             
             <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded border border-border">
+                <Languages size={13} className="text-muted-foreground" />
+                <span className="font-mono text-[10px] text-muted-foreground">Plain</span>
+                <Switch
+                  checked={isPlainLanguage}
+                  onCheckedChange={togglePlainLanguage}
+                  className="scale-75"
+                />
+              </div>
               <ThemeToggle />
               <Link
                 to="/taxonomy"
