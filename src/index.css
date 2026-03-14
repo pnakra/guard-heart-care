@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    /* Dev-tool dark palette — dark by default */
+    /* Dark mode is default — applied via .dark class on <html> */
     --background: 210 30% 7%;
     --foreground: 210 15% 88%;
 
@@ -16,7 +16,6 @@
     --popover: 210 28% 10%;
     --popover-foreground: 210 15% 88%;
 
-    /* Cyan/teal terminal accent */
     --primary: 175 65% 46%;
     --primary-foreground: 210 30% 7%;
 
@@ -24,7 +23,7 @@
     --secondary-foreground: 210 15% 80%;
 
     --muted: 210 20% 16%;
-    --muted-foreground: 210 10% 52%;
+    --muted-foreground: 215 14% 46%;
 
     --accent: 175 30% 18%;
     --accent-foreground: 175 50% 75%;
@@ -32,13 +31,13 @@
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 20% 18%;
-    --input: 210 20% 18%;
+    --border: 210 22% 20%;
+    --input: 210 22% 20%;
     --ring: 175 65% 46%;
 
     --radius: 0.5rem;
 
-    /* Ethics-specific semantic tokens — dark-optimized */
+    /* Ethics severity tokens */
     --ethics-safe: 145 55% 48%;
     --ethics-safe-bg: 145 30% 12%;
     --ethics-low: 175 50% 48%;
@@ -57,10 +56,62 @@
     --sidebar-primary-foreground: 210 30% 7%;
     --sidebar-accent: 210 22% 15%;
     --sidebar-accent-foreground: 210 15% 80%;
-    --sidebar-border: 210 20% 18%;
+    --sidebar-border: 210 22% 20%;
     --sidebar-ring: 175 65% 46%;
   }
 
+  /* Dark theme — maps to :root values, applied by default */
+  .dark {
+    --background: 210 30% 7%;
+    --foreground: 213 16% 82%;
+
+    --card: 210 26% 13%;
+    --card-foreground: 213 16% 82%;
+
+    --popover: 210 26% 13%;
+    --popover-foreground: 213 16% 82%;
+
+    --primary: 175 65% 46%;
+    --primary-foreground: 210 30% 7%;
+
+    --secondary: 210 22% 15%;
+    --secondary-foreground: 210 15% 80%;
+
+    --muted: 210 20% 16%;
+    --muted-foreground: 215 14% 46%;
+
+    --accent: 175 30% 18%;
+    --accent-foreground: 175 50% 75%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 20% 22%;
+    --input: 210 20% 22%;
+    --ring: 175 65% 46%;
+
+    --ethics-safe: 145 55% 48%;
+    --ethics-safe-bg: 145 30% 12%;
+    --ethics-low: 175 50% 48%;
+    --ethics-low-bg: 175 30% 12%;
+    --ethics-medium: 40 85% 55%;
+    --ethics-medium-bg: 40 50% 12%;
+    --ethics-high: 25 90% 55%;
+    --ethics-high-bg: 25 60% 12%;
+    --ethics-critical: 0 72% 55%;
+    --ethics-critical-bg: 0 50% 12%;
+
+    --sidebar-background: 210 28% 8%;
+    --sidebar-foreground: 210 15% 82%;
+    --sidebar-primary: 175 65% 46%;
+    --sidebar-primary-foreground: 210 30% 7%;
+    --sidebar-accent: 210 22% 15%;
+    --sidebar-accent-foreground: 210 15% 80%;
+    --sidebar-border: 210 20% 22%;
+    --sidebar-ring: 175 65% 46%;
+  }
+
+  /* Light theme */
   .light {
     --background: 40 20% 98%;
     --foreground: 220 25% 12%;
@@ -135,19 +186,15 @@
   .ethics-badge-safe {
     @apply bg-[hsl(var(--ethics-safe-bg))] text-[hsl(var(--ethics-safe))] border-[hsl(var(--ethics-safe)/0.3)];
   }
-  
   .ethics-badge-low {
     @apply bg-[hsl(var(--ethics-low-bg))] text-[hsl(var(--ethics-low))] border-[hsl(var(--ethics-low)/0.3)];
   }
-  
   .ethics-badge-medium {
     @apply bg-[hsl(var(--ethics-medium-bg))] text-[hsl(var(--ethics-medium))] border-[hsl(var(--ethics-medium)/0.3)];
   }
-  
   .ethics-badge-high {
     @apply bg-[hsl(var(--ethics-high-bg))] text-[hsl(var(--ethics-high))] border-[hsl(var(--ethics-high)/0.3)];
   }
-  
   .ethics-badge-critical {
     @apply bg-[hsl(var(--ethics-critical-bg))] text-[hsl(var(--ethics-critical))] border-[hsl(var(--ethics-critical)/0.3)];
   }

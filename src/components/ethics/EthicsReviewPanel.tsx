@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { RefreshCw, Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users } from 'lucide-react';
 import { exportReport, generateLovablePrompt, copyToClipboard } from '@/utils/exportReport';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { toast } from 'sonner';
 
 interface EthicsReviewPanelProps {
@@ -93,6 +94,7 @@ export function EthicsReviewPanel({
             </div>
             
             <div className="flex items-center gap-2">
+              <ThemeToggle />
               <Link
                 to="/taxonomy"
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 font-mono text-[10px] font-medium text-muted-foreground hover:text-primary border border-border rounded hover:border-primary/30 transition-colors"
