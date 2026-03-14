@@ -161,8 +161,8 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                       </span>
                       <Info size={12} className="text-muted-foreground" />
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {isAdjusted ? 'Adjusted GFS / 100' : 'GFS / 100'}
+                    <p className="font-mono text-[10px] text-muted-foreground mt-0.5">
+                      {isAdjusted ? 'adj_gfs / 100' : 'gfs / 100'}
                     </p>
                   </div>
                 </TooltipTrigger>
