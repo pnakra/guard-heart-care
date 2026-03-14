@@ -128,11 +128,11 @@ export function IssueCard({ issue }: IssueCardProps) {
                     ⚠ Elevated: {populationLabels[tag] || tag}
                   </span>
                 ))}
-                <span className="text-xs text-muted-foreground uppercase tracking-wide">
-                  {categoryLabels[issue.category] || issue.category}
+                <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
+                  [{(categoryLabels[issue.category] || issue.category).toUpperCase()}]
                 </span>
               </div>
-              <h4 className="font-medium text-foreground mt-2">
+              <h4 className="font-mono font-medium text-foreground mt-2 text-sm">
                 {issue.title}
               </h4>
               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
@@ -186,7 +186,7 @@ export function IssueCard({ issue }: IssueCardProps) {
             {issue.location && (
               <div className="flex items-center gap-2 text-sm">
                 <FileCode size={14} className="text-muted-foreground shrink-0" />
-                <code className="text-xs bg-secondary px-2 py-1 rounded font-mono">
+                <code className="font-mono text-[11px] bg-[hsl(210,28%,8%)] text-primary px-2.5 py-1 rounded border border-border">
                   {issue.location}
                 </code>
               </div>

@@ -2,11 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* Thoughtful, contemplative palette */
+    /* Dev-tool dark palette — dark by default */
+    --background: 210 30% 7%;
+    --foreground: 210 15% 88%;
+
+    --card: 210 28% 10%;
+    --card-foreground: 210 15% 88%;
+
+    --popover: 210 28% 10%;
+    --popover-foreground: 210 15% 88%;
+
+    /* Cyan/teal terminal accent */
+    --primary: 175 65% 46%;
+    --primary-foreground: 210 30% 7%;
+
+    --secondary: 210 22% 15%;
+    --secondary-foreground: 210 15% 80%;
+
+    --muted: 210 20% 16%;
+    --muted-foreground: 210 10% 52%;
+
+    --accent: 175 30% 18%;
+    --accent-foreground: 175 50% 75%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 20% 18%;
+    --input: 210 20% 18%;
+    --ring: 175 65% 46%;
+
+    --radius: 0.5rem;
+
+    /* Ethics-specific semantic tokens — dark-optimized */
+    --ethics-safe: 145 55% 48%;
+    --ethics-safe-bg: 145 30% 12%;
+    --ethics-low: 175 50% 48%;
+    --ethics-low-bg: 175 30% 12%;
+    --ethics-medium: 40 85% 55%;
+    --ethics-medium-bg: 40 50% 12%;
+    --ethics-high: 25 90% 55%;
+    --ethics-high-bg: 25 60% 12%;
+    --ethics-critical: 0 72% 55%;
+    --ethics-critical-bg: 0 50% 12%;
+
+    /* Sidebar */
+    --sidebar-background: 210 28% 8%;
+    --sidebar-foreground: 210 15% 82%;
+    --sidebar-primary: 175 65% 46%;
+    --sidebar-primary-foreground: 210 30% 7%;
+    --sidebar-accent: 210 22% 15%;
+    --sidebar-accent-foreground: 210 15% 80%;
+    --sidebar-border: 210 20% 18%;
+    --sidebar-ring: 175 65% 46%;
+  }
+
+  .light {
     --background: 40 20% 98%;
     --foreground: 220 25% 12%;
 
@@ -16,22 +71,18 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 25% 12%;
 
-    /* Deep teal for primary - trust & thoughtfulness */
     --primary: 175 60% 28%;
     --primary-foreground: 0 0% 100%;
 
-    /* Warm stone for secondary */
     --secondary: 40 15% 92%;
     --secondary-foreground: 220 25% 20%;
 
     --muted: 40 15% 94%;
     --muted-foreground: 220 10% 45%;
 
-    /* Sage accent */
     --accent: 145 25% 88%;
     --accent-foreground: 145 40% 22%;
 
-    /* Warm amber for warnings */
     --destructive: 25 90% 48%;
     --destructive-foreground: 0 0% 100%;
 
@@ -39,9 +90,6 @@
     --input: 40 15% 88%;
     --ring: 175 60% 28%;
 
-    --radius: 0.75rem;
-
-    /* Ethics-specific semantic tokens */
     --ethics-safe: 145 50% 42%;
     --ethics-safe-bg: 145 40% 95%;
     --ethics-low: 175 45% 45%;
@@ -53,7 +101,6 @@
     --ethics-critical: 0 70% 50%;
     --ethics-critical-bg: 0 65% 95%;
 
-    /* Sidebar */
     --sidebar-background: 40 15% 97%;
     --sidebar-foreground: 220 25% 25%;
     --sidebar-primary: 175 60% 28%;
@@ -63,56 +110,6 @@
     --sidebar-border: 40 15% 88%;
     --sidebar-ring: 175 60% 28%;
   }
-
-  .dark {
-    --background: 220 25% 8%;
-    --foreground: 40 15% 95%;
-
-    --card: 220 25% 11%;
-    --card-foreground: 40 15% 95%;
-
-    --popover: 220 25% 11%;
-    --popover-foreground: 40 15% 95%;
-
-    --primary: 175 55% 45%;
-    --primary-foreground: 220 25% 8%;
-
-    --secondary: 220 20% 18%;
-    --secondary-foreground: 40 15% 90%;
-
-    --muted: 220 20% 18%;
-    --muted-foreground: 40 10% 55%;
-
-    --accent: 145 25% 20%;
-    --accent-foreground: 145 35% 80%;
-
-    --destructive: 25 85% 55%;
-    --destructive-foreground: 220 25% 8%;
-
-    --border: 220 20% 20%;
-    --input: 220 20% 20%;
-    --ring: 175 55% 45%;
-
-    --ethics-safe: 145 45% 50%;
-    --ethics-safe-bg: 145 30% 15%;
-    --ethics-low: 175 40% 50%;
-    --ethics-low-bg: 175 30% 15%;
-    --ethics-medium: 40 80% 55%;
-    --ethics-medium-bg: 40 50% 15%;
-    --ethics-high: 25 85% 55%;
-    --ethics-high-bg: 25 60% 15%;
-    --ethics-critical: 0 65% 55%;
-    --ethics-critical-bg: 0 50% 15%;
-
-    --sidebar-background: 220 25% 10%;
-    --sidebar-foreground: 40 15% 90%;
-    --sidebar-primary: 175 55% 45%;
-    --sidebar-primary-foreground: 220 25% 8%;
-    --sidebar-accent: 220 20% 18%;
-    --sidebar-accent-foreground: 40 15% 90%;
-    --sidebar-border: 220 20% 20%;
-    --sidebar-ring: 175 55% 45%;
-  }
 }
 
 @layer base {
@@ -121,12 +118,12 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
   }
 }
 
@@ -153,5 +150,39 @@
   
   .ethics-badge-critical {
     @apply bg-[hsl(var(--ethics-critical-bg))] text-[hsl(var(--ethics-critical))] border-[hsl(var(--ethics-critical)/0.3)];
+  }
+
+  /* Scan-line grid texture overlay */
+  .scan-lines {
+    position: relative;
+  }
+  .scan-lines::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        hsl(175 65% 46% / 0.015) 3px,
+        hsl(175 65% 46% / 0.015) 4px
+      );
+  }
+
+  /* Blinking cursor animation */
+  @keyframes blink-cursor {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  .cursor-blink {
+    animation: blink-cursor 1s step-end infinite;
+  }
+
+  /* Terminal glow on hover */
+  .terminal-glow {
+    text-shadow: 0 0 6px hsl(175 65% 46% / 0.4);
   }
 }

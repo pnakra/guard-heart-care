@@ -32,10 +32,10 @@ export function CategoryCard({ category, isSelected, onClick }: CategoryCardProp
           </div>
           
           <div className="min-w-0 flex-1">
-            <h3 className="font-medium text-foreground truncate">
-              {category.label}
+            <h3 className="font-mono font-medium text-foreground text-sm truncate">
+              [{category.label.toUpperCase()}]
             </h3>
-            <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
+            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
               {category.description}
             </p>
           </div>
@@ -45,7 +45,7 @@ export function CategoryCard({ category, isSelected, onClick }: CategoryCardProp
           {category.issueCount > 0 ? (
             <>
               <SeverityBadge severity={category.highestSeverity} size="sm" showLabel={false} />
-              <span className="text-xs text-muted-foreground">
+              <span className="font-mono text-[10px] text-muted-foreground">
                 {category.issueCount} {category.issueCount === 1 ? 'issue' : 'issues'}
               </span>
             </>

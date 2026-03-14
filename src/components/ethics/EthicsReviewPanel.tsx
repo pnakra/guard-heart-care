@@ -61,9 +61,9 @@ export function EthicsReviewPanel({
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background scan-lines">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
+      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border relative">
         <div className="container max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -83,11 +83,11 @@ export function EthicsReviewPanel({
                 </svg>
               </div>
               <div>
-                <h1 className="font-serif text-xl font-semibold text-foreground">
-                  Misuse-by-Design Scanner
+                <h1 className="font-mono text-lg font-semibold text-foreground tracking-tight">
+                  gfc-scanner <span className="text-primary">v2.0</span>
                 </h1>
-                <p className="text-xs text-muted-foreground">
-                  Detecting harmful affordances in your application
+                <p className="font-mono text-[10px] text-muted-foreground tracking-wide">
+                  misuse-by-design detection
                 </p>
               </div>
             </div>
@@ -95,20 +95,19 @@ export function EthicsReviewPanel({
             <div className="flex items-center gap-2">
               <Link
                 to="/taxonomy"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground border border-border rounded-md hover:bg-secondary/50 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 font-mono text-[10px] font-medium text-muted-foreground hover:text-primary border border-border rounded hover:border-primary/30 transition-colors"
               >
                 <BookOpen size={12} />
                 Taxonomy v1.0
               </Link>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <button
                 onClick={onRescan}
-                className="gap-2"
+                className="group inline-flex items-center gap-1.5 px-3 py-1.5 font-mono text-[11px] font-medium text-muted-foreground hover:text-primary border border-border rounded hover:border-primary/30 hover:terminal-glow transition-all"
               >
-                <RefreshCw size={14} />
-                Rescan
-              </Button>
+                <span className="text-primary">{'>'}</span>
+                <span>run scan</span>
+                <span className="hidden group-hover:inline text-primary cursor-blink">▌</span>
+              </button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
@@ -181,8 +180,8 @@ export function EthicsReviewPanel({
         <div className="mt-6 grid lg:grid-cols-[320px,1fr] gap-6">
           {/* Categories Sidebar */}
           <div className="space-y-3">
-            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide px-1">
-              Harm Categories
+            <h3 className="font-mono font-medium text-[11px] text-muted-foreground uppercase tracking-widest px-1">
+              harm_categories
             </h3>
             <div className="space-y-2">
               {result.categories.map(category => (
@@ -200,19 +199,19 @@ export function EthicsReviewPanel({
           <div className="space-y-4">
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'issues' | 'misuse')}>
               <div className="flex items-center justify-between">
-                <TabsList className="bg-secondary/50">
-                  <TabsTrigger value="issues" className="gap-2">
+                <TabsList className="bg-secondary/50 font-mono">
+                  <TabsTrigger value="issues" className="gap-2 font-mono text-xs">
                     <Shield size={14} />
-                    Findings
-                    <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                    findings
+                    <span className="font-mono text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">
                       {result.issues.length}
                     </span>
                   </TabsTrigger>
-                  <TabsTrigger value="misuse" className="gap-2">
+                  <TabsTrigger value="misuse" className="gap-2 font-mono text-xs">
                     <AlertTriangle size={14} />
-                    Misuse Scenarios
+                    misuse_scenarios
                     {criticalMisuseCount > 0 && (
-                      <span className="text-xs bg-[hsl(var(--ethics-critical))] text-white px-1.5 py-0.5 rounded-full">
+                      <span className="font-mono text-[10px] bg-[hsl(var(--ethics-critical))] text-white px-1.5 py-0.5 rounded">
                         {criticalMisuseCount}
                       </span>
                     )}
@@ -222,10 +221,10 @@ export function EthicsReviewPanel({
                 {activeTab === 'issues' && selectedCategory && (
                   <button
                     onClick={() => setSelectedCategory(null)}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full hover:bg-primary/20 transition-colors"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary font-mono text-[10px] rounded hover:bg-primary/20 transition-colors"
                   >
                     <Filter size={10} />
-                    {selectedCategoryLabel}
+                    [{selectedCategoryLabel?.toUpperCase()}]
                     <X size={10} />
                   </button>
                 )}
@@ -250,17 +249,17 @@ export function EthicsReviewPanel({
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border mt-12">
+      <footer className="border-t border-border mt-12 relative z-[1]">
         <div className="container max-w-6xl mx-auto px-4 py-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[11px] text-muted-foreground">
             <p>
-              This scanner identifies misuse-by-design patterns, not bugs or security vulnerabilities.
+              // identifies misuse-by-design patterns, not bugs or security vulnerabilities
             </p>
             <a 
               href="#" 
               className="text-primary hover:underline"
             >
-              Learn about our methodology
+              methodology.md
             </a>
           </div>
         </div>

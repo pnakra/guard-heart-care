@@ -96,7 +96,7 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="font-serif text-2xl font-semibold text-foreground">
+              <h2 className="font-mono text-xl font-semibold text-foreground tracking-tight">
                 Ground Floor Check
               </h2>
               {activeCategory !== 'unknown' && (
@@ -138,11 +138,11 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                 </>
               )}
             </div>
-            <p className="text-muted-foreground">
+            <p className="font-mono text-sm text-muted-foreground">
               {projectName}
             </p>
-            <p className="text-xs text-muted-foreground">
-              Scanned: {new Date(timestamp).toLocaleString()}
+            <p className="font-mono text-[10px] text-muted-foreground tabular-nums">
+              scanned: {new Date(timestamp).toISOString()}
             </p>
           </div>
 
@@ -152,17 +152,17 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="text-center cursor-help">
-                    <div className={cn('text-5xl font-bold tabular-nums', styles.text)}>
+                    <div className={cn('text-5xl font-mono font-bold tabular-nums', styles.text)}>
                       {displayGFS}
                     </div>
                     <div className="flex items-center justify-center gap-1 mt-1">
-                      <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', styles.badge)}>
+                      <span className={cn('font-mono text-[10px] font-semibold px-2 py-0.5 rounded', styles.badge)}>
                         {bandLabel}
                       </span>
                       <Info size={12} className="text-muted-foreground" />
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {isAdjusted ? 'Adjusted GFS / 100' : 'GFS / 100'}
+                    <p className="font-mono text-[10px] text-muted-foreground mt-0.5">
+                      {isAdjusted ? 'adj_gfs / 100' : 'gfs / 100'}
                     </p>
                   </div>
                 </TooltipTrigger>
@@ -177,13 +177,13 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
             </TooltipProvider>
 
             {/* Issue counts */}
-            <div className="flex gap-4 text-sm">
+            <div className="flex gap-4 text-sm font-mono">
               {summary.criticalCount > 0 && (
                 <div className="text-center">
                   <div className="text-2xl font-bold text-[hsl(var(--ethics-critical))]">
                     {summary.criticalCount}
                   </div>
-                  <p className="text-xs text-muted-foreground">Critical</p>
+                  <p className="text-[10px] text-muted-foreground">CRIT</p>
                 </div>
               )}
               {summary.highCount > 0 && (
@@ -191,14 +191,14 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                   <div className="text-2xl font-bold text-[hsl(var(--ethics-high))]">
                     {summary.highCount}
                   </div>
-                  <p className="text-xs text-muted-foreground">High</p>
+                  <p className="text-[10px] text-muted-foreground">HIGH</p>
                 </div>
               )}
               <div className="text-center">
                 <div className="text-2xl font-bold text-foreground">
                   {summary.totalIssueCount}
                 </div>
-                <p className="text-xs text-muted-foreground">Total</p>
+                <p className="text-[10px] text-muted-foreground">TOTAL</p>
               </div>
             </div>
           </div>
@@ -208,11 +208,11 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
         {totalIssues > 0 && (
           <div className="mt-4 pt-4 border-t border-border/30">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-medium text-muted-foreground">
-                Triage Progress
+              <span className="font-mono text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+                triage_progress
               </span>
-              <span className="text-xs text-muted-foreground">
-                {reviewedCount} of {totalIssues} reviewed ({triagePercent}%)
+              <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+                {reviewedCount}/{totalIssues} ({triagePercent}%)
               </span>
             </div>
             <div className="h-2 bg-secondary rounded-full overflow-hidden">
@@ -245,9 +245,9 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
       {/* Top 3 Risks */}
       {hasTopRisks && (
         <div className="space-y-3">
-          <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+          <h3 className="font-mono font-medium text-[11px] text-muted-foreground uppercase tracking-widest flex items-center gap-2">
             <AlertTriangle size={14} />
-            Top Risks to Address Before Shipping
+            top_risks // fix before shipping
           </h3>
 
           <div className="grid gap-3">

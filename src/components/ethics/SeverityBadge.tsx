@@ -1,6 +1,5 @@
 import { cn } from '@/lib/utils';
 import { SeverityLevel } from '@/types/ethics';
-import { CheckCircle2, Info, AlertTriangle, AlertCircle, XCircle } from 'lucide-react';
 
 interface SeverityBadgeProps {
   severity: SeverityLevel;
@@ -11,61 +10,47 @@ interface SeverityBadgeProps {
 const severityConfig: Record<SeverityLevel, { 
   label: string; 
   className: string;
-  Icon: typeof CheckCircle2;
 }> = {
   safe: {
-    label: 'Safe',
-    className: 'ethics-badge-safe',
-    Icon: CheckCircle2,
+    label: 'SAFE',
+    className: 'text-[hsl(var(--ethics-safe))] border-[hsl(var(--ethics-safe)/0.4)] bg-[hsl(var(--ethics-safe)/0.08)]',
   },
   low: {
-    label: 'Low',
-    className: 'ethics-badge-low',
-    Icon: Info,
+    label: 'LOW',
+    className: 'text-[hsl(var(--ethics-low))] border-[hsl(var(--ethics-low)/0.4)] bg-[hsl(var(--ethics-low)/0.08)]',
   },
   medium: {
-    label: 'Medium',
-    className: 'ethics-badge-medium',
-    Icon: AlertTriangle,
+    label: 'MED',
+    className: 'text-[hsl(var(--ethics-medium))] border-[hsl(var(--ethics-medium)/0.4)] bg-[hsl(var(--ethics-medium)/0.08)]',
   },
   high: {
-    label: 'High',
-    className: 'ethics-badge-high',
-    Icon: AlertCircle,
+    label: 'HIGH',
+    className: 'text-[hsl(var(--ethics-high))] border-[hsl(var(--ethics-high)/0.4)] bg-[hsl(var(--ethics-high)/0.08)]',
   },
   critical: {
-    label: 'Critical',
-    className: 'ethics-badge-critical',
-    Icon: XCircle,
+    label: 'CRITICAL',
+    className: 'text-[hsl(var(--ethics-critical))] border-[hsl(var(--ethics-critical)/0.4)] bg-[hsl(var(--ethics-critical)/0.08)]',
   },
 };
 
 const sizeConfig = {
-  sm: 'px-2 py-0.5 text-xs gap-1',
-  md: 'px-2.5 py-1 text-sm gap-1.5',
-  lg: 'px-3 py-1.5 text-base gap-2',
-};
-
-const iconSizeConfig = {
-  sm: 12,
-  md: 14,
-  lg: 16,
+  sm: 'px-1.5 py-0 text-[10px] leading-5',
+  md: 'px-2 py-0.5 text-xs',
+  lg: 'px-2.5 py-1 text-sm',
 };
 
 export function SeverityBadge({ severity, showLabel = true, size = 'md' }: SeverityBadgeProps) {
   const config = severityConfig[severity];
-  const { Icon } = config;
 
   return (
     <span
       className={cn(
-        'inline-flex items-center font-medium rounded-full border',
+        'inline-flex items-center font-mono font-semibold tracking-wider border rounded',
         config.className,
         sizeConfig[size]
       )}
     >
-      <Icon size={iconSizeConfig[size]} />
-      {showLabel && <span>{config.label}</span>}
+      {showLabel ? config.label : config.label.charAt(0)}
     </span>
   );
 }
