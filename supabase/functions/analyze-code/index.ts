@@ -392,7 +392,7 @@ serve(async (req) => {
   }
 
   try {
-    const { files, projectName, previousScan, customRules, populationModifiers } = await req.json();
+    const { files, projectName, previousScan, customRules, populationModifiers, forkMode, upstreamFiles } = await req.json();
 
     if (!files || !Array.isArray(files) || files.length === 0) {
       return new Response(
@@ -440,9 +440,34 @@ serve(async (req) => {
       ? `\n\nPOPULATION VULNERABILITY CONTEXT:\n${populationModifiers.map((m: string) => `- ${POPULATION_LABELS[m] || m}`).join('\n')}\n\nIncrease severity ratings and risk scores for issues that specifically endanger these populations. For each issue, if a population modifier is relevant to the misuse scenario, include a "populationTags" array in the issue JSON with the relevant modifier IDs (e.g. ["minors", "elderly"]).`
       : '';
 
+    // Fork comparison mode
+    let forkPrompt = '';
+    if (forkMode && Array.isArray(upstreamFiles) && upstreamFiles.length > 0) {
+      const upstreamContent = upstreamFiles
+        .map((f: { name: string; content: string }) => `--- ${f.name} ---\n${f.content}`)
+        .join("\n\n");
+      
+      forkPrompt = `\n\nFORK COMPARISON MODE:
+You are comparing a FORK against its UPSTREAM repository.
+
+UPSTREAM FILES:
+${upstreamContent}
+
+FORK FILES (to analyze):
+The main codebase provided above is the FORK.
+
+For EACH issue you find, you MUST classify it with a "forkClassification" field:
+- "inherited": Issue exists in the upstream code and is carried into the fork unchanged
+- "introduced": Issue is NEW in the fork — not present in the upstream
+- "remediated": Issue existed in the upstream but has been FIXED or mitigated in the fork
+
+Lead the executive summary with counts: "Introduced X new issues, inherited Y from upstream, and fixed Z."
+Focus your analysis on the DIFFERENCES between fork and upstream. Prioritize issues that were INTRODUCED by the fork.`;
+    }
+
     const userPrompt = `Analyze this "${projectName || "web application"}" codebase for MISUSE-BY-DESIGN patterns using the v2.0 schema. Remember: you are looking for features that could harm people when working exactly as intended, not bugs or security vulnerabilities.
 
-Provide calibrated confidence scores for each finding and specific code-level mitigations.${categoryHint}${verticalProfilePrompt}${customRulesPrompt}${populationPrompt}${previousContext}
+Provide calibrated confidence scores for each finding and specific code-level mitigations.${categoryHint}${verticalProfilePrompt}${customRulesPrompt}${populationPrompt}${forkPrompt}${previousContext}
 
 ${filesContent}`;
 
