@@ -190,6 +190,11 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
     try { sessionStorage.setItem(POPULATION_STORAGE_KEY, JSON.stringify(selectedPopulations)); } catch { /* ignore */ }
   }, [selectedPopulations]);
 
+  // Persist quiz answers
+  useEffect(() => {
+    try { sessionStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(quizAnswers)); } catch { /* ignore */ }
+  }, [quizAnswers]);
+
   const togglePopulation = (mod: PopulationModifier) => {
     setSelectedPopulations(prev =>
       prev.includes(mod) ? prev.filter(m => m !== mod) : [...prev, mod]
