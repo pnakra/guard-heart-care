@@ -80,8 +80,16 @@ export interface EthicsReviewResult {
   categories: CategorySummary[];
   timestamp: string;
   projectName: string;
-  scanVersion?: number; // For iteration tracking
-  detectedCategory?: string; // Auto-detected app category
+  scanVersion?: number;
+  detectedCategory?: string;
+  isForkAnalysis?: boolean;
+  forkSummary?: {
+    introducedCount: number;
+    inheritedCount: number;
+    remediatedCount: number;
+    upstreamRepo: string;
+    forkRepo: string;
+  };
 }
 
 // Legacy type alias for backwards compat
