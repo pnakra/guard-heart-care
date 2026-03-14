@@ -230,6 +230,16 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
             </div>
           </div>
         )}
+
+        {/* Low confidence notice */}
+        {lowConfidenceCount > 0 && (
+          <div className="mt-3 flex items-center gap-2 text-xs text-[hsl(var(--ethics-medium))]">
+            <AlertTriangle size={12} />
+            <span>
+              {lowConfidenceCount} {lowConfidenceCount === 1 ? 'issue' : 'issues'} flagged for human review due to low confidence
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Top 3 Risks */}
