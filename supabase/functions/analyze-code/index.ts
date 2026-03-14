@@ -428,6 +428,18 @@ serve(async (req) => {
       ? `\n\nCUSTOM RULES configured by user:\n${JSON.stringify(customRules)}\nApply these in addition to standard detection. If a finding is triggered by a custom pattern, include "customRule": true and "customRuleName": "<pattern name>" in that issue's JSON output.`
       : '';
 
+    // Population vulnerability modifiers
+    const POPULATION_LABELS: Record<string, string> = {
+      'minors': 'App may be used by minors (under 18)',
+      'financially-vulnerable': 'Users may be in financially vulnerable situations',
+      'mental-health': 'App addresses mental health or crisis situations',
+      'domestic-abuse': 'Users may be in domestic abuse or coercive control situations',
+      'elderly': 'Elderly users are a primary audience',
+    };
+    const populationPrompt = Array.isArray(populationModifiers) && populationModifiers.length > 0
+      ? `\n\nPOPULATION VULNERABILITY CONTEXT:\n${populationModifiers.map((m: string) => `- ${POPULATION_LABELS[m] || m}`).join('\n')}\n\nIncrease severity ratings and risk scores for issues that specifically endanger these populations. For each issue, if a population modifier is relevant to the misuse scenario, include a "populationTags" array in the issue JSON with the relevant modifier IDs (e.g. ["minors", "elderly"]).`
+      : '';
+
     const userPrompt = `Analyze this "${projectName || "web application"}" codebase for MISUSE-BY-DESIGN patterns using the v2.0 schema. Remember: you are looking for features that could harm people when working exactly as intended, not bugs or security vulnerabilities.
 
 Provide calibrated confidence scores for each finding and specific code-level mitigations.${categoryHint}${verticalProfilePrompt}${customRulesPrompt}${previousContext}
