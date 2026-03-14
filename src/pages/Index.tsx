@@ -8,6 +8,7 @@ import { useCodeAnalysis } from '@/hooks/useCodeAnalysis';
 import { EthicsReviewResult } from '@/types/ethics';
 import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
 import { IssueStatusProvider } from '@/contexts/IssueStatusContext';
+import { PlainLanguageProvider } from '@/contexts/PlainLanguageContext';
 import { toast } from 'sonner';
 
 type AppState = 'onboarding' | 'upload' | 'scanning' | 'results' | 'publish-gate';
@@ -96,26 +97,28 @@ const Index = () => {
   }
 
   return (
-    <IssueStatusProvider>
-      <EthicsReviewPanel 
-        result={analysisResult}
-        capabilities={capabilities}
-        misuseScenarios={misuseScenarios}
-        activePopulations={activePopulations}
-        onRescan={handleRescan}
-        onPublish={handlePublishClick}
-      />
-      
-      {appState === 'publish-gate' && (
-        <PublishGate
-          issues={analysisResult.issues}
+    <PlainLanguageProvider>
+      <IssueStatusProvider>
+        <EthicsReviewPanel 
+          result={analysisResult}
+          capabilities={capabilities}
           misuseScenarios={misuseScenarios}
-          projectName={projectName}
-          onPublish={handlePublishConfirm}
-          onCancel={handlePublishCancel}
+          activePopulations={activePopulations}
+          onRescan={handleRescan}
+          onPublish={handlePublishClick}
         />
-      )}
-    </IssueStatusProvider>
+        
+        {appState === 'publish-gate' && (
+          <PublishGate
+            issues={analysisResult.issues}
+            misuseScenarios={misuseScenarios}
+            projectName={projectName}
+            onPublish={handlePublishConfirm}
+            onCancel={handlePublishCancel}
+          />
+        )}
+      </IssueStatusProvider>
+    </PlainLanguageProvider>
   );
 };
 

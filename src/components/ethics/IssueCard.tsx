@@ -2,12 +2,14 @@ import { EthicsIssue, IssueConfidenceSummary } from '@/types/ethics';
 import { SeverityBadge } from './SeverityBadge';
 import { DiffViewer } from './DiffViewer';
 import { ForkBadge } from './ForkBadge';
-import { ChevronRight, ChevronDown, FileCode, Lightbulb, AlertCircle, HelpCircle, BarChart3, AlertTriangle as AlertTriangleIcon, BookTemplate, Copy, Check, Wand2, Code2 } from 'lucide-react';
+import { ChevronRight, ChevronDown, FileCode, Lightbulb, AlertCircle, HelpCircle, BarChart3, AlertTriangle as AlertTriangleIcon, BookTemplate, Copy, Check, Wand2, Code2, Info } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { getTemplatesForType, generateFixPrompt, MitigationType } from '@/data/remediationTemplates';
 import { toast } from 'sonner';
 import { useIssueStatus, IssueStatus, ISSUE_STATUS_CONFIG } from '@/contexts/IssueStatusContext';
+import { usePlainLanguage } from '@/contexts/PlainLanguageContext';
+import { PLAIN_CATEGORY_LABELS, getPlainTitle } from '@/data/plainLanguageMap';
 import {
   Select,
   SelectContent,
@@ -80,12 +82,18 @@ export function IssueCard({ issue }: IssueCardProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const { getStatus, setStatus } = useIssueStatus();
+  const { isPlainLanguage } = usePlainLanguage();
   const currentStatus = getStatus(issue.id);
   const statusConfig = ISSUE_STATUS_CONFIG[currentStatus];
 
   const confidence = issue.confidence;
   const isLowConfidence = confidence && confidence.overallConfidence < 0.6;
   const confidenceBadge = confidence ? getConfidenceBadge(confidence.overallConfidence) : null;
+
+  const displayTitle = isPlainLanguage ? getPlainTitle(issue.id, issue.title) : issue.title;
+  const displayCategory = isPlainLanguage
+    ? PLAIN_CATEGORY_LABELS[issue.category] || issue.category
+    : (categoryLabels[issue.category] || issue.category);
 
   return (
     <div 
@@ -134,11 +142,11 @@ export function IssueCard({ issue }: IssueCardProps) {
                   </span>
                 ))}
                 <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
-                  [{(categoryLabels[issue.category] || issue.category).toUpperCase()}]
+                  {isPlainLanguage ? displayCategory : `[${displayCategory.toUpperCase()}]`}
                 </span>
               </div>
               <h4 className="font-mono font-medium text-foreground mt-2 text-sm">
-                {issue.title}
+                {displayTitle}
               </h4>
               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                 {issue.description}
@@ -203,12 +211,15 @@ export function IssueCard({ issue }: IssueCardProps) {
                 <div className="flex gap-2">
                   <AlertCircle size={14} className="shrink-0 mt-0.5 text-[hsl(var(--ethics-high))]" />
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                      Misuse Scenario
-                    </p>
-                    <p className="text-sm text-foreground italic">
-                      "{issue.misuseScenario}"
-                    </p>
+                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                       Misuse Scenario
+                     </p>
+                     <p className={cn(
+                       'text-sm text-foreground italic',
+                       isPlainLanguage && 'font-semibold not-italic'
+                     )}>
+                       "{issue.misuseScenario}"
+                     </p>
                   </div>
                 </div>
               </div>
@@ -245,6 +256,14 @@ export function IssueCard({ issue }: IssueCardProps) {
               <p className="text-sm text-muted-foreground pl-5">
                 {issue.mitigation}
               </p>
+              {isPlainLanguage && (
+                <div className="mt-2 ml-5 p-2.5 rounded-lg bg-primary/5 border border-primary/15 flex items-start gap-2">
+                  <Info size={13} className="text-primary shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted-foreground">
+                    For a plain-language fix, use the <strong className="text-foreground">'Copy as prompt'</strong> button below and paste into your AI tool.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Code Changes Diff Viewer */}

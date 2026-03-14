@@ -1,7 +1,9 @@
-import { CategorySummary } from '@/types/ethics';
+import { CategorySummary, HarmCategory } from '@/types/ethics';
 import { CategoryIcon } from './CategoryIcon';
 import { SeverityBadge } from './SeverityBadge';
 import { cn } from '@/lib/utils';
+import { usePlainLanguage } from '@/contexts/PlainLanguageContext';
+import { PLAIN_CATEGORY_LABELS } from '@/data/plainLanguageMap';
 
 interface CategoryCardProps {
   category: CategorySummary;
@@ -10,6 +12,10 @@ interface CategoryCardProps {
 }
 
 export function CategoryCard({ category, isSelected, onClick }: CategoryCardProps) {
+  const { isPlainLanguage } = usePlainLanguage();
+  const displayLabel = isPlainLanguage
+    ? PLAIN_CATEGORY_LABELS[category.category as HarmCategory] || category.label
+    : category.label;
   return (
     <button
       onClick={onClick}
@@ -33,7 +39,7 @@ export function CategoryCard({ category, isSelected, onClick }: CategoryCardProp
           
           <div className="min-w-0 flex-1">
             <h3 className="font-mono font-medium text-foreground text-sm truncate">
-              [{category.label.toUpperCase()}]
+              {isPlainLanguage ? displayLabel : `[${category.label.toUpperCase()}]`}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
               {category.description}

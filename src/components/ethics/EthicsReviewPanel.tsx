@@ -11,9 +11,11 @@ import { ForkAnalysisTab } from './ForkAnalysisTab';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { RefreshCw, Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users, GitPullRequest, ScanSearch, GitFork } from 'lucide-react';
+import { RefreshCw, Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users, GitPullRequest, ScanSearch, GitFork, Languages } from 'lucide-react';
 import { exportReport, generateLovablePrompt, generatePRComment, copyToClipboard } from '@/utils/exportReport';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Switch } from '@/components/ui/switch';
+import { usePlainLanguage } from '@/contexts/PlainLanguageContext';
 import { toast } from 'sonner';
 
 interface EthicsReviewPanelProps {
@@ -35,6 +37,7 @@ export function EthicsReviewPanel({
 }: EthicsReviewPanelProps) {
   const [selectedCategory, setSelectedCategory] = useState<HarmCategory | null>(null);
   const [activeTab, setActiveTab] = useState<'issues' | 'misuse' | 'fork'>(result.isForkAnalysis ? 'fork' : 'issues');
+  const { isPlainLanguage, togglePlainLanguage } = usePlainLanguage();
 
   const handleCategoryClick = (category: HarmCategory) => {
     setSelectedCategory(prev => prev === category ? null : category);
@@ -104,6 +107,15 @@ export function EthicsReviewPanel({
             </div>
             
             <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded border border-border">
+                <Languages size={13} className="text-muted-foreground" />
+                <span className="font-mono text-[10px] text-muted-foreground">Plain</span>
+                <Switch
+                  checked={isPlainLanguage}
+                  onCheckedChange={togglePlainLanguage}
+                  className="scale-75"
+                />
+              </div>
               <ThemeToggle />
               <Link
                 to="/taxonomy"
