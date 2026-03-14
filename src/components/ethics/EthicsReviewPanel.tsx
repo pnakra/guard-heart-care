@@ -94,6 +94,7 @@ export function EthicsReviewPanel({
             </div>
             
             <div className="flex items-center gap-2">
+              <ThemeToggle />
               <Link
                 to="/taxonomy"
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 font-mono text-[10px] font-medium text-muted-foreground hover:text-primary border border-border rounded hover:border-primary/30 transition-colors"
