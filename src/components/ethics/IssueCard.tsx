@@ -82,12 +82,18 @@ export function IssueCard({ issue }: IssueCardProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const { getStatus, setStatus } = useIssueStatus();
+  const { isPlainLanguage } = usePlainLanguage();
   const currentStatus = getStatus(issue.id);
   const statusConfig = ISSUE_STATUS_CONFIG[currentStatus];
 
   const confidence = issue.confidence;
   const isLowConfidence = confidence && confidence.overallConfidence < 0.6;
   const confidenceBadge = confidence ? getConfidenceBadge(confidence.overallConfidence) : null;
+
+  const displayTitle = isPlainLanguage ? getPlainTitle(issue.id, issue.title) : issue.title;
+  const displayCategory = isPlainLanguage
+    ? PLAIN_CATEGORY_LABELS[issue.category] || issue.category
+    : (categoryLabels[issue.category] || issue.category);
 
   return (
     <div 
