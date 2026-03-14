@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { PopulationModifier, POPULATION_MODIFIERS } from './ProjectUpload';
 import { EthicsReviewResult, HarmCategory } from '@/types/ethics';
 import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
 import { ExecutiveSummary } from './ExecutiveSummary';
@@ -9,7 +10,7 @@ import { MisuseScenarios } from './MisuseScenarios';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { RefreshCw, Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen } from 'lucide-react';
+import { RefreshCw, Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users } from 'lucide-react';
 import { exportReport, generateLovablePrompt, copyToClipboard } from '@/utils/exportReport';
 import { toast } from 'sonner';
 
@@ -17,6 +18,7 @@ interface EthicsReviewPanelProps {
   result: EthicsReviewResult;
   capabilities: DetectedCapability[];
   misuseScenarios: MisuseScenario[];
+  activePopulations?: PopulationModifier[];
   onRescan?: () => void;
   onPublish?: () => void;
 }
@@ -25,6 +27,7 @@ export function EthicsReviewPanel({
   result, 
   capabilities, 
   misuseScenarios,
+  activePopulations = [],
   onRescan,
   onPublish 
 }: EthicsReviewPanelProps) {
@@ -157,6 +160,22 @@ export function EthicsReviewPanel({
           issueIds={result.issues.map(i => i.id)}
           lowConfidenceCount={result.issues.filter(i => i.confidence && i.confidence.overallConfidence < 0.6).length}
         />
+
+        {/* Active population modifiers */}
+        {activePopulations.length > 0 && (
+          <div className="mt-4 flex items-center gap-2 flex-wrap p-3 rounded-lg bg-primary/5 border border-primary/10">
+            <Users size={14} className="text-primary shrink-0" />
+            <span className="text-sm font-medium text-foreground">Scanning with elevated sensitivity for:</span>
+            {activePopulations.map(mod => {
+              const info = POPULATION_MODIFIERS.find(m => m.id === mod);
+              return (
+                <span key={mod} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                  {info?.shortLabel || mod}
+                </span>
+              );
+            })}
+          </div>
+        )}
 
         {/* Two Column Layout */}
         <div className="mt-6 grid lg:grid-cols-[320px,1fr] gap-6">

@@ -23,8 +23,23 @@ export interface CustomRulesConfig {
   }[];
 }
 
+export type PopulationModifier =
+  | 'minors'
+  | 'financially-vulnerable'
+  | 'mental-health'
+  | 'domestic-abuse'
+  | 'elderly';
+
+export const POPULATION_MODIFIERS: { id: PopulationModifier; label: string; shortLabel: string }[] = [
+  { id: 'minors', label: 'App may be used by minors (under 18)', shortLabel: 'Minors' },
+  { id: 'financially-vulnerable', label: 'Users may be in financially vulnerable situations', shortLabel: 'Financially Vulnerable' },
+  { id: 'mental-health', label: 'App addresses mental health or crisis situations', shortLabel: 'Mental Health' },
+  { id: 'domestic-abuse', label: 'Users may be in domestic abuse or coercive control situations', shortLabel: 'Domestic Abuse' },
+  { id: 'elderly', label: 'Elderly users are a primary audience', shortLabel: 'Elderly' },
+];
+
 interface ProjectUploadProps {
-  onAnalyze: (files: UploadedFile[], projectName: string, customRules?: CustomRulesConfig) => void;
+  onAnalyze: (files: UploadedFile[], projectName: string, customRules?: CustomRulesConfig, populationModifiers?: PopulationModifier[]) => void;
   isAnalyzing: boolean;
 }
 
@@ -91,6 +106,8 @@ function validateCustomRules(jsonStr: string): { valid: boolean; parsed?: Custom
   return { valid: true, parsed: parsed as CustomRulesConfig };
 }
 
+const POPULATION_STORAGE_KEY = 'gfc-population-modifiers';
+
 export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [projectName, setProjectName] = useState('');
@@ -99,6 +116,12 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
   const [isFetchingGithub, setIsFetchingGithub] = useState(false);
   const [inputMode, setInputMode] = useState<'upload' | 'github'>('upload');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [selectedPopulations, setSelectedPopulations] = useState<PopulationModifier[]>(() => {
+    try {
+      const stored = sessionStorage.getItem(POPULATION_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch { return []; }
+  });
   const [customRulesText, setCustomRulesText] = useState(() => {
     try { return sessionStorage.getItem(CUSTOM_RULES_KEY) || DEFAULT_RULES; } catch { return DEFAULT_RULES; }
   });
@@ -109,6 +132,17 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
     const result = validateCustomRules(customRulesText);
     setRulesValidation({ valid: result.valid, error: result.error });
   }, [customRulesText]);
+
+  // Persist population modifiers
+  useEffect(() => {
+    try { sessionStorage.setItem(POPULATION_STORAGE_KEY, JSON.stringify(selectedPopulations)); } catch { /* ignore */ }
+  }, [selectedPopulations]);
+
+  const togglePopulation = (mod: PopulationModifier) => {
+    setSelectedPopulations(prev =>
+      prev.includes(mod) ? prev.filter(m => m !== mod) : [...prev, mod]
+    );
+  };
 
   // Persist to sessionStorage
   useEffect(() => {
@@ -202,7 +236,8 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
     if (files.length > 0) {
       const validation = validateCustomRules(customRulesText);
       const customRules = showAdvanced && validation.valid ? validation.parsed : undefined;
-      onAnalyze(files, projectName || 'Uploaded Project', customRules);
+      const populations = selectedPopulations.length > 0 ? selectedPopulations : undefined;
+      onAnalyze(files, projectName || 'Uploaded Project', customRules, populations);
     }
   };
 
@@ -483,6 +518,35 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Population Context */}
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-foreground">
+              Population Context
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Select if any of these apply to your users — the scanner will elevate severity for relevant risks.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {POPULATION_MODIFIERS.map((mod) => (
+              <button
+                key={mod.id}
+                type="button"
+                onClick={() => togglePopulation(mod.id)}
+                className={cn(
+                  'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
+                  selectedPopulations.includes(mod.id)
+                    ? 'bg-primary/10 text-primary border-primary/30 shadow-sm'
+                    : 'bg-card text-muted-foreground border-border hover:border-primary/20 hover:text-foreground'
+                )}
+              >
+                {mod.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Analyze Button */}

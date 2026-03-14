@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ProjectUpload, CustomRulesConfig } from '@/components/ethics/ProjectUpload';
+import { ProjectUpload, CustomRulesConfig, PopulationModifier } from '@/components/ethics/ProjectUpload';
 import { ScanningScreen } from '@/components/ethics/ScanningScreen';
 import { EthicsReviewPanel } from '@/components/ethics/EthicsReviewPanel';
 import { PublishGate } from '@/components/ethics/PublishGate';
@@ -23,14 +23,16 @@ const Index = () => {
   const [capabilities, setCapabilities] = useState<DetectedCapability[]>([]);
   const [misuseScenarios, setMisuseScenarios] = useState<MisuseScenario[]>([]);
   const [projectName, setProjectName] = useState('');
+  const [activePopulations, setActivePopulations] = useState<PopulationModifier[]>([]);
   
   const { analyzeCode, isAnalyzing } = useCodeAnalysis();
 
-  const handleAnalyze = async (files: UploadedFile[], name: string, customRules?: CustomRulesConfig) => {
+  const handleAnalyze = async (files: UploadedFile[], name: string, customRules?: CustomRulesConfig, populationModifiers?: PopulationModifier[]) => {
     setProjectName(name);
+    setActivePopulations(populationModifiers || []);
     setAppState('scanning');
 
-    const result = await analyzeCode(files, name, customRules);
+    const result = await analyzeCode(files, name, customRules, populationModifiers);
     
     if (result) {
       setAnalysisResult(result.result);
@@ -92,6 +94,7 @@ const Index = () => {
         result={analysisResult}
         capabilities={capabilities}
         misuseScenarios={misuseScenarios}
+        activePopulations={activePopulations}
         onRescan={handleRescan}
         onPublish={handlePublishClick}
       />

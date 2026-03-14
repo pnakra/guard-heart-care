@@ -33,6 +33,7 @@ export interface EthicsIssue {
   confidence?: IssueConfidenceSummary; // V2 confidence data
   customRule?: boolean; // Triggered by a user-defined custom rule
   customRuleName?: string; // Name of the triggering custom rule
+  populationTags?: string[]; // Population modifiers relevant to this issue
 }
 
 export interface ExecutiveSummary {
