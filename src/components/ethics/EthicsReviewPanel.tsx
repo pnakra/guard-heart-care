@@ -61,7 +61,7 @@ export function EthicsReviewPanel({
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background scan-lines">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
         <div className="container max-w-6xl mx-auto px-4 py-4">
