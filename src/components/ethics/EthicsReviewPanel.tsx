@@ -217,7 +217,7 @@ export function EthicsReviewPanel({
 
           {/* Tabbed Content Panel */}
           <div className="space-y-4">
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'issues' | 'misuse')}>
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'issues' | 'misuse' | 'fork')}>
               <div className="flex items-center justify-between">
                 <TabsList className="bg-secondary/50 font-mono">
                   <TabsTrigger value="issues" className="gap-2 font-mono text-xs">
@@ -236,6 +236,17 @@ export function EthicsReviewPanel({
                       </span>
                     )}
                   </TabsTrigger>
+                  {result.isForkAnalysis && result.forkSummary && (
+                    <TabsTrigger value="fork" className="gap-2 font-mono text-xs">
+                      <GitFork size={14} />
+                      fork_analysis
+                      {result.forkSummary.introducedCount > 0 && (
+                        <span className="font-mono text-[10px] bg-[hsl(var(--ethics-critical))] text-white px-1.5 py-0.5 rounded">
+                          {result.forkSummary.introducedCount}
+                        </span>
+                      )}
+                    </TabsTrigger>
+                  )}
                 </TabsList>
 
                 {activeTab === 'issues' && selectedCategory && (
@@ -263,6 +274,15 @@ export function EthicsReviewPanel({
                   capabilities={capabilities}
                 />
               </TabsContent>
+
+              {result.isForkAnalysis && result.forkSummary && (
+                <TabsContent value="fork" className="mt-4">
+                  <ForkAnalysisTab
+                    issues={result.issues}
+                    forkSummary={result.forkSummary}
+                  />
+                </TabsContent>
+              )}
             </Tabs>
           </div>
         </div>
