@@ -37,7 +37,7 @@ export function EthicsReviewPanel({
   onPublish 
 }: EthicsReviewPanelProps) {
   const [selectedCategory, setSelectedCategory] = useState<HarmCategory | null>(null);
-  const [activeTab, setActiveTab] = useState<'issues' | 'misuse' | 'fork'>(result.isForkAnalysis ? 'fork' : 'issues');
+  const [activeTab, setActiveTab] = useState<'issues' | 'misuse' | 'fork' | 'checklist'>(result.isForkAnalysis ? 'fork' : 'issues');
   const { isPlainLanguage, togglePlainLanguage } = usePlainLanguage();
 
   const handleCategoryClick = (category: HarmCategory) => {
