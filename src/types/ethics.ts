@@ -1,4 +1,5 @@
 export type SeverityLevel = 'safe' | 'low' | 'medium' | 'high' | 'critical';
+export type ForkClassification = 'inherited' | 'introduced' | 'remediated';
 
 export type HarmCategory = 
   | 'false-authority'
