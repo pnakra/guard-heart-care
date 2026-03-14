@@ -117,7 +117,39 @@ function validateCustomRules(jsonStr: string): { valid: boolean; parsed?: Custom
 }
 
 const POPULATION_STORAGE_KEY = 'gfc-population-modifiers';
+const QUIZ_STORAGE_KEY = 'gfc-category-quiz';
 
+interface QuizAnswers {
+  minors: boolean;
+  location: boolean;
+  social: boolean;
+  health: boolean;
+  finance: boolean;
+}
+
+const DEFAULT_QUIZ: QuizAnswers = { minors: false, location: false, social: false, health: false, finance: false };
+
+const QUIZ_QUESTIONS: { key: keyof QuizAnswers; label: string }[] = [
+  { key: 'minors', label: 'Could minors (under 18) use this app?' },
+  { key: 'location', label: 'Does the app involve location data?' },
+  { key: 'social', label: 'Does it connect users with each other (messaging, matching, social)?' },
+  { key: 'health', label: 'Does it involve health, mental health, or body data?' },
+  { key: 'finance', label: 'Does it involve money, credit, or financial decisions?' },
+];
+
+function getQuizElevations(answers: QuizAnswers): { elevatedCategories: string[]; populationMods: PopulationModifier[]; verticalProfiles: string[] } {
+  const cats = new Set<string>();
+  const pops: PopulationModifier[] = [];
+  const verticals: string[] = [];
+
+  if (answers.minors) pops.push('minors');
+  if (answers.location) cats.add('surveillance');
+  if (answers.social) { cats.add('manipulation'); cats.add('surveillance'); }
+  if (answers.health) { cats.add('false-authority'); cats.add('ai-hallucination'); verticals.push('health'); }
+  if (answers.finance) { cats.add('dark-patterns'); verticals.push('fintech'); }
+
+  return { elevatedCategories: Array.from(cats), populationMods: pops, verticalProfiles: verticals };
+}
 export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: ProjectUploadProps) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [projectName, setProjectName] = useState('');
@@ -139,6 +171,12 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
   const [customRulesText, setCustomRulesText] = useState(() => {
     try { return sessionStorage.getItem(CUSTOM_RULES_KEY) || DEFAULT_RULES; } catch { return DEFAULT_RULES; }
   });
+  const [quizAnswers, setQuizAnswers] = useState<QuizAnswers>(() => {
+    try {
+      const stored = sessionStorage.getItem(QUIZ_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : DEFAULT_QUIZ;
+    } catch { return DEFAULT_QUIZ; }
+  });
   const [rulesValidation, setRulesValidation] = useState<{ valid: boolean; error?: string }>({ valid: true });
 
   // Validate on change
@@ -151,6 +189,11 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
   useEffect(() => {
     try { sessionStorage.setItem(POPULATION_STORAGE_KEY, JSON.stringify(selectedPopulations)); } catch { /* ignore */ }
   }, [selectedPopulations]);
+
+  // Persist quiz answers
+  useEffect(() => {
+    try { sessionStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(quizAnswers)); } catch { /* ignore */ }
+  }, [quizAnswers]);
 
   const togglePopulation = (mod: PopulationModifier) => {
     setSelectedPopulations(prev =>
@@ -302,8 +345,23 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
   const handleAnalyze = () => {
     if (files.length > 0) {
       const validation = validateCustomRules(customRulesText);
-      const customRules = showAdvanced && validation.valid ? validation.parsed : undefined;
-      const populations = selectedPopulations.length > 0 ? selectedPopulations : undefined;
+      const baseRules = showAdvanced && validation.valid ? validation.parsed : undefined;
+
+      // Merge quiz elevations into custom rules
+      const quizElev = getQuizElevations(quizAnswers);
+      const mergedElevated = Array.from(new Set([
+        ...(baseRules?.elevatedCategories || []),
+        ...quizElev.elevatedCategories,
+      ]));
+      const mergedPopulations = Array.from(new Set([
+        ...selectedPopulations,
+        ...quizElev.populationMods,
+      ])) as PopulationModifier[];
+
+      const customRules: CustomRulesConfig | undefined = mergedElevated.length > 0 || baseRules
+        ? { ...baseRules, elevatedCategories: mergedElevated }
+        : undefined;
+      const populations = mergedPopulations.length > 0 ? mergedPopulations : undefined;
       onAnalyze(files, projectName || 'Uploaded Project', customRules, populations);
     }
   };
@@ -674,6 +732,65 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Category Quiz */}
+        <div className="border border-border rounded-lg bg-card p-4 space-y-3">
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-foreground">
+              Quick Context Quiz
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Answer these to automatically tune the scan for your app's context.
+            </p>
+          </div>
+          <div className="space-y-2">
+            {QUIZ_QUESTIONS.map(q => (
+              <button
+                key={q.key}
+                type="button"
+                onClick={() => setQuizAnswers(prev => ({ ...prev, [q.key]: !prev[q.key] }))}
+                className={cn(
+                  'w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-sm transition-all text-left',
+                  quizAnswers[q.key]
+                    ? 'bg-primary/8 border-primary/30 text-foreground'
+                    : 'bg-card border-border text-muted-foreground hover:border-border/80 hover:text-foreground'
+                )}
+              >
+                <span>{q.label}</span>
+                <span className={cn(
+                  'shrink-0 ml-3 px-2 py-0.5 rounded text-xs font-medium transition-colors',
+                  quizAnswers[q.key]
+                    ? 'bg-primary/15 text-primary'
+                    : 'bg-secondary text-muted-foreground'
+                )}>
+                  {quizAnswers[q.key] ? 'Yes' : 'No'}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Scan config summary */}
+          {(() => {
+            const elev = getQuizElevations(quizAnswers);
+            const allCats = Array.from(new Set([...elev.elevatedCategories]));
+            const allPops = Array.from(new Set([...selectedPopulations, ...elev.populationMods]));
+            if (allCats.length === 0 && allPops.length === 0) return null;
+            return (
+              <div className="px-3 py-2 rounded-lg bg-primary/5 border border-primary/10">
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">Scan config: </span>
+                  {allCats.length > 0 && (
+                    <span>Elevated: {allCats.map(c => c.replace('-', ' ')).join(', ')}</span>
+                  )}
+                  {allCats.length > 0 && allPops.length > 0 && <span> | </span>}
+                  {allPops.length > 0 && (
+                    <span>Population: {allPops.join(', ')}</span>
+                  )}
+                </p>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Analyze Button */}
