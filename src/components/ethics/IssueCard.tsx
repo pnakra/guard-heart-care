@@ -1,8 +1,10 @@
 import { EthicsIssue, IssueConfidenceSummary } from '@/types/ethics';
 import { SeverityBadge } from './SeverityBadge';
-import { ChevronRight, ChevronDown, FileCode, Lightbulb, AlertCircle, HelpCircle, BarChart3, AlertTriangle as AlertTriangleIcon } from 'lucide-react';
+import { ChevronRight, ChevronDown, FileCode, Lightbulb, AlertCircle, HelpCircle, BarChart3, AlertTriangle as AlertTriangleIcon, BookTemplate, Copy, Check, Wand2 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { getTemplatesForType, generateFixPrompt, MitigationType } from '@/data/remediationTemplates';
+import { toast } from 'sonner';
 import { useIssueStatus, IssueStatus, ISSUE_STATUS_CONFIG } from '@/contexts/IssueStatusContext';
 import {
   Select,
@@ -72,6 +74,9 @@ function ConfidenceBar({ label, value, rationale }: { label: string; value: numb
 export function IssueCard({ issue }: IssueCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showConfidence, setShowConfidence] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
   const { getStatus, setStatus } = useIssueStatus();
   const currentStatus = getStatus(issue.id);
   const statusConfig = ISSUE_STATUS_CONFIG[currentStatus];
@@ -236,6 +241,95 @@ export function IssueCard({ issue }: IssueCardProps) {
                 {issue.mitigation}
               </p>
             </div>
+
+            {/* Prompt-Ready Fix */}
+            <div className="border-t border-border/50 pt-3">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const prompt = generateFixPrompt(issue);
+                  navigator.clipboard.writeText(prompt);
+                  setCopiedPrompt(true);
+                  toast.success('Fix prompt copied to clipboard');
+                  setTimeout(() => setCopiedPrompt(false), 2000);
+                }}
+                className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors w-full"
+              >
+                <Wand2 size={14} />
+                <span>Prompt-Ready Fix</span>
+                <span className="ml-auto">
+                  {copiedPrompt ? <Check size={14} className="text-[hsl(var(--ethics-safe))]" /> : <Copy size={14} className="text-muted-foreground" />}
+                </span>
+              </button>
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const prompt = generateFixPrompt(issue);
+                  navigator.clipboard.writeText(prompt);
+                  setCopiedPrompt(true);
+                  toast.success('Fix prompt copied to clipboard');
+                  setTimeout(() => setCopiedPrompt(false), 2000);
+                }}
+                className="mt-2 p-3 rounded-lg bg-secondary/70 border border-border cursor-pointer hover:bg-secondary transition-colors"
+              >
+                <code className="text-xs text-foreground font-mono whitespace-pre-wrap break-words leading-relaxed">
+                  {generateFixPrompt(issue)}
+                </code>
+              </div>
+            </div>
+
+            {/* Template Library */}
+            {issue.mitigationType && getTemplatesForType(issue.mitigationType as MitigationType).length > 0 && (
+              <div className="border-t border-border/50 pt-3">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowTemplates(!showTemplates); }}
+                  className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors w-full"
+                >
+                  <BookTemplate size={14} />
+                  <span>Template Library</span>
+                  <span className="text-xs text-muted-foreground ml-auto mr-1">
+                    {getTemplatesForType(issue.mitigationType as MitigationType).length} templates
+                  </span>
+                  {showTemplates ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                </button>
+
+                {showTemplates && (
+                  <div className="mt-3 space-y-3 pl-5">
+                    {getTemplatesForType(issue.mitigationType as MitigationType).map(template => (
+                      <div key={template.id} className="rounded-lg border border-border bg-secondary/30 overflow-hidden">
+                        <div className="flex items-center justify-between px-3 py-2 bg-secondary/50">
+                          <div>
+                            <p className="text-xs font-medium text-foreground">{template.title}</p>
+                            <p className="text-xs text-muted-foreground">{template.description}</p>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigator.clipboard.writeText(template.copyText);
+                              setCopiedId(template.id);
+                              toast.success(`"${template.title}" copied`);
+                              setTimeout(() => setCopiedId(null), 2000);
+                            }}
+                            className={cn(
+                              'shrink-0 flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors',
+                              copiedId === template.id
+                                ? 'bg-[hsl(var(--ethics-safe)/0.15)] text-[hsl(var(--ethics-safe))]'
+                                : 'bg-card text-muted-foreground hover:text-foreground border border-border'
+                            )}
+                          >
+                            {copiedId === template.id ? <Check size={12} /> : <Copy size={12} />}
+                            {copiedId === template.id ? 'Copied' : 'Copy'}
+                          </button>
+                        </div>
+                        <pre className="px-3 py-2 text-xs font-mono text-muted-foreground whitespace-pre-wrap break-words leading-relaxed max-h-48 overflow-y-auto">
+                          {template.copyText}
+                        </pre>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Confidence Section */}
             {confidence && (
