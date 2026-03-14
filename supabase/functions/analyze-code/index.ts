@@ -314,9 +314,15 @@ serve(async (req) => {
       ? `\n\nPREVIOUS SCAN CONTEXT:\nPrevious risk score: ${previousScan.riskScore}\nPrevious issues: ${previousScan.issueIds?.join(', ') || 'none'}\nLook for new patterns that emerged since the last scan and note any resolved issues.`
       : '';
 
+    // Detect app category from file signals
+    const detectedCategory = detectAppCategoryEdge(files);
+    const categoryHint = detectedCategory !== 'unknown'
+      ? `\n\nDetected app category: ${detectedCategory}. Elevate risk sensitivity for harms most relevant to this category.`
+      : '';
+
     const userPrompt = `Analyze this "${projectName || "web application"}" codebase for MISUSE-BY-DESIGN patterns using the v2.0 schema. Remember: you are looking for features that could harm people when working exactly as intended, not bugs or security vulnerabilities.
 
-Provide calibrated confidence scores for each finding and specific code-level mitigations.${previousContext}
+Provide calibrated confidence scores for each finding and specific code-level mitigations.${categoryHint}${previousContext}
 
 ${filesContent}`;
 
