@@ -87,6 +87,7 @@ export function useCodeAnalysis() {
           files, 
           projectName,
           customRules: customRules || null,
+          populationModifiers: populationModifiers || null,
           previousScan: previousScan ? {
             timestamp: previousScan.timestamp,
             riskScore: previousScan.riskScore,

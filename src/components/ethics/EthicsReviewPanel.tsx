@@ -27,6 +27,7 @@ export function EthicsReviewPanel({
   result, 
   capabilities, 
   misuseScenarios,
+  activePopulations = [],
   onRescan,
   onPublish 
 }: EthicsReviewPanelProps) {
