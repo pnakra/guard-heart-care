@@ -133,6 +133,17 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
     setRulesValidation({ valid: result.valid, error: result.error });
   }, [customRulesText]);
 
+  // Persist population modifiers
+  useEffect(() => {
+    try { sessionStorage.setItem(POPULATION_STORAGE_KEY, JSON.stringify(selectedPopulations)); } catch { /* ignore */ }
+  }, [selectedPopulations]);
+
+  const togglePopulation = (mod: PopulationModifier) => {
+    setSelectedPopulations(prev =>
+      prev.includes(mod) ? prev.filter(m => m !== mod) : [...prev, mod]
+    );
+  };
+
   // Persist to sessionStorage
   useEffect(() => {
     try { sessionStorage.setItem(CUSTOM_RULES_KEY, customRulesText); } catch { /* ignore */ }
