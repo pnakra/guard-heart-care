@@ -8,10 +8,11 @@ import { CategoryCard } from './CategoryCard';
 import { IssuesList } from './IssuesList';
 import { MisuseScenarios } from './MisuseScenarios';
 import { ForkAnalysisTab } from './ForkAnalysisTab';
+import { PreLaunchChecklist } from './PreLaunchChecklist';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { RefreshCw, Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users, GitPullRequest, ScanSearch, GitFork, Languages } from 'lucide-react';
+import { RefreshCw, Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users, GitPullRequest, ScanSearch, GitFork, Languages, ClipboardCheck } from 'lucide-react';
 import { exportReport, generateLovablePrompt, generatePRComment, copyToClipboard } from '@/utils/exportReport';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Switch } from '@/components/ui/switch';
@@ -36,7 +37,7 @@ export function EthicsReviewPanel({
   onPublish 
 }: EthicsReviewPanelProps) {
   const [selectedCategory, setSelectedCategory] = useState<HarmCategory | null>(null);
-  const [activeTab, setActiveTab] = useState<'issues' | 'misuse' | 'fork'>(result.isForkAnalysis ? 'fork' : 'issues');
+  const [activeTab, setActiveTab] = useState<'issues' | 'misuse' | 'fork' | 'checklist'>(result.isForkAnalysis ? 'fork' : 'issues');
   const { isPlainLanguage, togglePlainLanguage } = usePlainLanguage();
 
   const handleCategoryClick = (category: HarmCategory) => {
@@ -229,7 +230,7 @@ export function EthicsReviewPanel({
 
           {/* Tabbed Content Panel */}
           <div className="space-y-4">
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'issues' | 'misuse' | 'fork')}>
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'issues' | 'misuse' | 'fork' | 'checklist')}>
               <div className="flex items-center justify-between">
                 <TabsList className="bg-secondary/50 font-mono">
                   <TabsTrigger value="issues" className="gap-2 font-mono text-xs">
@@ -259,6 +260,10 @@ export function EthicsReviewPanel({
                       )}
                     </TabsTrigger>
                   )}
+                  <TabsTrigger value="checklist" className="gap-2 font-mono text-xs">
+                    <ClipboardCheck size={14} />
+                    pre_launch
+                  </TabsTrigger>
                 </TabsList>
 
                 {activeTab === 'issues' && selectedCategory && (
@@ -295,6 +300,14 @@ export function EthicsReviewPanel({
                   />
                 </TabsContent>
               )}
+
+              <TabsContent value="checklist" className="mt-4">
+                <PreLaunchChecklist
+                  categories={result.categories}
+                  issues={result.issues}
+                  timestamp={result.timestamp}
+                />
+              </TabsContent>
             </Tabs>
           </div>
         </div>
