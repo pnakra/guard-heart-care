@@ -146,6 +146,7 @@ export function EthicsReviewPanel({
           projectName={result.projectName}
           timestamp={result.timestamp}
           detectedCategory={result.detectedCategory}
+          issueIds={result.issues.map(i => i.id)}
         />
 
         {/* Two Column Layout */}
