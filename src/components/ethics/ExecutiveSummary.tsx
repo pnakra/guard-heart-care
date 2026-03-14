@@ -59,8 +59,13 @@ const gfsBandStyles = {
   },
 };
 
-export function ExecutiveSummary({ summary, projectName, timestamp, fullResult }: ExecutiveSummaryProps) {
+export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, detectedCategory }: ExecutiveSummaryProps) {
   const hasTopRisks = summary.topThreeRisks && summary.topThreeRisks.length > 0;
+  const [categoryOverride, setCategoryOverride] = useState<string | null>(null);
+  const [isEditingCategory, setIsEditingCategory] = useState(false);
+
+  const activeCategory = (categoryOverride || detectedCategory || 'unknown') as AppCategory;
+  const categoryLabel = getAppCategoryLabel(activeCategory);
 
   // Compute GFS
   const gfs = fullResult ? calculateGFS(fullResult) : Math.round(summary.riskScore * 10);
@@ -68,15 +73,51 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult }
   const bandLabel = getGFSLabel(band);
   const styles = gfsBandStyles[band];
 
+  const ALL_CATEGORIES: AppCategory[] = ['fitness', 'dating', 'fintech', 'health', 'productivity', 'social', 'b2b', 'gaming', 'unknown'];
+
   return (
     <div className="space-y-4">
       {/* Header with GFS */}
       <div className={cn('rounded-xl p-6 border', styles.bg)}>
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="space-y-1">
-            <h2 className="font-serif text-2xl font-semibold text-foreground">
-              Ground Floor Check
-            </h2>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="font-serif text-2xl font-semibold text-foreground">
+                Ground Floor Check
+              </h2>
+              {activeCategory !== 'unknown' && (
+                <div className="flex items-center gap-1">
+                  {isEditingCategory ? (
+                    <Select
+                      value={activeCategory}
+                      onValueChange={(val) => {
+                        setCategoryOverride(val);
+                        setIsEditingCategory(false);
+                      }}
+                    >
+                      <SelectTrigger className="h-6 text-xs w-auto min-w-[120px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ALL_CATEGORIES.filter(c => c !== 'unknown').map(cat => (
+                          <SelectItem key={cat} value={cat} className="text-xs">
+                            {getAppCategoryLabel(cat)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <button
+                      onClick={() => setIsEditingCategory(true)}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
+                    >
+                      Detected: {categoryLabel}
+                      <Pencil size={10} />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
             <p className="text-muted-foreground">
               {projectName}
             </p>
