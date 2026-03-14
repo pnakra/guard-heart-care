@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ProjectUpload, CustomRulesConfig } from '@/components/ethics/ProjectUpload';
+import { ProjectUpload, CustomRulesConfig, PopulationModifier } from '@/components/ethics/ProjectUpload';
 import { ScanningScreen } from '@/components/ethics/ScanningScreen';
 import { EthicsReviewPanel } from '@/components/ethics/EthicsReviewPanel';
 import { PublishGate } from '@/components/ethics/PublishGate';
