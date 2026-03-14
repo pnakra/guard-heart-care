@@ -1,73 +1,41 @@
-# Welcome to your Lovable project
+# GuardHeart — AI-Powered Ethical Code Scanner
 
-## Project info
+GuardHeart analyzes source code for ethical risks, misuse-by-design patterns, and harmful capabilities — helping teams ship responsibly.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## What It Does
 
-## How can I edit this code?
+- **Upload or import code** — Drag-and-drop local files or fetch a public GitHub repository
+- **AI-powered ethical analysis** — Scans for issues across five harm categories: false authority, manipulation, surveillance, admin abuse, and AI hallucination
+- **Risk scoring & severity levels** — Each issue is rated (safe → critical) with an overall project risk score
+- **Misuse scenario detection** — Identifies how features could be weaponized and suggests mitigations
+- **Capability detection** — Flags risky capabilities like data collection, authentication bypass, and content generation
+- **Actionable remediation** — Provides concrete code, design, and content changes with effort estimates
+- **Publish gate** — Review and acknowledge all ethical issues before approving a project for release
+- **Export reports** — Download findings for compliance and team review
 
-There are several ways of editing your application.
+## Supported Languages
 
-**Use Lovable**
+TypeScript, JavaScript, Python, Go, Rust, Java, Kotlin, Swift, C/C++, PHP, Dart, Ruby, Vue, Svelte, and more.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Frontend:** React, Vite, TypeScript, Tailwind CSS, shadcn/ui
+- **Backend:** Lovable Cloud (edge functions for code analysis and GitHub integration)
+- **AI:** Gemini 2.5 Flash for ethical analysis
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Getting Started
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
 npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## How It Works
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+1. **Upload** source files or paste a GitHub URL
+2. **Scan** — the backend fetches and analyzes relevant source files using AI
+3. **Review** — browse issues by category, severity, and misuse potential
+4. **Remediate** — follow suggested fixes with code diffs and design changes
+5. **Approve** — use the publish gate to formally acknowledge risks before shipping
