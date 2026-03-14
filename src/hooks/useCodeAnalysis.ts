@@ -41,6 +41,7 @@ const CATEGORY_LABELS: Record<HarmCategory, { label: string; description: string
   'surveillance': { label: 'Surveillance', description: 'Tracking features exploitable in abuse contexts', icon: 'eye' },
   'admin-abuse': { label: 'Admin Abuse', description: 'Platform powers that could harm users', icon: 'shield-alert' },
   'ai-hallucination': { label: 'AI Hallucination', description: 'AI framed as expertise it cannot provide', icon: 'sparkles' },
+  'dark-patterns': { label: 'Dark Patterns', description: 'Coercive UX that manipulates users into unintended actions', icon: 'zap' },
 };
 
 // Storage key for scan history
