@@ -245,6 +245,59 @@ export function ProjectUpload({ onAnalyze, isAnalyzing }: ProjectUploadProps) {
     }
   };
 
+  const handleFetchFork = async () => {
+    if (!upstreamUrl.trim() || !forkUrl.trim()) {
+      toast.error('Please enter both upstream and fork URLs');
+      return;
+    }
+
+    setIsFetchingFork(true);
+    setForkStatus('Fetching upstream repo...');
+    try {
+      // Fetch upstream
+      const { data: upstreamData, error: upstreamError } = await supabase.functions.invoke('fetch-github-repo', {
+        body: { url: upstreamUrl },
+      });
+      if (upstreamError || upstreamData?.error) throw new Error(upstreamData?.error || upstreamError?.message || 'Failed to fetch upstream');
+
+      setForkStatus('Fetching fork repo...');
+      // Fetch fork
+      const { data: forkData, error: forkError } = await supabase.functions.invoke('fetch-github-repo', {
+        body: { url: forkUrl },
+      });
+      if (forkError || forkData?.error) throw new Error(forkData?.error || forkError?.message || 'Failed to fetch fork');
+
+      setFiles(forkData.files);
+      setProjectName(`${forkData.repoName} (fork comparison)`);
+
+      toast.success(`Fetched both repos`, {
+        description: `Upstream: ${upstreamData.fileCount} files, Fork: ${forkData.fileCount} files`,
+      });
+
+      // Trigger analysis with fork data
+      const validation = validateCustomRules(customRulesText);
+      const customRules = showAdvanced && validation.valid ? validation.parsed : undefined;
+      const populations = selectedPopulations.length > 0 ? selectedPopulations : undefined;
+      const forkComparisonData: ForkComparisonData = {
+        upstreamUrl,
+        forkUrl,
+        upstreamFiles: upstreamData.files,
+        forkFiles: forkData.files,
+        upstreamRepo: `${upstreamData.owner}/${upstreamData.repoName}`,
+        forkRepo: `${forkData.owner}/${forkData.repoName}`,
+      };
+      onAnalyze(forkData.files, forkData.repoName, customRules, populations, forkComparisonData);
+    } catch (err) {
+      console.error('Fork fetch error:', err);
+      toast.error('Failed to fetch repositories', {
+        description: err instanceof Error ? err.message : 'Unknown error',
+      });
+    } finally {
+      setIsFetchingFork(false);
+      setForkStatus('');
+    }
+  };
+
   const handleAnalyze = () => {
     if (files.length > 0) {
       const validation = validateCustomRules(customRulesText);
