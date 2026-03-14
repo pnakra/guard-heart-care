@@ -46,10 +46,19 @@ export function EthicsReviewPanel({
 
   const criticalMisuseCount = misuseScenarios.filter(s => s.severity === 'critical').length;
 
-  const handleExport = (format: 'markdown' | 'json' | 'pdf') => {
+  const handleExport = (format: 'markdown' | 'json' | 'pdf' | 'sarif') => {
     exportReport({ result, capabilities, misuseScenarios }, format);
-    toast.success(`Report exported as ${format.toUpperCase()}`, {
-      description: `Your misuse-by-design scan has been downloaded.`,
+    const label = format === 'sarif' ? 'SARIF' : format.toUpperCase();
+    toast.success(`Report exported as ${label}`, {
+      description: format === 'sarif' ? 'Upload to GitHub Code Scanning.' : 'Your misuse-by-design scan has been downloaded.',
+    });
+  };
+
+  const handleCopyPRComment = async () => {
+    const comment = generatePRComment({ result, capabilities, misuseScenarios });
+    await copyToClipboard(comment);
+    toast.success('PR comment copied!', {
+      description: 'Paste into your GitHub pull request.',
     });
   };
 
