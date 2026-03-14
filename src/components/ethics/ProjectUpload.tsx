@@ -700,36 +700,7 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
           )}
         </div>
 
-        {/* Population Context */}
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-foreground">
-              Population Context
-            </label>
-            <p className="text-xs text-muted-foreground">
-              Select if any of these apply to your users — the scanner will elevate severity for relevant risks.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {POPULATION_MODIFIERS.map((mod) => (
-              <button
-                key={mod.id}
-                type="button"
-                onClick={() => togglePopulation(mod.id)}
-                className={cn(
-                  'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                  selectedPopulations.includes(mod.id)
-                    ? 'bg-primary/10 text-primary border-primary/30 shadow-sm'
-                    : 'bg-card text-muted-foreground border-border hover:border-primary/20 hover:text-foreground'
-                )}
-              >
-                {mod.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Category Quiz */}
+        {/* Context Quiz */}
         <div className="border border-border rounded-lg bg-card p-4 space-y-3">
           <div className="space-y-1">
             <label className="text-sm font-medium text-foreground">
