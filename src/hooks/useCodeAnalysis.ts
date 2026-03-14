@@ -146,6 +146,7 @@ export function useCodeAnalysis() {
         mitigationType: i.mitigationType || 'ui-language',
         customRule: i.customRule || false,
         customRuleName: i.customRuleName || undefined,
+        populationTags: Array.isArray(i.populationTags) ? i.populationTags : undefined,
       }));
 
       // Calculate base risk score

@@ -29,6 +29,15 @@ const categoryLabels: Record<string, string> = {
   'surveillance': 'Surveillance',
   'admin-abuse': 'Admin Abuse',
   'ai-hallucination': 'AI Hallucination',
+  'dark-patterns': 'Dark Patterns',
+};
+
+const populationLabels: Record<string, string> = {
+  'minors': 'Minors',
+  'financially-vulnerable': 'Financially Vulnerable',
+  'mental-health': 'Mental Health',
+  'domestic-abuse': 'Domestic Abuse',
+  'elderly': 'Elderly',
 };
 
 const ALL_STATUSES: IssueStatus[] = ['unreviewed', 'in-review', 'fixed', 'wont-fix', 'accepted-risk'];
