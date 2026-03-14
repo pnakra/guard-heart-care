@@ -23,8 +23,23 @@ export interface CustomRulesConfig {
   }[];
 }
 
+export type PopulationModifier =
+  | 'minors'
+  | 'financially-vulnerable'
+  | 'mental-health'
+  | 'domestic-abuse'
+  | 'elderly';
+
+export const POPULATION_MODIFIERS: { id: PopulationModifier; label: string; shortLabel: string }[] = [
+  { id: 'minors', label: 'App may be used by minors (under 18)', shortLabel: 'Minors' },
+  { id: 'financially-vulnerable', label: 'Users may be in financially vulnerable situations', shortLabel: 'Financially Vulnerable' },
+  { id: 'mental-health', label: 'App addresses mental health or crisis situations', shortLabel: 'Mental Health' },
+  { id: 'domestic-abuse', label: 'Users may be in domestic abuse or coercive control situations', shortLabel: 'Domestic Abuse' },
+  { id: 'elderly', label: 'Elderly users are a primary audience', shortLabel: 'Elderly' },
+];
+
 interface ProjectUploadProps {
-  onAnalyze: (files: UploadedFile[], projectName: string, customRules?: CustomRulesConfig) => void;
+  onAnalyze: (files: UploadedFile[], projectName: string, customRules?: CustomRulesConfig, populationModifiers?: PopulationModifier[]) => void;
   isAnalyzing: boolean;
 }
 
