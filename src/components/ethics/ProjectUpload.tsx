@@ -700,6 +700,17 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
         <p className="text-xs text-center text-muted-foreground">
           Your code is analyzed securely and not stored. Analysis powered by AI.
         </p>
+        {onShowOnboarding && (
+          <button
+            onClick={() => {
+              localStorage.removeItem('gfc_onboarding_complete');
+              onShowOnboarding();
+            }}
+            className="text-xs text-center text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors w-full"
+          >
+            Show intro again
+          </button>
+        )}
       </div>
     </div>
   );
