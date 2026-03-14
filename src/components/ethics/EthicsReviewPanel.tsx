@@ -145,6 +145,7 @@ export function EthicsReviewPanel({
           summary={result.executiveSummary}
           projectName={result.projectName}
           timestamp={result.timestamp}
+          detectedCategory={result.detectedCategory}
         />
 
         {/* Two Column Layout */}
