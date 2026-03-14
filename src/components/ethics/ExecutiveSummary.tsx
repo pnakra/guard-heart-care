@@ -177,13 +177,13 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
             </TooltipProvider>
 
             {/* Issue counts */}
-            <div className="flex gap-4 text-sm">
+            <div className="flex gap-4 text-sm font-mono">
               {summary.criticalCount > 0 && (
                 <div className="text-center">
                   <div className="text-2xl font-bold text-[hsl(var(--ethics-critical))]">
                     {summary.criticalCount}
                   </div>
-                  <p className="text-xs text-muted-foreground">Critical</p>
+                  <p className="text-[10px] text-muted-foreground">CRIT</p>
                 </div>
               )}
               {summary.highCount > 0 && (
@@ -191,14 +191,14 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                   <div className="text-2xl font-bold text-[hsl(var(--ethics-high))]">
                     {summary.highCount}
                   </div>
-                  <p className="text-xs text-muted-foreground">High</p>
+                  <p className="text-[10px] text-muted-foreground">HIGH</p>
                 </div>
               )}
               <div className="text-center">
                 <div className="text-2xl font-bold text-foreground">
                   {summary.totalIssueCount}
                 </div>
-                <p className="text-xs text-muted-foreground">Total</p>
+                <p className="text-[10px] text-muted-foreground">TOTAL</p>
               </div>
             </div>
           </div>
