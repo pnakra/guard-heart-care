@@ -18,6 +18,7 @@ interface EthicsReviewPanelProps {
   result: EthicsReviewResult;
   capabilities: DetectedCapability[];
   misuseScenarios: MisuseScenario[];
+  activePopulations?: PopulationModifier[];
   onRescan?: () => void;
   onPublish?: () => void;
 }
