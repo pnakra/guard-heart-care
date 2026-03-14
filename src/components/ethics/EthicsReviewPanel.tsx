@@ -161,6 +161,22 @@ export function EthicsReviewPanel({
           lowConfidenceCount={result.issues.filter(i => i.confidence && i.confidence.overallConfidence < 0.6).length}
         />
 
+        {/* Active population modifiers */}
+        {activePopulations.length > 0 && (
+          <div className="mt-4 flex items-center gap-2 flex-wrap p-3 rounded-lg bg-primary/5 border border-primary/10">
+            <Users size={14} className="text-primary shrink-0" />
+            <span className="text-sm font-medium text-foreground">Scanning with elevated sensitivity for:</span>
+            {activePopulations.map(mod => {
+              const info = POPULATION_MODIFIERS.find(m => m.id === mod);
+              return (
+                <span key={mod} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                  {info?.shortLabel || mod}
+                </span>
+              );
+            })}
+          </div>
+        )}
+
         {/* Two Column Layout */}
         <div className="mt-6 grid lg:grid-cols-[320px,1fr] gap-6">
           {/* Categories Sidebar */}
