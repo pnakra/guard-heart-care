@@ -96,7 +96,7 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="font-serif text-2xl font-semibold text-foreground">
+              <h2 className="font-mono text-xl font-semibold text-foreground tracking-tight">
                 Ground Floor Check
               </h2>
               {activeCategory !== 'unknown' && (
