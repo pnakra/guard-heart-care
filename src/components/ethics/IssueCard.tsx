@@ -132,7 +132,7 @@ export function IssueCard({ issue }: IssueCardProps) {
                   [{(categoryLabels[issue.category] || issue.category).toUpperCase()}]
                 </span>
               </div>
-              <h4 className="font-medium text-foreground mt-2">
+              <h4 className="font-mono font-medium text-foreground mt-2 text-sm">
                 {issue.title}
               </h4>
               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
