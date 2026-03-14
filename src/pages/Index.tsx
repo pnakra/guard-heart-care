@@ -97,26 +97,28 @@ const Index = () => {
   }
 
   return (
-    <IssueStatusProvider>
-      <EthicsReviewPanel 
-        result={analysisResult}
-        capabilities={capabilities}
-        misuseScenarios={misuseScenarios}
-        activePopulations={activePopulations}
-        onRescan={handleRescan}
-        onPublish={handlePublishClick}
-      />
-      
-      {appState === 'publish-gate' && (
-        <PublishGate
-          issues={analysisResult.issues}
+    <PlainLanguageProvider>
+      <IssueStatusProvider>
+        <EthicsReviewPanel 
+          result={analysisResult}
+          capabilities={capabilities}
           misuseScenarios={misuseScenarios}
-          projectName={projectName}
-          onPublish={handlePublishConfirm}
-          onCancel={handlePublishCancel}
+          activePopulations={activePopulations}
+          onRescan={handleRescan}
+          onPublish={handlePublishClick}
         />
-      )}
-    </IssueStatusProvider>
+        
+        {appState === 'publish-gate' && (
+          <PublishGate
+            issues={analysisResult.issues}
+            misuseScenarios={misuseScenarios}
+            projectName={projectName}
+            onPublish={handlePublishConfirm}
+            onCancel={handlePublishCancel}
+          />
+        )}
+      </IssueStatusProvider>
+    </PlainLanguageProvider>
   );
 };
 
