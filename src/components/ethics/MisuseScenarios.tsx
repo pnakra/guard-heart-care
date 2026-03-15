@@ -63,7 +63,7 @@ function ScenarioCard({ scenario }: { scenario: MisuseScenario }) {
             <h4 className="font-medium text-foreground">
               {scenario.title}
             </h4>
-            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+            <p className={cn("text-sm text-muted-foreground mt-1", !isExpanded && "line-clamp-2")}>
               {scenario.description}
             </p>
           </div>
