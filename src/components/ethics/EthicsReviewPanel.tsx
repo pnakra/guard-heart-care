@@ -30,6 +30,9 @@ interface EthicsReviewPanelProps {
   activePopulations?: PopulationModifier[];
   onRescan?: () => void;
   onPublish?: () => void;
+  onRescanWithCategory?: (category: AppCategory) => void;
+  isRescanning?: boolean;
+  activeCategory?: AppCategory;
 }
 
 type TabValue = 'issues' | 'misuse' | 'fork' | 'checklist';
