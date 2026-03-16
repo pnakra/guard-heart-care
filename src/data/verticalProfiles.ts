@@ -8,7 +8,7 @@ export interface VerticalProfile {
   populationNotes: string;
 }
 
-export const VERTICAL_PROFILES: Record<Exclude<AppCategory, 'unknown'>, VerticalProfile> = {
+export const VERTICAL_PROFILES: Partial<Record<Exclude<AppCategory, 'unknown' | 'general'>, VerticalProfile>> = {
   fitness: {
     elevatedCategories: ['ai-hallucination', 'manipulation'],
     additionalHarmPatterns: [
