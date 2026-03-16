@@ -7,6 +7,7 @@ export type AppCategory =
   | 'social'
   | 'b2b'
   | 'gaming'
+  | 'general'
   | 'unknown';
 
 interface FileInput {
