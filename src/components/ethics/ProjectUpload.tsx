@@ -652,7 +652,70 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
           </div>
         )}
 
-        {/* Advanced: Custom Rules */}
+        {/* Detected Category */}
+        {files.length > 0 && (
+          <div className="border border-border rounded-lg bg-card p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Tag size={14} className="text-primary" />
+                <span className="text-sm font-medium text-foreground">App Category</span>
+              </div>
+              {detectedCategory !== 'unknown' && !categoryOverride && (
+                <span className="text-[10px] text-muted-foreground">Auto-detected</span>
+              )}
+              {categoryOverride && (
+                <button
+                  onClick={() => setCategoryOverride(null)}
+                  className="text-[10px] text-muted-foreground hover:text-foreground underline"
+                >
+                  Reset to auto-detect
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {isEditingCategory ? (
+                <Select
+                  value={activeCategory || 'general'}
+                  onValueChange={(val) => {
+                    setCategoryOverride(val as AppCategory);
+                    setIsEditingCategory(false);
+                  }}
+                >
+                  <SelectTrigger className="h-8 text-sm w-auto min-w-[160px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ALL_CATEGORIES.map(cat => (
+                      <SelectItem key={cat} value={cat} className="text-sm">
+                        {getAppCategoryLabel(cat)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <button
+                  onClick={() => setIsEditingCategory(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
+                >
+                  {activeCategory ? getAppCategoryLabel(activeCategory) : 'None detected — select manually'}
+                  <Pencil size={12} />
+                </button>
+              )}
+            </div>
+            {activeCategory === 'general' && (
+              <p className="text-xs text-muted-foreground">
+                No vertical risk profile will be applied. The scanner will use its base prompt only.
+              </p>
+            )}
+            {activeCategory && activeCategory !== 'general' && activeCategory !== 'unknown' && (
+              <p className="text-xs text-muted-foreground">
+                Vertical risk profile for <span className="font-medium text-foreground">{getAppCategoryLabel(activeCategory)}</span> will be applied during scanning.
+              </p>
+            )}
+          </div>
+        )}
+
+
         <div className="border border-border rounded-lg overflow-hidden">
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
