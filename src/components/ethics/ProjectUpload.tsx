@@ -163,6 +163,9 @@ function getQuizElevations(answers: QuizAnswers): { elevatedCategories: string[]
 
   return { elevatedCategories: Array.from(cats), populationMods: pops, verticalProfiles: verticals };
 }
+const CATEGORY_OVERRIDE_KEY = 'gfc-category-override';
+const ALL_CATEGORIES: AppCategory[] = ['fitness', 'dating', 'fintech', 'health', 'productivity', 'social', 'b2b', 'gaming', 'general'];
+
 export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: ProjectUploadProps) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [projectName, setProjectName] = useState('');
@@ -185,6 +188,8 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
     } catch { return DEFAULT_QUIZ; }
   });
   const [rulesValidation, setRulesValidation] = useState<{ valid: boolean; error?: string }>({ valid: true });
+  const [categoryOverride, setCategoryOverride] = useState<AppCategory | null>(null);
+  const [isEditingCategory, setIsEditingCategory] = useState(false);
 
   // Validate on change
   useEffect(() => {
