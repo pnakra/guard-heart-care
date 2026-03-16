@@ -43,7 +43,10 @@ export function EthicsReviewPanel({
   misuseScenarios,
   activePopulations = [],
   onRescan,
-  onPublish 
+  onPublish,
+  onRescanWithCategory,
+  isRescanning = false,
+  activeCategory,
 }: EthicsReviewPanelProps) {
   const { isVibe } = useMode();
   const defaultTab: TabValue = result.isForkAnalysis ? 'fork' : isVibe ? 'checklist' : 'issues';
