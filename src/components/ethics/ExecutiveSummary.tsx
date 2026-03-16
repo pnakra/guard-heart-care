@@ -104,7 +104,7 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
               <h2 className="font-mono text-xl font-semibold text-foreground tracking-tight">
                 Ground Floor Check
               </h2>
-              {activeCategory !== 'unknown' && (
+              {(activeCategory !== 'unknown' || onRescanWithCategory) && (
                 <>
                   <div className="flex items-center gap-1">
                     {isEditingCategory ? (
@@ -113,13 +113,16 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                         onValueChange={(val) => {
                           setCategoryOverride(val);
                           setIsEditingCategory(false);
+                          if (val !== activeCategory && onRescanWithCategory) {
+                            setPendingCategory(val);
+                          }
                         }}
                       >
                         <SelectTrigger className="h-6 text-xs w-auto min-w-[120px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {ALL_CATEGORIES.filter(c => c !== 'unknown').map(cat => (
+                          {ALL_CATEGORIES.map(cat => (
                             <SelectItem key={cat} value={cat} className="text-xs">
                               {getAppCategoryLabel(cat)}
                             </SelectItem>
@@ -131,15 +134,34 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                         onClick={() => setIsEditingCategory(true)}
                         className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
                       >
-                        Detected: {categoryLabel}
+                        {activeCategory === 'unknown' ? 'Set category' : `Detected: ${categoryLabel}`}
                         <Pencil size={10} />
                       </button>
                     )}
+                    {pendingCategory && pendingCategory !== detectedCategory && onRescanWithCategory && (
+                      <button
+                        onClick={() => {
+                          onRescanWithCategory(pendingCategory as AppCategory);
+                          setPendingCategory(null);
+                        }}
+                        disabled={isRescanning}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+                      >
+                        {isRescanning ? (
+                          <Loader2 size={10} className="animate-spin" />
+                        ) : (
+                          <RefreshCw size={10} />
+                        )}
+                        Rescan with this category
+                      </button>
+                    )}
                   </div>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-accent text-accent-foreground border border-border">
-                    <ShieldCheck size={10} />
-                    Risk Profile Active
-                  </span>
+                  {activeCategory !== 'unknown' && activeCategory !== 'general' && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-accent text-accent-foreground border border-border">
+                      <ShieldCheck size={10} />
+                      Risk Profile Active
+                    </span>
+                  )}
                 </>
               )}
             </div>
