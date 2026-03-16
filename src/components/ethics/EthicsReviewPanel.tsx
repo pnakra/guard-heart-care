@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { PopulationModifier, POPULATION_MODIFIERS } from './ProjectUpload';
 import { EthicsReviewResult, HarmCategory } from '@/types/ethics';
