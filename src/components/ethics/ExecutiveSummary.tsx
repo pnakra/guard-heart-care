@@ -92,7 +92,7 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
   const reviewedCount = issueIds.filter(id => REVIEWED_STATUSES.includes(getStatus(id))).length;
   const triagePercent = totalIssues > 0 ? Math.round((reviewedCount / totalIssues) * 100) : 0;
 
-  const ALL_CATEGORIES: AppCategory[] = ['fitness', 'dating', 'fintech', 'health', 'productivity', 'social', 'b2b', 'gaming', 'unknown'];
+  const ALL_CATEGORIES: AppCategory[] = ['fitness', 'dating', 'fintech', 'health', 'productivity', 'social', 'b2b', 'gaming', 'general'];
 
   return (
     <div className="space-y-4">
