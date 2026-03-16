@@ -24,20 +24,29 @@ interface GitHubFile {
 }
 
 function parseGitHubUrl(url: string): { owner: string; repo: string; branch?: string } | null {
-  const patterns = [
-    /(?:https?:\/\/)?github\.com\/([^\/]+)\/([^\/]+?)(?:\/tree\/([^\/]+))?(?:\/.*)?$/,
-  ];
+  const trimmed = url.trim().replace(/\/+$/, '');
 
-  for (const pattern of patterns) {
-    const match = url.trim().match(pattern);
-    if (match) {
-      return {
-        owner: match[1],
-        repo: match[2].replace(/\.git$/, ''),
-        branch: match[3],
-      };
-    }
+  // Match full GitHub URLs: https://github.com/owner/repo or github.com/owner/repo
+  const urlPattern = /(?:https?:\/\/)?github\.com\/([^\/]+)\/([^\/]+?)(?:\/tree\/([^\/]+))?(?:\/.*)?$/;
+  const urlMatch = trimmed.match(urlPattern);
+  if (urlMatch) {
+    return {
+      owner: urlMatch[1],
+      repo: urlMatch[2].replace(/\.git$/, ''),
+      branch: urlMatch[3],
+    };
   }
+
+  // Match shorthand: owner/repo
+  const shorthandPattern = /^([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)$/;
+  const shortMatch = trimmed.match(shorthandPattern);
+  if (shortMatch) {
+    return {
+      owner: shortMatch[1],
+      repo: shortMatch[2].replace(/\.git$/, ''),
+    };
+  }
+
   return null;
 }
 
