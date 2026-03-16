@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { PopulationModifier, POPULATION_MODIFIERS } from './ProjectUpload';
 import { EthicsReviewResult, HarmCategory } from '@/types/ethics';
@@ -13,11 +13,12 @@ import { ModePillToggle } from './ModePillToggle';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users, GitPullRequest, ScanSearch, GitFork, ClipboardCheck, Award } from 'lucide-react';
+import { Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users, GitPullRequest, ScanSearch, GitFork, ClipboardCheck, Award, Loader2 } from 'lucide-react';
 import { exportReport, generateLovablePrompt, generatePRComment, copyToClipboard } from '@/utils/exportReport';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useMode } from '@/contexts/ModeContext';
 import { getGFSBand } from '@/services/gfsCalculator';
+import { AppCategory } from '@/services/categoryDetector';
 import { BadgeModal } from './BadgeModal';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -29,6 +30,9 @@ interface EthicsReviewPanelProps {
   activePopulations?: PopulationModifier[];
   onRescan?: () => void;
   onPublish?: () => void;
+  onRescanWithCategory?: (category: AppCategory) => void;
+  isRescanning?: boolean;
+  activeCategory?: AppCategory;
 }
 
 type TabValue = 'issues' | 'misuse' | 'fork' | 'checklist';
@@ -39,7 +43,10 @@ export function EthicsReviewPanel({
   misuseScenarios,
   activePopulations = [],
   onRescan,
-  onPublish 
+  onPublish,
+  onRescanWithCategory,
+  isRescanning = false,
+  activeCategory,
 }: EthicsReviewPanelProps) {
   const { isVibe } = useMode();
   const defaultTab: TabValue = result.isForkAnalysis ? 'fork' : isVibe ? 'checklist' : 'issues';
@@ -210,9 +217,11 @@ export function EthicsReviewPanel({
           summary={result.executiveSummary}
           projectName={result.projectName}
           timestamp={result.timestamp}
-          detectedCategory={result.detectedCategory}
+          detectedCategory={activeCategory || result.detectedCategory}
           issueIds={result.issues.map(i => i.id)}
           lowConfidenceCount={result.issues.filter(i => i.confidence && i.confidence.overallConfidence < 0.6).length}
+          onRescanWithCategory={onRescanWithCategory}
+          isRescanning={isRescanning}
         />
 
         {/* Active population modifiers */}

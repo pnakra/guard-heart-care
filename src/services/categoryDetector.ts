@@ -7,6 +7,7 @@ export type AppCategory =
   | 'social'
   | 'b2b'
   | 'gaming'
+  | 'general'
   | 'unknown';
 
 interface FileInput {
@@ -14,7 +15,7 @@ interface FileInput {
   content: string;
 }
 
-const CATEGORY_SIGNALS: Record<Exclude<AppCategory, 'unknown'>, string[]> = {
+const CATEGORY_SIGNALS: Record<Exclude<AppCategory, 'unknown' | 'general'>, string[]> = {
   fitness: ['workout', 'calories', 'weight', 'exercise', 'reps', 'sets', 'gym', 'training', 'fitness', 'bmi'],
   dating: ['match', 'swipe', 'profile', 'like', 'message', 'dating', 'tinder', 'crush', 'unmatch', 'superlike'],
   fintech: ['invoice', 'payment', 'subscription', 'billing', 'checkout', 'stripe', 'transaction', 'wallet', 'pricing', 'plan'],
@@ -34,6 +35,7 @@ const CATEGORY_LABELS: Record<AppCategory, string> = {
   social: 'Social App',
   b2b: 'B2B Platform',
   gaming: 'Gaming App',
+  general: 'General Purpose',
   unknown: 'Unknown',
 };
 

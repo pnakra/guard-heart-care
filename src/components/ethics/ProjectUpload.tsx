@@ -1,10 +1,18 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, FileCode, X, FolderOpen, Loader2, Github, ArrowRight, Settings2, ChevronDown, ChevronRight, AlertCircle, Check, GitFork } from 'lucide-react';
+import { Upload, FileCode, X, FolderOpen, Loader2, Github, ArrowRight, Settings2, ChevronDown, ChevronRight, AlertCircle, Check, GitFork, Pencil, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { detectAppCategory, getAppCategoryLabel, AppCategory } from '@/services/categoryDetector';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface UploadedFile {
   name: string;
@@ -48,7 +56,7 @@ interface ForkComparisonData {
 }
 
 interface ProjectUploadProps {
-  onAnalyze: (files: UploadedFile[], projectName: string, customRules?: CustomRulesConfig, populationModifiers?: PopulationModifier[], forkData?: ForkComparisonData) => void;
+  onAnalyze: (files: UploadedFile[], projectName: string, customRules?: CustomRulesConfig, populationModifiers?: PopulationModifier[], forkData?: ForkComparisonData, categoryOverride?: AppCategory) => void;
   isAnalyzing: boolean;
   onShowOnboarding?: () => void;
 }
@@ -155,6 +163,9 @@ function getQuizElevations(answers: QuizAnswers): { elevatedCategories: string[]
 
   return { elevatedCategories: Array.from(cats), populationMods: pops, verticalProfiles: verticals };
 }
+const CATEGORY_OVERRIDE_KEY = 'gfc-category-override';
+const ALL_CATEGORIES: AppCategory[] = ['fitness', 'dating', 'fintech', 'health', 'productivity', 'social', 'b2b', 'gaming', 'general'];
+
 export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: ProjectUploadProps) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [projectName, setProjectName] = useState('');
@@ -177,6 +188,8 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
     } catch { return DEFAULT_QUIZ; }
   });
   const [rulesValidation, setRulesValidation] = useState<{ valid: boolean; error?: string }>({ valid: true });
+  const [categoryOverride, setCategoryOverride] = useState<AppCategory | null>(null);
+  const [isEditingCategory, setIsEditingCategory] = useState(false);
 
   // Validate on change
   useEffect(() => {
@@ -193,6 +206,14 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
   useEffect(() => {
     try { sessionStorage.setItem(CUSTOM_RULES_KEY, customRulesText); } catch { /* ignore */ }
   }, [customRulesText]);
+
+  // Auto-detect category when files change
+  const detectedCategory = useMemo<AppCategory>(() => {
+    if (files.length === 0) return 'unknown';
+    return detectAppCategory(files);
+  }, [files]);
+
+  const activeCategory = categoryOverride || (detectedCategory !== 'unknown' ? detectedCategory : null);
 
   const processFiles = useCallback(async (fileList: FileList) => {
     const newFiles: UploadedFile[] = [];
@@ -326,7 +347,7 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
         upstreamRepo: `${upstreamData.owner}/${upstreamData.repoName}`,
         forkRepo: `${forkData.owner}/${forkData.repoName}`,
       };
-      onAnalyze(forkData.files, forkData.repoName, customRules, populations, forkComparisonData);
+      onAnalyze(forkData.files, forkData.repoName, customRules, populations, forkComparisonData, activeCategory || undefined);
     } catch (err) {
       console.error('Fork fetch error:', err);
       toast.error('Failed to fetch repositories', {
@@ -357,7 +378,7 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
         ? { ...baseRules, elevatedCategories: mergedElevated }
         : undefined;
       const populations = mergedPopulations.length > 0 ? mergedPopulations : undefined;
-      onAnalyze(files, projectName || 'Uploaded Project', customRules, populations);
+      onAnalyze(files, projectName || 'Uploaded Project', customRules, populations, undefined, activeCategory || undefined);
     }
   };
 
@@ -631,7 +652,70 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
           </div>
         )}
 
-        {/* Advanced: Custom Rules */}
+        {/* Detected Category */}
+        {files.length > 0 && (
+          <div className="border border-border rounded-lg bg-card p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Tag size={14} className="text-primary" />
+                <span className="text-sm font-medium text-foreground">App Category</span>
+              </div>
+              {detectedCategory !== 'unknown' && !categoryOverride && (
+                <span className="text-[10px] text-muted-foreground">Auto-detected</span>
+              )}
+              {categoryOverride && (
+                <button
+                  onClick={() => setCategoryOverride(null)}
+                  className="text-[10px] text-muted-foreground hover:text-foreground underline"
+                >
+                  Reset to auto-detect
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {isEditingCategory ? (
+                <Select
+                  value={activeCategory || 'general'}
+                  onValueChange={(val) => {
+                    setCategoryOverride(val as AppCategory);
+                    setIsEditingCategory(false);
+                  }}
+                >
+                  <SelectTrigger className="h-8 text-sm w-auto min-w-[160px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ALL_CATEGORIES.map(cat => (
+                      <SelectItem key={cat} value={cat} className="text-sm">
+                        {getAppCategoryLabel(cat)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <button
+                  onClick={() => setIsEditingCategory(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
+                >
+                  {activeCategory ? getAppCategoryLabel(activeCategory) : 'None detected — select manually'}
+                  <Pencil size={12} />
+                </button>
+              )}
+            </div>
+            {activeCategory === 'general' && (
+              <p className="text-xs text-muted-foreground">
+                No vertical risk profile will be applied. The scanner will use its base prompt only.
+              </p>
+            )}
+            {activeCategory && activeCategory !== 'general' && activeCategory !== 'unknown' && (
+              <p className="text-xs text-muted-foreground">
+                Vertical risk profile for <span className="font-medium text-foreground">{getAppCategoryLabel(activeCategory)}</span> will be applied during scanning.
+              </p>
+            )}
+          </div>
+        )}
+
+
         <div className="border border-border rounded-lg overflow-hidden">
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
@@ -741,11 +825,16 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
             const elev = getQuizElevations(quizAnswers);
             const allCats = Array.from(new Set([...elev.elevatedCategories]));
             const allPops = Array.from(new Set([...elev.populationMods]));
-            if (allCats.length === 0 && allPops.length === 0) return null;
+            const hasSomething = allCats.length > 0 || allPops.length > 0 || activeCategory;
+            if (!hasSomething) return null;
             return (
               <div className="px-3 py-2 rounded-lg bg-primary/5 border border-primary/10">
                 <p className="text-xs text-muted-foreground">
                   <span className="font-medium text-foreground">Scanning with: </span>
+                  {activeCategory && (
+                    <span className="font-medium">[{getAppCategoryLabel(activeCategory)}]</span>
+                  )}
+                  {activeCategory && (allCats.length > 0 || allPops.length > 0) && <span> | </span>}
                   {allCats.length > 0 && (
                     <span>{allCats.map(c => c.replace('-', ' ')).join(', ')}</span>
                   )}

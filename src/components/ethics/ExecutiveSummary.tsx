@@ -3,7 +3,7 @@ import { ExecutiveSummary as ExecutiveSummaryType, SeverityLevel } from '@/types
 import { EthicsReviewResultV2 } from '@/types/ethicsV2';
 import { SeverityBadge } from './SeverityBadge';
 import { cn } from '@/lib/utils';
-import { AlertTriangle, Clock, TrendingUp, Info, Pencil, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Clock, TrendingUp, Info, Pencil, ShieldCheck, RefreshCw, Loader2 } from 'lucide-react';
 import { calculateGFS, calculateAdjustedGFS, getGFSBand, getGFSLabel } from '@/services/gfsCalculator';
 import { AppCategory, getAppCategoryLabel } from '@/services/categoryDetector';
 import { useIssueStatus, REVIEWED_STATUSES } from '@/contexts/IssueStatusContext';
@@ -31,6 +31,10 @@ interface ExecutiveSummaryProps {
   issueIds?: string[];
   /** Count of issues with confidence < 0.6 */
   lowConfidenceCount?: number;
+  /** Callback to rescan with a different category */
+  onRescanWithCategory?: (category: AppCategory) => void;
+  /** Whether a rescan is currently in progress */
+  isRescanning?: boolean;
 }
 
 const effortLabels = {
@@ -62,10 +66,11 @@ const gfsBandStyles = {
   },
 };
 
-export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, detectedCategory, issueIds = [], lowConfidenceCount = 0 }: ExecutiveSummaryProps) {
+export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, detectedCategory, issueIds = [], lowConfidenceCount = 0, onRescanWithCategory, isRescanning = false }: ExecutiveSummaryProps) {
   const hasTopRisks = summary.topThreeRisks && summary.topThreeRisks.length > 0;
   const [categoryOverride, setCategoryOverride] = useState<string | null>(null);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
+  const [pendingCategory, setPendingCategory] = useState<string | null>(null);
   const { getStatus, getAllStatuses } = useIssueStatus();
 
   const activeCategory = (categoryOverride || detectedCategory || 'unknown') as AppCategory;
@@ -87,7 +92,7 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
   const reviewedCount = issueIds.filter(id => REVIEWED_STATUSES.includes(getStatus(id))).length;
   const triagePercent = totalIssues > 0 ? Math.round((reviewedCount / totalIssues) * 100) : 0;
 
-  const ALL_CATEGORIES: AppCategory[] = ['fitness', 'dating', 'fintech', 'health', 'productivity', 'social', 'b2b', 'gaming', 'unknown'];
+  const ALL_CATEGORIES: AppCategory[] = ['fitness', 'dating', 'fintech', 'health', 'productivity', 'social', 'b2b', 'gaming', 'general'];
 
   return (
     <div className="space-y-4">
@@ -99,7 +104,7 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
               <h2 className="font-mono text-xl font-semibold text-foreground tracking-tight">
                 Ground Floor Check
               </h2>
-              {activeCategory !== 'unknown' && (
+              {(activeCategory !== 'unknown' || onRescanWithCategory) && (
                 <>
                   <div className="flex items-center gap-1">
                     {isEditingCategory ? (
@@ -108,13 +113,16 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                         onValueChange={(val) => {
                           setCategoryOverride(val);
                           setIsEditingCategory(false);
+                          if (val !== activeCategory && onRescanWithCategory) {
+                            setPendingCategory(val);
+                          }
                         }}
                       >
                         <SelectTrigger className="h-6 text-xs w-auto min-w-[120px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {ALL_CATEGORIES.filter(c => c !== 'unknown').map(cat => (
+                          {ALL_CATEGORIES.map(cat => (
                             <SelectItem key={cat} value={cat} className="text-xs">
                               {getAppCategoryLabel(cat)}
                             </SelectItem>
@@ -126,15 +134,34 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                         onClick={() => setIsEditingCategory(true)}
                         className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
                       >
-                        Detected: {categoryLabel}
+                        {activeCategory === 'unknown' ? 'Set category' : `Detected: ${categoryLabel}`}
                         <Pencil size={10} />
                       </button>
                     )}
+                    {pendingCategory && pendingCategory !== detectedCategory && onRescanWithCategory && (
+                      <button
+                        onClick={() => {
+                          onRescanWithCategory(pendingCategory as AppCategory);
+                          setPendingCategory(null);
+                        }}
+                        disabled={isRescanning}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+                      >
+                        {isRescanning ? (
+                          <Loader2 size={10} className="animate-spin" />
+                        ) : (
+                          <RefreshCw size={10} />
+                        )}
+                        Rescan with this category
+                      </button>
+                    )}
                   </div>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-accent text-accent-foreground border border-border">
-                    <ShieldCheck size={10} />
-                    Risk Profile Active
-                  </span>
+                  {activeCategory !== 'unknown' && activeCategory !== 'general' && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-accent text-accent-foreground border border-border">
+                      <ShieldCheck size={10} />
+                      Risk Profile Active
+                    </span>
+                  )}
                 </>
               )}
             </div>
