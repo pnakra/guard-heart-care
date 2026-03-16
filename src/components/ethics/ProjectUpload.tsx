@@ -56,7 +56,7 @@ interface ForkComparisonData {
 }
 
 interface ProjectUploadProps {
-  onAnalyze: (files: UploadedFile[], projectName: string, customRules?: CustomRulesConfig, populationModifiers?: PopulationModifier[], forkData?: ForkComparisonData) => void;
+  onAnalyze: (files: UploadedFile[], projectName: string, customRules?: CustomRulesConfig, populationModifiers?: PopulationModifier[], forkData?: ForkComparisonData, categoryOverride?: AppCategory) => void;
   isAnalyzing: boolean;
   onShowOnboarding?: () => void;
 }
