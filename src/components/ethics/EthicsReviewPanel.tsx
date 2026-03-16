@@ -18,6 +18,7 @@ import { exportReport, generateLovablePrompt, generatePRComment, copyToClipboard
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useMode } from '@/contexts/ModeContext';
 import { getGFSBand } from '@/services/gfsCalculator';
+import { AppCategory } from '@/services/categoryDetector';
 import { BadgeModal } from './BadgeModal';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
