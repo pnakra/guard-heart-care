@@ -9,6 +9,7 @@ import { EthicsReviewResult } from '@/types/ethics';
 import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
 import { IssueStatusProvider } from '@/contexts/IssueStatusContext';
 import { ModeProvider } from '@/contexts/ModeContext';
+import { AppCategory } from '@/services/categoryDetector';
 import { toast } from 'sonner';
 
 type AppState = 'onboarding' | 'upload' | 'scanning' | 'results' | 'publish-gate';
@@ -19,6 +20,8 @@ interface UploadedFile {
   size: number;
 }
 
+const CATEGORY_OVERRIDE_SESSION_KEY = 'gfc-category-override';
+
 const Index = () => {
   const hasCompletedOnboarding = localStorage.getItem('gfc_onboarding_complete') === 'true';
   const [appState, setAppState] = useState<AppState>(hasCompletedOnboarding ? 'upload' : 'onboarding');
@@ -27,15 +30,26 @@ const Index = () => {
   const [misuseScenarios, setMisuseScenarios] = useState<MisuseScenario[]>([]);
   const [projectName, setProjectName] = useState('');
   const [activePopulations, setActivePopulations] = useState<PopulationModifier[]>([]);
+  const [lastScanFiles, setLastScanFiles] = useState<UploadedFile[]>([]);
+  const [lastScanCategory, setLastScanCategory] = useState<AppCategory | undefined>();
   
   const { analyzeCode, isAnalyzing } = useCodeAnalysis();
 
-  const handleAnalyze = async (files: UploadedFile[], name: string, customRules?: CustomRulesConfig, populationModifiers?: PopulationModifier[], forkData?: any) => {
+  const handleAnalyze = async (files: UploadedFile[], name: string, customRules?: CustomRulesConfig, populationModifiers?: PopulationModifier[], forkData?: any, categoryOverride?: AppCategory) => {
     setProjectName(name);
     setActivePopulations(populationModifiers || []);
+    setLastScanFiles(files);
+    setLastScanCategory(categoryOverride);
     setAppState('scanning');
 
-    const result = await analyzeCode(files, name, customRules, populationModifiers, forkData);
+    // Persist category override
+    if (categoryOverride) {
+      try { sessionStorage.setItem(CATEGORY_OVERRIDE_SESSION_KEY, categoryOverride); } catch {}
+    } else {
+      try { sessionStorage.removeItem(CATEGORY_OVERRIDE_SESSION_KEY); } catch {}
+    }
+
+    const result = await analyzeCode(files, name, customRules, populationModifiers, forkData, categoryOverride);
     
     if (result) {
       setAnalysisResult(result.result);
@@ -44,6 +58,30 @@ const Index = () => {
       setAppState('results');
     } else {
       setAppState('upload');
+    }
+  };
+
+  const handleRescanWithCategory = async (newCategory: AppCategory) => {
+    if (lastScanFiles.length === 0) {
+      toast.error('No files available for rescan');
+      return;
+    }
+
+    setLastScanCategory(newCategory);
+    setAppState('scanning');
+
+    // Persist override
+    try { sessionStorage.setItem(CATEGORY_OVERRIDE_SESSION_KEY, newCategory); } catch {}
+
+    const result = await analyzeCode(lastScanFiles, projectName, undefined, activePopulations.length > 0 ? activePopulations : undefined, undefined, newCategory);
+    
+    if (result) {
+      setAnalysisResult(result.result);
+      setCapabilities(result.capabilities);
+      setMisuseScenarios(result.misuseScenarios);
+      setAppState('results');
+    } else {
+      setAppState('results'); // Keep previous results on failure
     }
   };
 
@@ -106,6 +144,9 @@ const Index = () => {
           activePopulations={activePopulations}
           onRescan={handleRescan}
           onPublish={handlePublishClick}
+          onRescanWithCategory={handleRescanWithCategory}
+          isRescanning={isAnalyzing}
+          activeCategory={lastScanCategory}
         />
         
         {appState === 'publish-gate' && (
