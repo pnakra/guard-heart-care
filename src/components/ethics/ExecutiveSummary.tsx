@@ -31,6 +31,10 @@ interface ExecutiveSummaryProps {
   issueIds?: string[];
   /** Count of issues with confidence < 0.6 */
   lowConfidenceCount?: number;
+  /** Callback to rescan with a different category */
+  onRescanWithCategory?: (category: AppCategory) => void;
+  /** Whether a rescan is currently in progress */
+  isRescanning?: boolean;
 }
 
 const effortLabels = {
