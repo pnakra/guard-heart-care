@@ -392,7 +392,7 @@ serve(async (req) => {
   }
 
   try {
-    const { files, projectName, previousScan, customRules, populationModifiers, forkMode, upstreamFiles } = await req.json();
+    const { files, projectName, previousScan, customRules, populationModifiers, forkMode, upstreamFiles, categoryOverride } = await req.json();
 
     if (!files || !Array.isArray(files) || files.length === 0) {
       return new Response(
@@ -416,12 +416,16 @@ serve(async (req) => {
       ? `\n\nPREVIOUS SCAN CONTEXT:\nPrevious risk score: ${previousScan.riskScore}\nPrevious issues: ${previousScan.issueIds?.join(', ') || 'none'}\nLook for new patterns that emerged since the last scan and note any resolved issues.`
       : '';
 
-    // Detect app category and get vertical profile
-    const detectedCategory = detectAppCategoryEdge(files);
-    const categoryHint = detectedCategory !== 'unknown'
+    // Use category override if provided, otherwise auto-detect
+    const detectedCategory = categoryOverride && categoryOverride !== 'unknown' 
+      ? categoryOverride 
+      : detectAppCategoryEdge(files);
+    
+    // 'general' means no vertical profile
+    const categoryHint = detectedCategory !== 'unknown' && detectedCategory !== 'general'
       ? `\n\nDetected app category: ${detectedCategory}. Elevate risk sensitivity for harms most relevant to this category.`
       : '';
-    const verticalProfilePrompt = getVerticalProfilePrompt(detectedCategory);
+    const verticalProfilePrompt = detectedCategory !== 'general' ? getVerticalProfilePrompt(detectedCategory) : '';
 
     // Custom rules from user
     const customRulesPrompt = customRules && typeof customRules === 'object'

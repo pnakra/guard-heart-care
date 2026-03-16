@@ -825,11 +825,16 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
             const elev = getQuizElevations(quizAnswers);
             const allCats = Array.from(new Set([...elev.elevatedCategories]));
             const allPops = Array.from(new Set([...elev.populationMods]));
-            if (allCats.length === 0 && allPops.length === 0) return null;
+            const hasSomething = allCats.length > 0 || allPops.length > 0 || activeCategory;
+            if (!hasSomething) return null;
             return (
               <div className="px-3 py-2 rounded-lg bg-primary/5 border border-primary/10">
                 <p className="text-xs text-muted-foreground">
                   <span className="font-medium text-foreground">Scanning with: </span>
+                  {activeCategory && (
+                    <span className="font-medium">[{getAppCategoryLabel(activeCategory)}]</span>
+                  )}
+                  {activeCategory && (allCats.length > 0 || allPops.length > 0) && <span> | </span>}
                   {allCats.length > 0 && (
                     <span>{allCats.map(c => c.replace('-', ' ')).join(', ')}</span>
                   )}
