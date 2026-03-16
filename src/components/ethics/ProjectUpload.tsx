@@ -378,7 +378,7 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
         ? { ...baseRules, elevatedCategories: mergedElevated }
         : undefined;
       const populations = mergedPopulations.length > 0 ? mergedPopulations : undefined;
-      onAnalyze(files, projectName || 'Uploaded Project', customRules, populations);
+      onAnalyze(files, projectName || 'Uploaded Project', customRules, populations, undefined, activeCategory || undefined);
     }
   };
 
