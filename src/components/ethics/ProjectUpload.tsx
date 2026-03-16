@@ -347,7 +347,7 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
         upstreamRepo: `${upstreamData.owner}/${upstreamData.repoName}`,
         forkRepo: `${forkData.owner}/${forkData.repoName}`,
       };
-      onAnalyze(forkData.files, forkData.repoName, customRules, populations, forkComparisonData);
+      onAnalyze(forkData.files, forkData.repoName, customRules, populations, forkComparisonData, activeCategory || undefined);
     } catch (err) {
       console.error('Fork fetch error:', err);
       toast.error('Failed to fetch repositories', {
