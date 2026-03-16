@@ -207,6 +207,14 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
     try { sessionStorage.setItem(CUSTOM_RULES_KEY, customRulesText); } catch { /* ignore */ }
   }, [customRulesText]);
 
+  // Auto-detect category when files change
+  const detectedCategory = useMemo<AppCategory>(() => {
+    if (files.length === 0) return 'unknown';
+    return detectAppCategory(files);
+  }, [files]);
+
+  const activeCategory = categoryOverride || (detectedCategory !== 'unknown' ? detectedCategory : null);
+
   const processFiles = useCallback(async (fileList: FileList) => {
     const newFiles: UploadedFile[] = [];
 
