@@ -35,6 +35,7 @@ const CATEGORY_LABELS: Record<AppCategory, string> = {
   social: 'Social App',
   b2b: 'B2B Platform',
   gaming: 'Gaming App',
+  general: 'General Purpose',
   unknown: 'Unknown',
 };
 
