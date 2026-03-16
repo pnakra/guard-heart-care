@@ -217,9 +217,11 @@ export function EthicsReviewPanel({
           summary={result.executiveSummary}
           projectName={result.projectName}
           timestamp={result.timestamp}
-          detectedCategory={result.detectedCategory}
+          detectedCategory={activeCategory || result.detectedCategory}
           issueIds={result.issues.map(i => i.id)}
           lowConfidenceCount={result.issues.filter(i => i.confidence && i.confidence.overallConfidence < 0.6).length}
+          onRescanWithCategory={onRescanWithCategory}
+          isRescanning={isRescanning}
         />
 
         {/* Active population modifiers */}
