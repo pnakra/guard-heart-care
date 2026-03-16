@@ -3,7 +3,7 @@ import { ExecutiveSummary as ExecutiveSummaryType, SeverityLevel } from '@/types
 import { EthicsReviewResultV2 } from '@/types/ethicsV2';
 import { SeverityBadge } from './SeverityBadge';
 import { cn } from '@/lib/utils';
-import { AlertTriangle, Clock, TrendingUp, Info, Pencil, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Clock, TrendingUp, Info, Pencil, ShieldCheck, RefreshCw, Loader2 } from 'lucide-react';
 import { calculateGFS, calculateAdjustedGFS, getGFSBand, getGFSLabel } from '@/services/gfsCalculator';
 import { AppCategory, getAppCategoryLabel } from '@/services/categoryDetector';
 import { useIssueStatus, REVIEWED_STATUSES } from '@/contexts/IssueStatusContext';
