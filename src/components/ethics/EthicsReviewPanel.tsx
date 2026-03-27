@@ -33,6 +33,7 @@ interface EthicsReviewPanelProps {
   onRescanWithCategory?: (category: AppCategory) => void;
   isRescanning?: boolean;
   activeCategory?: AppCategory;
+  reportId?: string;
 }
 
 type TabValue = 'issues' | 'misuse' | 'fork' | 'checklist';
@@ -47,6 +48,7 @@ export function EthicsReviewPanel({
   onRescanWithCategory,
   isRescanning = false,
   activeCategory,
+  reportId,
 }: EthicsReviewPanelProps) {
   const { isVibe } = useMode();
   const defaultTab: TabValue = result.isForkAnalysis ? 'fork' : isVibe ? 'checklist' : 'issues';
@@ -319,6 +321,7 @@ export function EthicsReviewPanel({
                 <IssuesList 
                   issues={result.issues} 
                   selectedCategory={selectedCategory}
+                  reportId={reportId}
                 />
               </TabsContent>
 
