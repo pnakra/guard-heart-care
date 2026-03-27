@@ -60,6 +60,14 @@ const Index = () => {
       setCapabilities(result.capabilities);
       setMisuseScenarios(result.misuseScenarios);
       setAppState('results');
+      
+      // Save report for shareable link
+      const savedId = await saveReport(result.result, result.capabilities, result.misuseScenarios);
+      if (savedId) {
+        setReportId(savedId);
+        // Update URL without navigation so user can copy/share
+        window.history.replaceState(null, '', `/report/${savedId}`);
+      }
     } else {
       setAppState('upload');
     }
