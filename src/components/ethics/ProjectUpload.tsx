@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, FileCode, X, FolderOpen, Loader2, Github, ArrowRight, Settings2, ChevronDown, ChevronRight, AlertCircle, Check, GitFork, Pencil, Tag } from 'lucide-react';
+import { Upload, FileCode, X, FolderOpen, Loader2, Github, ArrowRight, Settings2, ChevronDown, ChevronRight, AlertCircle, Check, GitFork, Pencil, Tag, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -868,10 +868,11 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
           )}
         </Button>
 
-        {/* Info */}
-        <p className="text-xs text-center text-muted-foreground">
-          Your code is analyzed securely and not stored. Analysis powered by AI.
-        </p>
+        {/* Privacy banner */}
+        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground bg-secondary/30 border border-border rounded-lg px-3 py-2">
+          <Shield size={12} className="text-primary shrink-0" />
+          <span>Your code is analyzed in-memory and <strong className="text-foreground">never stored</strong>. We only read public repository contents. Results are saved for sharing.</span>
+        </div>
         {onShowOnboarding && (
           <button
             onClick={() => {

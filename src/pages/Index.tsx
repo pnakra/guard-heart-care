@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ProjectUpload, CustomRulesConfig, PopulationModifier } from '@/components/ethics/ProjectUpload';
 import { ScanningScreen } from '@/components/ethics/ScanningScreen';
 import { EthicsReviewPanel } from '@/components/ethics/EthicsReviewPanel';
@@ -10,6 +11,7 @@ import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
 import { IssueStatusProvider } from '@/contexts/IssueStatusContext';
 import { ModeProvider } from '@/contexts/ModeContext';
 import { AppCategory } from '@/services/categoryDetector';
+import { saveReport } from '@/services/reportStorage';
 import { toast } from 'sonner';
 
 type AppState = 'onboarding' | 'upload' | 'scanning' | 'results' | 'publish-gate';
@@ -23,6 +25,7 @@ interface UploadedFile {
 const CATEGORY_OVERRIDE_SESSION_KEY = 'gfc-category-override';
 
 const Index = () => {
+  const navigate = useNavigate();
   const hasCompletedOnboarding = localStorage.getItem('gfc_onboarding_complete') === 'true';
   const [appState, setAppState] = useState<AppState>(hasCompletedOnboarding ? 'upload' : 'onboarding');
   const [analysisResult, setAnalysisResult] = useState<EthicsReviewResult | null>(null);
@@ -32,6 +35,7 @@ const Index = () => {
   const [activePopulations, setActivePopulations] = useState<PopulationModifier[]>([]);
   const [lastScanFiles, setLastScanFiles] = useState<UploadedFile[]>([]);
   const [lastScanCategory, setLastScanCategory] = useState<AppCategory | undefined>();
+  const [reportId, setReportId] = useState<string | undefined>();
   
   const { analyzeCode, isAnalyzing } = useCodeAnalysis();
 
@@ -56,6 +60,14 @@ const Index = () => {
       setCapabilities(result.capabilities);
       setMisuseScenarios(result.misuseScenarios);
       setAppState('results');
+      
+      // Save report for shareable link
+      const savedId = await saveReport(result.result, result.capabilities, result.misuseScenarios);
+      if (savedId) {
+        setReportId(savedId);
+        // Update URL without navigation so user can copy/share
+        window.history.replaceState(null, '', `/report/${savedId}`);
+      }
     } else {
       setAppState('upload');
     }
@@ -80,8 +92,14 @@ const Index = () => {
       setCapabilities(result.capabilities);
       setMisuseScenarios(result.misuseScenarios);
       setAppState('results');
+      
+      const savedId = await saveReport(result.result, result.capabilities, result.misuseScenarios);
+      if (savedId) {
+        setReportId(savedId);
+        window.history.replaceState(null, '', `/report/${savedId}`);
+      }
     } else {
-      setAppState('results'); // Keep previous results on failure
+      setAppState('results');
     }
   };
 
@@ -90,6 +108,8 @@ const Index = () => {
     setAnalysisResult(null);
     setCapabilities([]);
     setMisuseScenarios([]);
+    setReportId(undefined);
+    window.history.replaceState(null, '', '/');
   };
 
   const handlePublishClick = () => {
@@ -147,6 +167,7 @@ const Index = () => {
           onRescanWithCategory={handleRescanWithCategory}
           isRescanning={isAnalyzing}
           activeCategory={lastScanCategory}
+          reportId={reportId}
         />
         
         {appState === 'publish-gate' && (

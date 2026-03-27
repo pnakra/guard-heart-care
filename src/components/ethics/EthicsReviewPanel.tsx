@@ -13,7 +13,7 @@ import { ModePillToggle } from './ModePillToggle';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users, GitPullRequest, ScanSearch, GitFork, ClipboardCheck, Award, Loader2 } from 'lucide-react';
+import { Filter, AlertTriangle, Shield, Download, FileText, FileJson, FileType, Sparkles, X, BookOpen, Users, GitPullRequest, ScanSearch, GitFork, ClipboardCheck, Award, Loader2, Share2 } from 'lucide-react';
 import { exportReport, generateLovablePrompt, generatePRComment, copyToClipboard } from '@/utils/exportReport';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useMode } from '@/contexts/ModeContext';
@@ -33,6 +33,7 @@ interface EthicsReviewPanelProps {
   onRescanWithCategory?: (category: AppCategory) => void;
   isRescanning?: boolean;
   activeCategory?: AppCategory;
+  reportId?: string;
 }
 
 type TabValue = 'issues' | 'misuse' | 'fork' | 'checklist';
@@ -47,6 +48,7 @@ export function EthicsReviewPanel({
   onRescanWithCategory,
   isRescanning = false,
   activeCategory,
+  reportId,
 }: EthicsReviewPanelProps) {
   const { isVibe } = useMode();
   const defaultTab: TabValue = result.isForkAnalysis ? 'fork' : isVibe ? 'checklist' : 'issues';
@@ -90,6 +92,16 @@ export function EthicsReviewPanel({
     toast.success('Fix prompt copied!', {
       description: 'Paste this into Lovable to address the issues.',
     });
+  };
+
+  const handleShareReport = async () => {
+    if (reportId) {
+      const url = `${window.location.origin}/report/${reportId}`;
+      await navigator.clipboard.writeText(url);
+      toast.success('Report link copied!', {
+        description: 'Share this link so others can view the scan results.',
+      });
+    }
   };
 
   return (
@@ -197,6 +209,12 @@ export function EthicsReviewPanel({
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              {reportId && (
+                <Button variant="outline" size="sm" onClick={handleShareReport} className="gap-2">
+                  <Share2 size={14} />
+                  Share
+                </Button>
+              )}
               <Button 
                 size="sm" 
                 onClick={onPublish}
@@ -319,6 +337,7 @@ export function EthicsReviewPanel({
                 <IssuesList 
                   issues={result.issues} 
                   selectedCategory={selectedCategory}
+                  reportId={reportId}
                 />
               </TabsContent>
 

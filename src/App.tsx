@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Taxonomy from "./pages/Taxonomy";
+import Report from "./pages/Report";
 import NotFound from "./pages/NotFound";
 import MarkdownPage from "./components/MarkdownPage";
 
@@ -18,6 +19,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/report/:id" element={<Report />} />
           <Route path="/taxonomy" element={<Taxonomy />} />
           <Route path="/taxonomy-details" element={<MarkdownPage filePath="/docs/taxonomy.md" backLabel="Back to Scanner" backTo="/" />} />
           <Route path="/readme" element={<MarkdownPage filePath="/docs/readme.md" backLabel="Back to Scanner" backTo="/" />} />
