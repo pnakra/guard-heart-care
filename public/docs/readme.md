@@ -2,7 +2,7 @@
 
 **Ground Floor Check** is an AI-powered ethical code scanner that analyzes source code for *misuse-by-design* patterns — features that can harm people even when working exactly as intended. It helps product teams, independent developers, and social-impact reviewers ship responsibly.
 
-> **Live:** [guard-heart-care.lovable.app](https://guard-heart-care.lovable.app)
+> **Live:** [ground-floor-scan.lovable.app](https://ground-floor-scan.lovable.app)
 
 ---
 
