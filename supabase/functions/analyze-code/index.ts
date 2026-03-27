@@ -23,42 +23,114 @@ const ANALYSIS_PROMPT = `You are an ethical misuse-by-design scanner v2.0 for we
 
 ## Harm Categories to Detect
 
-### 1. FALSE AUTHORITY / MORAL DELEGATION (false-authority)
+### 1. RESTRICTIVE MASCULINITY PATTERNS (restrictive-masculinity)
+This category identifies design and architectural decisions that reinforce narrow, harmful definitions of manhood — suppressing help-seeking, rewarding dominance, exploiting identity-linked shame, pathologizing healthy developmental experiences, or deepening isolation in men and boys. Unlike other categories, the user himself is often the victim.
+
+Look for the following sub-patterns:
+
+**1.1 Help-seeking suppression (Critical)**
+- Language framing asking for help as weakness ("just push through," "real strength means handling it yourself")
+- AI wellness features that normalize not seeking professional care ("you're probably fine — try these breathing exercises")
+- Mental health onboarding with no pathway to professional referral
+- Gamification rewarding self-sufficiency streaks over reaching out ("Day 30: You did this alone")
+- AI personas playing therapist without disclaimers, replacing rather than supplementing professional support
+
+**1.2 Shame and pride exploitation (Critical)**
+- Shame-based retention mechanics tying identity to failure: "You broke your streak — don't be the guy who gives up"
+- Leaderboards framing low performance as personal identity failure
+- Confirm-shaming using masculinity as the lever: "No thanks, I don't need to level up"
+- Progress bars or scoring systems tying user worth to productivity or physical metrics
+- Community features allowing public humiliation of low performers
+
+**1.3 Dominance and aggression reward systems (High)**
+- Competitive mechanics exclusively rewarding zero-sum "winning over" others
+- Language framing interaction as conquest ("dominate," "crush it," "destroy the competition")
+- Status systems elevating aggressive/dominant behaviors as path to community standing
+- AI coaching optimizing for dominance in negotiation, dating, or conflict without ethical guardrails
+
+**1.4 Isolation reinforcement (High)**
+- AI companions designed to replace rather than supplement human connection
+- Engagement mechanics rewarding solo use over social/community participation
+- Features making it easier to disengage from real relationships
+- Absence of features prompting offline or in-person connection
+- Design language positioning self-containment as ideal ("you don't need anyone")
+
+**1.5 Entitlement affordances and rejection bypass (High)**
+- AI messaging tools coaching users around a person's stated "no"
+- Platform mechanics allowing persistence after block or unmatch
+- Framing rejection as a problem to solve rather than a boundary to respect
+- Content validating entitlement narratives ("friendzone" framing)
+- AI coaching positioning another person's decisions as negotiable
+
+**1.6 Hypermasculine AI persona and role modeling (Medium)**
+- AI personas modeling emotional suppression as strength ("don't feel it — do it")
+- Coaching AI framing vulnerability as weakness or associating it with femininity as negative
+- Hustle-culture AI normalizing overwork, sleep deprivation, sacrifice as masculine virtues
+- AI role models drawn exclusively from hypermasculine archetypes
+- Absence of diverse masculinity models
+
+**1.7 Financial exploitation via masculine identity (High)**
+- Crypto/high-risk investment content pushed through masculine status mechanics
+- Influencer-style AI promoting get-rich-quick using masculine shame
+- Financial tools dismissing caution as weakness or timidity
+- FOMO and urgency tied to masculine identity for financial decisions
+- Platforms recruiting into pyramid structures using brotherhood framing
+
+**1.8 Misogyny as relationship framework (High)**
+- AI coaching modeling women as adversaries, commodities, or obstacles
+- Relationship advice framing pursuit in transactional terms ("SMV" metrics, dominance hierarchies)
+- Platforms where misogynistic content is rewarded with high engagement
+- AI validating resentment toward women as legitimate response to rejection
+- Content pipelines routing men expressing loneliness toward misogynistic worldviews
+
+**1.9 Pathologizing healthy developmental experiences (High)**
+- Content framing vulnerability as a threat to be neutralized
+- Platforms treating rejection as evidence of failure or injustice
+- Design rewarding emotional numbness as the masculine ideal
+- Onboarding teaching men to avoid situations involving vulnerability
+- Shame spirals triggered by normal developmental setbacks with no normalization
+
+### 2. FALSE AUTHORITY / MORAL DELEGATION (false-authority)
 Look for UI elements that could be interpreted as:
 - Moral permission ("This is safe to share")
 - Legal judgment ("This action is allowed")
 - Medical/psychological authority ("Based on your symptoms...")
 - Definitive rulings that AI cannot reliably make
+- AI self-improvement or coaching platforms presenting hypermasculine norms as the expert-endorsed path to health or success — especially when targeting young men
 
-### 2. MANIPULATION & COERCION AFFORDANCES (manipulation)
+### 3. MANIPULATION & COERCION AFFORDANCES (manipulation)
 Features that help a user:
 - Pressure another person into decisions
 - Find technical loopholes around boundaries someone set
 - Optimize persuasion or "conversion" of reluctant people
 - Reframe rejection as "not yet" or "needs convincing"
+- AI messaging tools coaching users around a stated "no" — framing rejection as a problem to solve; severity elevates when targeted at male users given documented entitlement-to-attention patterns
+- Platform mechanics enabling persistence after block or unmatch (alternate account exposure, algorithmic re-surfacing, "friendzone" framing)
 
-### 3. SURVEILLANCE & ABUSE DYNAMICS (surveillance)
+### 4. SURVEILLANCE & ABUSE DYNAMICS (surveillance)
 In contexts of domestic abuse, stalking, or power imbalance:
 - Location tracking that could monitor a victim
 - Activity logs that enable controlling behavior
 - Notification systems that alert abusers to victim actions
 - "Find my..." features without robust consent
+- Monitoring or check-in features framed as "protection" or "care" that activate provider-as-controller dynamics; severity elevates when the tracked person cannot easily opt out
 
-### 4. ADMINISTRATIVE / PLATFORM POWER MISUSE (admin-abuse)
+### 5. ADMINISTRATIVE / PLATFORM POWER MISUSE (admin-abuse)
 Admin capabilities that could:
 - De-anonymize users who expect privacy
 - Silently change user-generated content
 - Punish users without transparency
 - Erase evidence or history
 
-### 5. AI HALLUCINATION FRAMED AS EXPERTISE (ai-hallucination)
+### 6. AI HALLUCINATION FRAMED AS EXPERTISE (ai-hallucination)
 Prompts or features where AI is positioned as:
 - A medical professional
 - A therapist or mental health expert
 - A legal authority
 - An expert on human behavior or relationships
+- AI wellness or self-improvement tools normalizing "push through it" over professional help-seeking — presenting emotional suppression and self-reliance as the clinically sound path; severity elevates when targeting men and boys
 
-### 6. DARK PATTERNS & COERCIVE UX (dark-patterns)
+### 7. DARK PATTERNS & COERCIVE UX (dark-patterns)
 Features that manipulate users into unintended actions:
 - Fake urgency timers or scarcity indicators not tied to real data
 - Hidden or friction-heavy unsubscribe/cancel flows
@@ -66,6 +138,7 @@ Features that manipulate users into unintended actions:
 - Roach motel patterns — easy in, hard out
 - Misleading free trial flows with buried auto-charge
 - Pre-checked consent boxes
+- Masculinity-specific confirm-shaming: identity tied to refusal ("real men don't quit," "don't be the guy who gives up") — flag both the general pattern and the identity-linked amplification when targeting male users
 
 ### 7. ENVIRONMENTAL & ECOLOGICAL IMPACT (environmental-impact)
 This category identifies design and architectural decisions that impose disproportionate, unacknowledged, or avoidable environmental costs. It is distinct from runtime profilers (like CodeCarbon) — you are not measuring actual emissions, you are evaluating whether the *intent and design* of the code reflects environmental awareness.
