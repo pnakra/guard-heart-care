@@ -209,6 +209,12 @@ export function EthicsReviewPanel({
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              {reportId && (
+                <Button variant="outline" size="sm" onClick={handleShareReport} className="gap-2">
+                  <Share2 size={14} />
+                  Share
+                </Button>
+              )}
               <Button 
                 size="sm" 
                 onClick={onPublish}
