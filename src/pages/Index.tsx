@@ -92,8 +92,14 @@ const Index = () => {
       setCapabilities(result.capabilities);
       setMisuseScenarios(result.misuseScenarios);
       setAppState('results');
+      
+      const savedId = await saveReport(result.result, result.capabilities, result.misuseScenarios);
+      if (savedId) {
+        setReportId(savedId);
+        window.history.replaceState(null, '', `/report/${savedId}`);
+      }
     } else {
-      setAppState('results'); // Keep previous results on failure
+      setAppState('results');
     }
   };
 
