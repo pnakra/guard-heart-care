@@ -562,6 +562,7 @@ serve(async (req) => {
       'mental-health': 'App addresses mental health or crisis situations',
       'domestic-abuse': 'Users may be in domestic abuse or coercive control situations',
       'elderly': 'Elderly users are a primary audience',
+      'men-and-boys': 'Men and boys are a primary or significant audience — documented loneliness crisis, lower help-seeking rates, susceptibility to shame-based mechanics and restrictive masculinity patterns',
     };
     const populationPrompt = Array.isArray(populationModifiers) && populationModifiers.length > 0
       ? `\n\nPOPULATION VULNERABILITY CONTEXT:\n${populationModifiers.map((m: string) => `- ${POPULATION_LABELS[m] || m}`).join('\n')}\n\nIncrease severity ratings and risk scores for issues that specifically endanger these populations. For each issue, if a population modifier is relevant to the misuse scenario, include a "populationTags" array in the issue JSON with the relevant modifier IDs (e.g. ["minors", "elderly"]).`
