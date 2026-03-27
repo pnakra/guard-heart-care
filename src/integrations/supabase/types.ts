@@ -14,7 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      finding_feedback: {
+        Row: {
+          created_at: string
+          id: string
+          is_helpful: boolean
+          issue_id: string
+          report_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_helpful: boolean
+          issue_id: string
+          report_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_helpful?: boolean
+          issue_id?: string
+          report_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finding_feedback_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "scan_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scan_reports: {
+        Row: {
+          capabilities_json: Json
+          created_at: string
+          critical_count: number
+          detected_category: string | null
+          high_count: number
+          id: string
+          misuse_scenarios_json: Json
+          overall_status: string
+          project_name: string
+          result_json: Json
+          risk_score: number
+          total_issues: number
+        }
+        Insert: {
+          capabilities_json?: Json
+          created_at?: string
+          critical_count?: number
+          detected_category?: string | null
+          high_count?: number
+          id?: string
+          misuse_scenarios_json?: Json
+          overall_status?: string
+          project_name: string
+          result_json: Json
+          risk_score?: number
+          total_issues?: number
+        }
+        Update: {
+          capabilities_json?: Json
+          created_at?: string
+          critical_count?: number
+          detected_category?: string | null
+          high_count?: number
+          id?: string
+          misuse_scenarios_json?: Json
+          overall_status?: string
+          project_name?: string
+          result_json?: Json
+          risk_score?: number
+          total_issues?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
