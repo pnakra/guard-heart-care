@@ -7,7 +7,8 @@ export type HarmCategory =
   | 'surveillance'
   | 'admin-abuse'
   | 'ai-hallucination'
-  | 'dark-patterns';
+  | 'dark-patterns'
+  | 'environmental-impact';
 
 export interface IssueConfidenceSummary {
   detectionConfidence: number;

@@ -2,7 +2,7 @@
 
 **For: Lawyers, policy specialists, technology-abuse researchers, and social-impact reviewers**
 
-This document explains the six categories of harm that Ground Floor Check scans for, what severity levels mean, and how population context affects the analysis. It is written for non-technical readers who need to evaluate whether the tool's framework is comprehensive and appropriate.
+This document explains the seven categories of harm that Ground Floor Check scans for, what severity levels mean, and how population context affects the analysis. It is written for non-technical readers who need to evaluate whether the tool's framework is comprehensive and appropriate.
 
 ---
 
@@ -11,13 +11,14 @@ This document explains the six categories of harm that Ground Floor Check scans 
 1. [What This Tool Looks For](#what-this-tool-looks-for)
 2. [What This Tool Does NOT Look For](#what-this-tool-does-not-look-for)
 3. [Severity Levels](#severity-levels)
-4. [The Six Harm Categories](#the-six-harm-categories)
+4. [The Seven Harm Categories](#the-seven-harm-categories)
    - [1. False Authority](#1-false-authority)
    - [2. Manipulation & Coercion](#2-manipulation--coercion)
    - [3. Surveillance & Abuse Dynamics](#3-surveillance--abuse-dynamics)
    - [4. Administrative Power Misuse](#4-administrative-power-misuse)
    - [5. AI Hallucination Framed as Expertise](#5-ai-hallucination-framed-as-expertise)
    - [6. Dark Patterns & Coercive UX](#6-dark-patterns--coercive-ux)
+   - [7. Environmental & Ecological Impact](#7-environmental--ecological-impact)
 5. [Population Context & Vulnerability Modifiers](#population-context--vulnerability-modifiers)
 6. [Industry-Specific Risk Profiles](#industry-specific-risk-profiles)
 7. [How Severity Is Determined](#how-severity-is-determined)
@@ -75,7 +76,7 @@ Severity is *elevated* when vulnerable populations are involved. The same featur
 
 ---
 
-## The Six Harm Categories
+## The Seven Harm Categories
 
 ### 1. False Authority
 
@@ -225,7 +226,27 @@ Severity is *elevated* when vulnerable populations are involved. The same featur
 
 ---
 
-## Population Context & Vulnerability Modifiers
+### 7. Environmental & Ecological Impact
+
+**Plain language:** The app makes design choices that impose avoidable or unacknowledged environmental costs — on the climate, on water systems, and on the communities that live near where its compute runs.
+
+**What this means:** Every AI call, database query, and asset load has an energy cost. This category doesn't measure runtime emissions — it reads design intent. Did the developer think about model size, caching, or scheduling? Is the hosting infrastructure documented? Are AI features triggered deliberately or gratuitously?
+
+**Why this is harmful:** AI's environmental cost is real and growing — projected to equal a major global city's annual CO₂ output by 2025. That cost falls hardest on communities near data centers, which are disproportionately low-income and communities of color. Uninformed design choices aggregate into systemic harm.
+
+**What good design looks like:**
+- AI calls gated behind explicit user actions, not fired on every keystroke
+- Caching before model calls to avoid redundant inference
+- Model size documented and justified
+- Hosting provider referenced, ideally with a sustainability link
+- Batch or async workloads deferred rather than run immediately
+
+**What this tool does NOT flag:**
+- General code performance issues
+- The mere use of AI features
+- Missing optimizations standard for all software regardless of environmental concern
+
+---
 
 The same feature can be harmless for one group of people and dangerous for another. Ground Floor Check adjusts its analysis based on who will actually use the product.
 
@@ -299,7 +320,7 @@ Every finding includes a confidence score (0–100%) reflecting how certain the 
 - The scanner analyzes code structure and patterns; it cannot observe how users actually interact with the product.
 - It may miss harm patterns that emerge from the *combination* of multiple features across different files if those files exceed the scan size limit.
 - Severity ratings are based on general population risk; specific deployments may have higher or lower actual risk.
-- The scanner focuses on six defined harm categories. Harm types outside this taxonomy (e.g., environmental impact, labor exploitation) are not covered.
+- The scanner focuses on seven defined harm categories. Harm types outside this taxonomy (e.g., labor exploitation) are not covered.
 - AI analysis has inherent variability — scanning the same code twice may produce slightly different findings.
 
 ---
