@@ -2,7 +2,7 @@
 
 **For: Lawyers, policy specialists, technology-abuse researchers, and social-impact reviewers**
 
-This document explains the seven categories of harm that Ground Floor Check scans for, what severity levels mean, and how population context affects the analysis. It is written for non-technical readers who need to evaluate whether the tool's framework is comprehensive and appropriate.
+This document explains the eight categories of harm that Ground Floor Check scans for, what severity levels mean, and how population context affects the analysis. It is written for non-technical readers who need to evaluate whether the tool's framework is comprehensive and appropriate.
 
 ---
 
@@ -11,14 +11,15 @@ This document explains the seven categories of harm that Ground Floor Check scan
 1. [What This Tool Looks For](#what-this-tool-looks-for)
 2. [What This Tool Does NOT Look For](#what-this-tool-does-not-look-for)
 3. [Severity Levels](#severity-levels)
-4. [The Seven Harm Categories](#the-seven-harm-categories)
-   - [1. False Authority](#1-false-authority)
-   - [2. Manipulation & Coercion](#2-manipulation--coercion)
-   - [3. Surveillance & Abuse Dynamics](#3-surveillance--abuse-dynamics)
-   - [4. Administrative Power Misuse](#4-administrative-power-misuse)
-   - [5. AI Hallucination Framed as Expertise](#5-ai-hallucination-framed-as-expertise)
-   - [6. Dark Patterns & Coercive UX](#6-dark-patterns--coercive-ux)
-   - [7. Environmental & Ecological Impact](#7-environmental--ecological-impact)
+4. [The Eight Harm Categories](#the-eight-harm-categories)
+   - [1. Restrictive Masculinity Patterns](#1-restrictive-masculinity-patterns)
+   - [2. False Authority](#2-false-authority)
+   - [3. Manipulation & Coercion](#3-manipulation--coercion)
+   - [4. Surveillance & Abuse Dynamics](#4-surveillance--abuse-dynamics)
+   - [5. Administrative Power Misuse](#5-administrative-power-misuse)
+   - [6. AI Hallucination Framed as Expertise](#6-ai-hallucination-framed-as-expertise)
+   - [7. Dark Patterns & Coercive UX](#7-dark-patterns--coercive-ux)
+   - [8. Environmental & Ecological Impact](#8-environmental--ecological-impact)
 5. [Population Context & Vulnerability Modifiers](#population-context--vulnerability-modifiers)
 6. [Industry-Specific Risk Profiles](#industry-specific-risk-profiles)
 7. [How Severity Is Determined](#how-severity-is-determined)
@@ -40,6 +41,7 @@ This is different from finding bugs. A bug is something broken. Misuse-by-design
 - An AI chatbot that gives medical-sounding advice without disclaimers
 - A subscription cancellation flow designed to be so frustrating that people give up
 - An admin panel that lets moderators silently edit what users wrote
+- Design patterns that reward dominance, suppress help-seeking, pathologize healthy development, or deepen isolation in men and boys
 
 ---
 
@@ -73,12 +75,54 @@ Severity is *elevated* when vulnerable populations are involved. The same featur
 
 - A "last seen" timestamp in a corporate chat tool → **Medium** (could enable micromanagement)
 - The same "last seen" feature in a family tracking app → **Critical** (could enable intimate partner surveillance)
+- A shame-based streak mechanic in a general app → **Medium**; the same mechanic in an app targeting young men → **High** (exploits identity-linked shame in an at-risk population)
 
 ---
 
-## The Seven Harm Categories
+## The Eight Harm Categories
 
-### 1. False Authority
+### 1. Restrictive Masculinity Patterns
+
+**Plain language:** The app reinforces narrow, harmful definitions of manhood that suppress help-seeking, reward dominance, exploit shame, pathologize healthy developmental experiences, or deepen isolation in men and boys.
+
+**What this means:** Unlike the other categories, which require an adversarial actor or an external victim, restrictive masculinity patterns often harm the user himself — by design choices that normalize emotional suppression, reward self-isolation, exploit identity-linked shame, model dominance as the path to success, or frame healthy experiences like vulnerability and rejection as dangers to avoid. No adversarial actor is needed; the product is the harm vector.
+
+**Why this is a standalone category, not just a modifier:**
+- The existing categories all require a victim being harmed by someone or something external. Restrictive masculinity often harms the user himself in ways invisible to traditional misuse-by-design frameworks.
+- It functions as a root-cause harm: design patterns that reinforce restrictive masculinity generate harms across multiple other categories (coercion, surveillance, dark patterns, financial exploitation) without a standalone home to flag them.
+- Men and boys represent a documented at-risk population for isolation, help-seeking suppression, and shame-based harm — and no existing scanner taxonomy addresses design that worsens these gaps.
+
+**Sub-categories:**
+
+**1.1 Help-seeking suppression (Critical)** — Language framing asking for help as weakness; AI wellness features normalizing not seeking professional care; gamification rewarding self-sufficiency streaks over reaching out; AI personas playing therapist without disclaimers.
+
+**1.2 Shame and pride exploitation (Critical)** — Shame-based retention mechanics tying identity to failure; leaderboards framing low performance as personal identity failure; confirm-shaming using masculinity as the lever.
+
+**1.3 Dominance and aggression reward systems (High)** — Competitive mechanics exclusively rewarding zero-sum "winning over" others; language framing interaction as conquest; status systems elevating aggressive behaviors.
+
+**1.4 Isolation reinforcement (High)** — AI companions designed to replace rather than supplement human connection; engagement mechanics rewarding solo use over community participation; design positioning self-containment as ideal.
+
+**1.5 Entitlement affordances and rejection bypass (High)** — AI messaging tools coaching users around a person's stated "no"; platform mechanics allowing persistence after block or unmatch; framing rejection as a problem to solve.
+
+**1.6 Hypermasculine AI persona and role modeling (Medium)** — AI personas modeling emotional suppression as strength; coaching AI framing vulnerability as weakness; hustle-culture AI normalizing overwork as masculine virtue.
+
+**1.7 Financial exploitation via masculine identity (High)** — Crypto/high-risk investment content pushed through masculine status mechanics; influencer-style AI promoting get-rich-quick using masculine shame; FOMO tied to masculine identity for financial decisions.
+
+**1.8 Misogyny as relationship framework (High)** — AI coaching modeling women as adversaries or commodities; relationship advice framing pursuit in transactional terms; content pipelines routing men expressing loneliness toward misogynistic worldviews.
+
+**1.9 Pathologizing healthy developmental experiences (High)** — Content framing vulnerability as a threat to be neutralized; platforms treating rejection as evidence of failure or injustice; design rewarding emotional numbness as the masculine ideal.
+
+**What good design looks like:**
+- Frame reaching out as a form of strength, not failure
+- Build clear, low-friction pathways to professional resources co-located with self-management tools
+- Decouple identity from performance metrics
+- Design AI and digital tools as bridges to human connection, not substitutes for it
+- Frame vulnerability as a skill and a form of courage — not a liability
+- AI relationship coaching should model mutual respect, communication, and emotional honesty
+
+---
+
+### 2. False Authority
 
 **Plain language:** The app presents itself as an expert when it isn't one.
 
@@ -93,6 +137,7 @@ Severity is *elevated* when vulnerable populations are involved. The same featur
 - A symptom checker that says "Your symptoms are consistent with [condition]" — this sounds like a diagnosis
 - A contract review tool that labels clauses as "safe" or "risky" without saying "this is not legal advice"
 - A content platform that marks AI-checked posts as "verified information"
+- An AI self-improvement or coaching platform that presents hypermasculine norms (stoicism, dominance, emotional suppression) as the expert-endorsed path to health or success — especially when targeting young men
 
 **What good design looks like:**
 - Clear labels saying "This is not medical/legal/financial advice"
@@ -101,7 +146,7 @@ Severity is *elevated* when vulnerable populations are involved. The same featur
 
 ---
 
-### 2. Manipulation & Coercion
+### 3. Manipulation & Coercion
 
 **Plain language:** The app helps one person pressure or control another person.
 
@@ -113,6 +158,8 @@ Severity is *elevated* when vulnerable populations are involved. The same featur
 - A dating app "Second Chance" feature that re-notifies someone who already swiped left
 - AI message drafting that optimizes for "persuasion score" to help users convince reluctant people
 - A subscription cancellation flow with 7 steps and guilt language ("Your family will miss these savings")
+- AI messaging tools that coach users around a stated "no" — framing rejection as a problem to solve rather than a boundary to respect; severity elevates when targeted at male users given documented entitlement-to-attention patterns
+- Platform mechanics that enable persistence after block or unmatch (alternate account exposure, algorithmic re-surfacing, "friendzone" framing that treats women's decisions as negotiable)
 
 **What good design looks like:**
 - When someone says no, the interaction ends — no retry mechanics
@@ -121,7 +168,7 @@ Severity is *elevated* when vulnerable populations are involved. The same featur
 
 ---
 
-### 3. Surveillance & Abuse Dynamics
+### 4. Surveillance & Abuse Dynamics
 
 **Plain language:** The app lets one person track or monitor another person in ways that can become controlling.
 
@@ -137,6 +184,7 @@ Severity is *elevated* when vulnerable populations are involved. The same featur
 - A fitness app that shares real-time workout location with all contacts, with no way to share with a running group without exposing your location to a controlling partner
 - An employee monitoring dashboard showing idle time and application usage
 - A "Find My Family" feature with no way for the tracked person to know the full extent of monitoring
+- Monitoring or check-in features framed as "protection" or "care" that activate provider-as-controller dynamics — a masculinity script used to normalize surveillance within relationships; severity elevates when the tracked person cannot easily opt out
 
 **What good design looks like:**
 - Ongoing, revocable consent from the person being tracked (not just one-time permission)
@@ -146,7 +194,7 @@ Severity is *elevated* when vulnerable populations are involved. The same featur
 
 ---
 
-### 4. Administrative Power Misuse
+### 5. Administrative Power Misuse
 
 **Plain language:** The app gives platform administrators power over users with no accountability or transparency.
 
@@ -170,7 +218,7 @@ Severity is *elevated* when vulnerable populations are involved. The same featur
 
 ---
 
-### 5. AI Hallucination Framed as Expertise
+### 6. AI Hallucination Framed as Expertise
 
 **Plain language:** The AI makes things up, and the app presents those made-up things as expert knowledge.
 
@@ -186,6 +234,7 @@ Severity is *elevated* when vulnerable populations are involved. The same featur
 - An AI "wellness companion" that uses therapeutic language ("It sounds like you're experiencing anxiety"), creating a fake therapeutic relationship
 - An AI legal assistant that says "This contract protects your interests" — implying a legal review that never happened
 - An AI tutor that teaches science with fabricated citations that students trust because the tone is confident
+- AI wellness or self-improvement tools that normalize "push through it" over professional help-seeking — presenting emotional suppression and self-reliance as the clinically sound path; severity elevates when the target demographic is men and boys
 
 **What good design looks like:**
 - All AI output is clearly labeled as AI-generated
@@ -195,7 +244,7 @@ Severity is *elevated* when vulnerable populations are involved. The same featur
 
 ---
 
-### 6. Dark Patterns & Coercive UX
+### 7. Dark Patterns & Coercive UX
 
 **Plain language:** The app's design tricks people into doing things they didn't mean to do.
 
@@ -217,6 +266,8 @@ Severity is *elevated* when vulnerable populations are involved. The same featur
 | **Pre-checked consent** | Opts you in without asking | Marketing email checkbox already checked during signup |
 | **Misdirection** | Draws attention away from important choices | A huge "Accept All" button next to a tiny "Manage Preferences" link |
 
+**Masculinity-specific confirm-shaming:** A variant that ties identity to the refusal ("real men don't quit," "don't be the guy who gives up"). Flag both the general pattern and the identity-linked amplification when the product targets male users.
+
 **What good design looks like:**
 - Cancellation is as easy as signup (same number of steps or fewer)
 - All costs are shown upfront
@@ -226,7 +277,7 @@ Severity is *elevated* when vulnerable populations are involved. The same featur
 
 ---
 
-### 7. Environmental & Ecological Impact
+### 8. Environmental & Ecological Impact
 
 **Plain language:** The app makes design choices that impose avoidable or unacknowledged environmental costs — on the climate, on water systems, and on the communities that live near where its compute runs.
 
@@ -248,6 +299,8 @@ Severity is *elevated* when vulnerable populations are involved. The same featur
 
 ---
 
+## Population Context & Vulnerability Modifiers
+
 The same feature can be harmless for one group of people and dangerous for another. Ground Floor Check adjusts its analysis based on who will actually use the product.
 
 | Population | Why They're at Higher Risk | What Gets Elevated |
@@ -257,6 +310,7 @@ The same feature can be harmless for one group of people and dangerous for anoth
 | **People with mental health conditions** | May over-rely on AI as therapeutic support; vulnerable to features that exploit emotional states | False authority, AI hallucination |
 | **Domestic abuse survivors** | Tracking features can be weaponized by abusers; any feature revealing location, activity, or communication patterns is potentially dangerous | Surveillance, manipulation |
 | **Elderly users** | May have difficulty navigating complex UX; more vulnerable to deceptive design patterns; less likely to recognize AI-generated content as unreliable | Dark patterns, false authority |
+| **Men and boys** | Documented loneliness crisis and lower rates of help-seeking; more susceptible to shame-based mechanics tied to identity; design that reinforces restrictive masculinity norms compounds existing harm gaps | Restrictive masculinity patterns, manipulation, dark patterns |
 
 ---
 
@@ -267,26 +321,40 @@ Different types of apps carry different risk profiles. The scanner applies domai
 ### Fitness Apps
 **Elevated risks:** Body image distortion through "ideal" metrics, calorie restriction encouragement without medical context, progress shaming ("you missed a day!"), AI-generated meal plans framed as professional guidance, competitive leaderboards that could trigger compulsive exercise.
 
+**Also elevated:** Shame-based streak mechanics that tie masculine identity to performance outcomes; absence of recovery and rest modeled as strength; leaderboard mechanics that frame low performance as personal failure.
+
 ### Dating Apps
 **Elevated risks:** Location sharing that could enable stalking, features that help bypass someone's boundaries (unmatch, block), AI-assisted messaging that manufactures false intimacy, algorithmic matching that reinforces racial or body-type bias.
+
+**Also elevated:** Entitlement affordances that treat rejection as negotiable; AI messaging coaching that optimizes for persistence after disinterest; content or persona design that models adversarial or transactional relationship frameworks; algorithmic pipelines that route lonely or rejected men toward misogynistic worldviews.
 
 ### Financial Apps
 **Elevated risks:** Dark patterns in subscription cancellation, urgency language pressuring financial decisions, AI financial advice framed as professional recommendation, hidden fees, debt normalization.
 
+**Also elevated:** Masculine identity used as the hook for high-risk financial products; influencer-style content that frames financial risk-taking as a test of manhood; FOMO and urgency mechanics tied to masculine status; absence of disclaimers on financial content in masculine-coded communities.
+
 ### Health Apps
 **Elevated risks:** AI-generated diagnoses framed as clinical, mood tracking used to infer conditions without clinical validity, crisis detection without proper escalation to emergency services, clinical language used by non-medical AI.
+
+**Also elevated:** Features that substitute AI support for professional care specifically for men; help-seeking suppression through self-reliance framing; absence of referral pathways in mental health tools marketed to men and boys; design that pathologizes emotional disclosure or help-seeking.
 
 ### Productivity Apps
 **Elevated risks:** Activity monitoring enabling micromanagement, productivity scores visible to managers, calendar transparency revealing personal appointments to employers, automated performance reports based on activity metrics.
 
+**Also elevated:** Hustle-culture AI personas that frame overwork and sacrifice as peak masculine performance; shame mechanics tied to productivity metrics; design that equates output with personal worth.
+
 ### Social Platforms
 **Elevated risks:** Algorithmic amplification of divisive content, engagement metrics enabling social comparison harm, harassment infrastructure (mass tagging, pile-on mechanics), doxxing vectors, addictive scroll patterns.
+
+**Also elevated:** Community norms baked into UI that reward dominance and bravado; isolation reinforcement through algorithmic filtering; content pipelines that route men experiencing loneliness toward misogynistic or adversarial gender frameworks; absence of features that prompt IRL or peer connection.
 
 ### B2B Platforms
 **Elevated risks:** Admin reading private messages without audit trail, user impersonation without consent, silent content modification, data export of individual user activity, role escalation without notification.
 
 ### Gaming Apps
 **Elevated risks:** Loot box mechanics with obscured odds, pay-to-win, FOMO-driven limited-time events, social pressure mechanics (clan obligations, daily streaks), child-accessible spending without parental controls.
+
+**Also elevated:** Hypermasculine persona design that models aggression and dominance as the exclusive path to status; shame-based rank mechanics that tie male identity to performance; absence of cooperative or connection-based win conditions; financial exploitation mechanics that use masculine status framing.
 
 ---
 
@@ -300,11 +368,13 @@ Severity is not just about how bad the worst case could be — it considers mult
 
 3. **How vulnerable is the affected population?** The same feature is rated higher when children, abuse survivors, or elderly users are involved.
 
-4. **How easy is the misuse to execute?** If the feature can be weaponized with no special knowledge or effort, severity is higher.
+4. **Does the product target men and boys?** Features that suppress help-seeking, exploit shame, pathologize healthy developmental experiences, reward isolation, or reinforce restrictive masculinity norms are rated higher when the target demographic is male, particularly young men ages 14–30.
 
-5. **How severe is the potential harm?** Physical safety risks (stalking, medical decisions) rank higher than financial inconvenience or mild annoyance.
+5. **How easy is the misuse to execute?** If the feature can be weaponized with no special knowledge or effort, severity is higher.
 
-6. **Is the harm reversible?** A misleading AI medical diagnosis that delays treatment is less reversible than a confusing subscription charge.
+6. **How severe is the potential harm?** Physical safety risks (stalking, medical decisions) rank higher than financial inconvenience or mild annoyance.
+
+7. **Is the harm reversible?** A misleading AI medical diagnosis that delays treatment is less reversible than a confusing subscription charge.
 
 ---
 
@@ -320,7 +390,7 @@ Every finding includes a confidence score (0–100%) reflecting how certain the 
 - The scanner analyzes code structure and patterns; it cannot observe how users actually interact with the product.
 - It may miss harm patterns that emerge from the *combination* of multiple features across different files if those files exceed the scan size limit.
 - Severity ratings are based on general population risk; specific deployments may have higher or lower actual risk.
-- The scanner focuses on seven defined harm categories. Harm types outside this taxonomy (e.g., labor exploitation) are not covered.
+- The scanner focuses on eight defined harm categories. Harm types outside this taxonomy (e.g., labor exploitation) are not covered.
 - AI analysis has inherent variability — scanning the same code twice may produce slightly different findings.
 
 ---
@@ -341,7 +411,16 @@ Every finding includes a confidence score (0–100%) reflecting how certain the 
 | **Vertical profile** | Industry-specific harm patterns applied when the scanner detects the app belongs to a particular domain (health, dating, finance, etc.) |
 | **Triage** | The process of reviewing findings and deciding what to fix, accept, or defer |
 | **Remediation** | The specific changes (code, design, or content) suggested to address a finding |
+| **Restrictive masculinity patterns** | Design choices that reinforce narrow, harmful definitions of manhood — suppressing help-seeking, rewarding dominance, exploiting identity-linked shame, pathologizing healthy developmental experiences, or deepening isolation in men and boys. A root-cause harm category unique to Ground Floor Check. |
+| **Help-seeking suppression** | A design pattern that frames asking for professional support as weakness or failure, particularly harmful for men and boys who are already the least likely demographic to seek mental health care. |
+| **Entitlement affordance** | A platform feature that treats another person's "no" as a problem to be overcome rather than a boundary to respect — including retry mechanics, rejection bypass, and AI coaching that optimizes for persistence. |
+| **Isolation reinforcement** | Design that deepens a user's disconnection from human relationships by substituting AI personas or solo engagement for peer connection, community participation, or IRL interaction. |
+| **Financial exploitation via masculine identity** | The use of masculine shame, status anxiety, or brotherhood framing to push men and boys toward high-risk financial products, crypto schemes, or get-rich-quick content — while suppressing caution, diversification, or professional advice as weakness. |
+| **Misogyny as relationship framework** | Platform or AI design that actively models or reinforces adversarial, transactional, or dominance-based relationships with women — distinct from specific coercive mechanics; this is about the underlying relational worldview being built into the product. |
+| **Pathologizing healthy developmental experiences** | Design that frames vulnerability, rejection, criticism, or emotional difficulty as dangers to be avoided rather than necessary experiences for growth — training men to suppress the very capacities needed for healthy relationships and self-development. |
 
 ---
 
 *This document is part of the Ground Floor Check project. For the technical taxonomy with code signals and detection patterns, see the in-app Taxonomy page at `/taxonomy`.*
+
+*Additions developed through the Ground Floor Coding Project healthy masculinity framework review.*
