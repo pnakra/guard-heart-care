@@ -9,6 +9,7 @@ import { ArrowDownNarrowWide, Zap, BarChart3, Layers, AlertTriangle } from 'luci
 interface IssuesListProps {
   issues: EthicsIssue[];
   selectedCategory: HarmCategory | null;
+  reportId?: string;
 }
 
 type SortMode = 'severity' | 'effort' | 'confidence' | 'category';
@@ -98,7 +99,7 @@ function getDefaultSort(): SortMode {
   return hasScanned ? 'severity' : 'effort';
 }
 
-export function IssuesList({ issues, selectedCategory }: IssuesListProps) {
+export function IssuesList({ issues, selectedCategory, reportId }: IssuesListProps) {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>(getDefaultSort);
   const { isVibe } = useMode();
@@ -208,7 +209,7 @@ export function IssuesList({ issues, selectedCategory }: IssuesListProps) {
             </div>
           ) : (
             filteredIssues.map(issue => (
-              <IssueCard key={issue.id} issue={issue} />
+              <IssueCard key={issue.id} issue={issue} reportId={reportId} />
             ))
           )}
         </div>
