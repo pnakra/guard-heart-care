@@ -165,6 +165,7 @@ const Index = () => {
           onRescanWithCategory={handleRescanWithCategory}
           isRescanning={isAnalyzing}
           activeCategory={lastScanCategory}
+          reportId={reportId}
         />
         
         {appState === 'publish-gate' && (
