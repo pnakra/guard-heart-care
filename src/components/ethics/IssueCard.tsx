@@ -2,6 +2,7 @@ import { EthicsIssue, IssueConfidenceSummary } from '@/types/ethics';
 import { SeverityBadge } from './SeverityBadge';
 import { DiffViewer } from './DiffViewer';
 import { ForkBadge } from './ForkBadge';
+import { FeedbackButtons } from './FeedbackButtons';
 import { ChevronRight, ChevronDown, FileCode, Lightbulb, AlertCircle, HelpCircle, BarChart3, AlertTriangle as AlertTriangleIcon, BookTemplate, Copy, Check, Wand2, Code2, Info } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -20,6 +21,7 @@ import {
 
 interface IssueCardProps {
   issue: EthicsIssue;
+  reportId?: string;
 }
 
 const mitigationTypeLabels = {
@@ -75,7 +77,7 @@ function ConfidenceBar({ label, value, rationale }: { label: string; value: numb
   );
 }
 
-export function IssueCard({ issue }: IssueCardProps) {
+export function IssueCard({ issue, reportId }: IssueCardProps) {
   const { isVibe } = useMode();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showConfidence, setShowConfidence] = useState(false);
