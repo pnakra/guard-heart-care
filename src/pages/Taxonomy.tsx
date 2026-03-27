@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, Scale, Brain, Eye, ShieldAlert, Sparkles, Zap } from 'lucide-react';
+import { ArrowLeft, Scale, Brain, Eye, ShieldAlert, Sparkles, Zap, HeartCrack, Leaf } from 'lucide-react';
 
 interface CategorySection {
   id: string;
@@ -16,6 +16,38 @@ interface CategorySection {
 
 const CATEGORIES: CategorySection[] = [
   {
+    id: 'restrictive-masculinity',
+    name: 'Restrictive Masculinity Patterns',
+    shortDef: 'Design that reinforces narrow, harmful definitions of manhood — suppressing help-seeking, rewarding dominance, exploiting identity-linked shame, or deepening isolation in men and boys.',
+    icon: <HeartCrack size={18} />,
+    whyMisuseByDesign:
+      'Unlike other categories, which require an adversarial actor or an external victim, restrictive masculinity patterns often harm the user himself — by design choices that normalize emotional suppression, reward self-isolation, exploit identity-linked shame, model dominance as the path to success, or frame healthy experiences like vulnerability and rejection as dangers to avoid. No adversarial actor is needed; the product is the harm vector.',
+    examples: [
+      { appType: 'Wellness App', example: 'AI wellness features that normalize not seeking professional care ("you\'re probably fine — try these breathing exercises"), with gamification rewarding self-sufficiency streaks ("Day 30: You did this alone") and no pathway to professional referral.' },
+      { appType: 'Dating App', example: 'AI messaging tools that coach users around a person\'s stated disinterest, framing rejection as a problem to solve rather than a boundary to respect, with "friendzone" framing that validates entitlement narratives.' },
+      { appType: 'Finance App', example: 'Crypto or high-risk investment content pushed through masculine status mechanics — influencer-style AI promoting get-rich-quick using masculine shame ("broke men stay comfortable," "real men build wealth") with no disclaimers.' },
+      { appType: 'Social Platform', example: 'Content pipelines that route men expressing loneliness or rejection toward misogynistic worldviews rather than healthy support, with community norms rewarding bravado over vulnerability.' },
+    ],
+    detectionSignals: [
+      'Language framing help-seeking as weakness ("push through," "handle it yourself," "real strength")',
+      'Shame-based retention: streak breaks tied to identity ("don\'t be the guy who gives up")',
+      'AI personas modeling emotional suppression as strength or vulnerability as weakness',
+      'Competitive mechanics exclusively rewarding dominance over collaboration',
+      'AI coaching optimizing for persistence after stated disinterest or rejection',
+      'Community features rewarding aggression/bravado, downvoting emotional content',
+      'Financial content using masculine shame as hook for high-risk products',
+      'Absence of diverse masculinity models, professional referral pathways, or IRL connection prompts',
+      'Content framing vulnerability, rejection, or criticism as threats rather than growth inputs',
+    ],
+    mitigationTypes: [
+      'UI Language Change — Frame reaching out as strength, not failure; decouple identity from metrics',
+      'Interaction Model — Build low-friction pathways to professional resources alongside self-management',
+      'Reframing — Position AI tools as bridges to human connection, not substitutes for it',
+      'Content Change — Expand archetype library beyond dominance/stoicism; model emotional range',
+      'Feature Removal — Remove retry mechanics after explicit rejection; remove identity-linked shame copy',
+    ],
+  },
+  {
     id: 'false-authority',
     name: 'False Authority',
     shortDef: 'AI or UI positioned as a moral, legal, or medical authority that it has no qualification to be.',
@@ -26,6 +58,7 @@ const CATEGORIES: CategorySection[] = [
       { appType: 'Health App', example: 'A symptom checker that outputs "Your symptoms are consistent with [condition]" — framing an inference as a clinical assessment that a user may act on instead of seeking professional care.' },
       { appType: 'Legal Tech', example: 'A contract review tool that labels clauses as "safe" or "risky" without disclaiming that this is not legal advice, leading users to sign agreements based on AI judgment.' },
       { appType: 'Content Platform', example: 'A moderation system that labels user posts as "verified information" based on AI analysis, granting false epistemic authority to algorithmic classification.' },
+      { appType: 'Self-Improvement', example: 'An AI coaching platform presenting hypermasculine norms (stoicism, dominance, emotional suppression) as the expert-endorsed path to health or success — especially when targeting young men.' },
     ],
     detectionSignals: [
       'Labels or badges using authoritative language: "safe", "verified", "approved", "recommended"',
@@ -52,6 +85,7 @@ const CATEGORIES: CategorySection[] = [
       { appType: 'Dating App', example: 'A "Second Chance" feature that notifies someone who already swiped left, reframing rejection as "not yet" and enabling persistent contact after a boundary was set.' },
       { appType: 'E-commerce', example: 'A subscription cancellation flow with 7 steps, guilt language ("Your family will miss these savings"), and a countdown timer — dark patterns that pressure users to stay.' },
       { appType: 'Social Platform', example: 'AI-assisted message drafting that optimizes for "engagement" or "persuasion score", helping users craft manipulative messages to reluctant contacts.' },
+      { appType: 'Dating/Social', example: 'AI messaging tools coaching users around a stated "no" — framing rejection as a problem to solve; platform mechanics enabling persistence after block or unmatch ("friendzone" framing treating decisions as negotiable).' },
     ],
     detectionSignals: [
       'Retry or reminder mechanisms after a user has declined or rejected something',
@@ -60,6 +94,7 @@ const CATEGORIES: CategorySection[] = [
       'AI features that optimize messaging for "conversion" or "engagement"',
       'Guilt or loss-aversion language in UI copy',
       'Features that reframe "no" as "not yet" or "needs convincing"',
+      'Platform mechanics allowing persistence after block/unmatch (alternate accounts, re-surfacing)',
     ],
     mitigationTypes: [
       'Feature Removal — Remove retry mechanics after explicit rejection',
@@ -79,6 +114,7 @@ const CATEGORIES: CategorySection[] = [
       { appType: 'Fitness App', example: 'Real-time location sharing during workouts that a controlling partner uses to monitor movements, with no way to share with a running group without also exposing location to all contacts.' },
       { appType: 'Productivity App', example: 'An employee activity dashboard showing "last active" timestamps, idle time, and application usage — enabling micromanagement and surveillance of remote workers who cannot opt out.' },
       { appType: 'Family Safety App', example: 'A "Find My Family" feature that alerts a parent when a teen arrives at or leaves specific locations, with no mechanism for the tracked person to know the full extent of monitoring or to request privacy.' },
+      { appType: 'Relationship App', example: 'Monitoring or check-in features framed as "protection" or "care" that activate provider-as-controller dynamics — a masculinity script used to normalize surveillance within relationships.' },
     ],
     detectionSignals: [
       'Geolocation APIs used with sharing or broadcasting capabilities',
@@ -87,6 +123,7 @@ const CATEGORIES: CategorySection[] = [
       'Data export features that include another user\'s activity',
       '"Find my..." or location-sharing features without granular consent',
       'Read receipts or typing indicators in messaging',
+      'Check-in features framed as "care" or "protection" without opt-out',
     ],
     mitigationTypes: [
       'Interaction Model — Require ongoing, revocable consent from the tracked person',
@@ -133,6 +170,7 @@ const CATEGORIES: CategorySection[] = [
       { appType: 'Mental Health App', example: 'An AI chatbot framed as a "wellness companion" that uses therapeutic language ("It sounds like you\'re experiencing anxiety"), creating a parasocial therapeutic relationship without clinical validity or crisis protocols.' },
       { appType: 'Legal App', example: 'An AI assistant that drafts legal documents and presents them with "This contract protects your interests" — implying legal review that never occurred.' },
       { appType: 'Education Platform', example: 'An AI tutor that explains scientific concepts with fabricated citations and confident tone, teaching incorrect information that students trust because of the authoritative framing.' },
+      { appType: 'Self-Improvement', example: 'AI wellness or self-improvement tools normalizing "push through it" over professional help-seeking — presenting emotional suppression and self-reliance as the clinically sound path; severity elevates when targeting men and boys.' },
     ],
     detectionSignals: [
       'AI prompts that instruct the model to act as a professional (therapist, doctor, lawyer)',
@@ -141,6 +179,7 @@ const CATEGORIES: CategorySection[] = [
       'Conversational AI that maintains persona across sessions, building false rapport',
       'AI-generated recommendations without source attribution or confidence indicators',
       'Features where AI makes decisions that affect user wellbeing without human review',
+      'AI normalizing self-reliance over professional care in health/wellness contexts',
     ],
     mitigationTypes: [
       'UI Language Change — Label all AI output clearly as AI-generated',
@@ -155,11 +194,12 @@ const CATEGORIES: CategorySection[] = [
     shortDef: 'UX patterns that manipulate users into taking actions they did not intend, through deception, friction asymmetry, or psychological pressure.',
     icon: <Zap size={20} />,
     whyMisuseByDesign:
-      'Dark patterns are not accidents — they are deliberately designed interactions that exploit cognitive biases and user trust. A confirm-shaming modal that says "No thanks, I don\'t care about my health" is working exactly as intended. The harm is the design.',
+      'Dark patterns are not accidents — they are deliberately designed interactions that exploit cognitive biases and user trust. A confirm-shaming modal that says "No thanks, I don\'t care about my health" is working exactly as intended. The harm is the design. A masculinity-specific variant ties identity to refusal ("real men don\'t quit") — amplifying harm when targeting male users.',
     examples: [
       { appType: 'SaaS Platform', example: 'A subscription cancellation flow that requires 5 clicks, a phone call, and a guilt-tripping survey — while signup takes one click.' },
       { appType: 'E-commerce', example: 'Fake urgency timers ("Only 2 left! 3 people viewing this!") that reset on page reload and are not tied to real inventory data.' },
       { appType: 'Mobile App', example: 'Pre-checked consent boxes for marketing emails and data sharing buried in a lengthy signup flow, relying on users not noticing.' },
+      { appType: 'Fitness/Self-Improvement', example: 'Masculinity-specific confirm-shaming: "Real men don\'t quit" or "Don\'t be the guy who gives up" as the decline option — tying identity to the refusal rather than just guilt.' },
     ],
     detectionSignals: [
       'Countdown timers or scarcity indicators not connected to real-time data sources',
@@ -168,12 +208,43 @@ const CATEGORIES: CategorySection[] = [
       'Pre-selected checkboxes for consent, marketing, or data sharing',
       'Free trial flows where payment terms are visually de-emphasized or hidden',
       'Asymmetric friction — easy to opt in, hard to opt out (roach motel pattern)',
+      'Identity-linked confirm-shaming targeting masculine identity ("real men...", "don\'t be the guy...")',
     ],
     mitigationTypes: [
       'Interaction Model — Ensure cancel/unsubscribe flows have equal or fewer steps than signup',
       'UI Language Change — Replace confirm-shaming copy with neutral alternatives',
       'Feature Removal — Remove fake urgency/scarcity indicators not tied to real data',
       'Reframing — Default consent checkboxes to unchecked; make opt-in explicit',
+    ],
+  },
+  {
+    id: 'environmental-impact',
+    name: 'Environmental & Ecological Impact',
+    shortDef: 'Design decisions that impose disproportionate, unacknowledged, or avoidable environmental costs through inefficiency, opacity, or disregard for infrastructure choices.',
+    icon: <Leaf size={18} />,
+    whyMisuseByDesign:
+      'This category identifies design and architectural decisions that impose environmental costs not through bugs, but through choices: AI called on every keystroke with no caching, frontier models used without rationale, polling patterns hitting APIs every second, and infrastructure deployed with no documentation of hosting provider or sustainability commitment. The core question is: "Did the developer make any conscious choice here, or does this design blindly maximize compute?"',
+    examples: [
+      { appType: 'AI App', example: 'AI API called on every keystroke or onChange event rather than on explicit submission, with no caching layer — the same query hits the model repeatedly, creating significant and entirely avoidable environmental cost at scale.' },
+      { appType: 'SaaS Platform', example: 'Frontier model (gpt-4, claude-opus) used for simple text classification or summarization with no comment or config explaining why that scale is needed, when a smaller model would suffice.' },
+      { appType: 'Web App', example: 'setInterval() polling an API every 1-2 seconds when the UI refresh rate doesn\'t justify it, or SELECT * queries with no pagination on large datasets.' },
+      { appType: 'Any App', example: 'No .env variable, config file, or documentation comment referencing hosting provider, region, or sustainability commitments — complete infrastructure opacity.' },
+    ],
+    detectionSignals: [
+      'AI API calls on keystroke/onChange events without debounce or submit gating',
+      'No caching layer (memoization, Redis, in-memory) before repeated AI calls',
+      'Frontier model used without rationale comment or config',
+      'Polling patterns hitting APIs more frequently than UI refresh justifies',
+      'N+1 database query patterns; SELECT * without LIMIT/pagination',
+      'Large uncompressed assets committed to repo',
+      'No hosting/region documentation; no sustainability references',
+      'Batch jobs or ML training triggered immediately with no scheduling logic',
+    ],
+    mitigationTypes: [
+      'Interaction Model — Gate AI calls behind explicit user actions (submit button)',
+      'Reframing — Add caching before model calls; document model size rationale',
+      'Content Change — Document hosting provider and sustainability commitments',
+      'Feature Removal — Replace polling with event-driven updates where possible',
     ],
   },
 ];
@@ -217,7 +288,7 @@ export default function Taxonomy() {
               </Link>
             </div>
             <span className="text-xs font-mono text-muted-foreground bg-secondary px-2 py-1 rounded">
-              Taxonomy v1.0
+              Taxonomy v2.0
             </span>
           </div>
         </div>
@@ -230,7 +301,7 @@ export default function Taxonomy() {
             Harm Taxonomy
           </h1>
           <p className="text-muted-foreground mt-2 max-w-2xl">
-            Reference documentation for the six harm categories detected by Ground Floor Check.
+            Reference documentation for the eight harm categories detected by Ground Floor Check.
             Each category describes a class of <em>misuse-by-design</em> — features that cause harm
             when working exactly as intended, not through bugs or security vulnerabilities.
           </p>
@@ -273,7 +344,7 @@ export default function Taxonomy() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono text-muted-foreground">{idx + 1}/5</span>
+                      <span className="text-xs font-mono text-muted-foreground">{idx + 1}/{CATEGORIES.length}</span>
                     </div>
                     <h2 className="font-serif text-2xl font-semibold text-foreground">
                       {cat.name}
@@ -360,7 +431,7 @@ export default function Taxonomy() {
       <footer className="border-t border-border mt-16">
         <div className="container max-w-6xl mx-auto px-4 py-6 text-center">
           <p className="text-sm text-muted-foreground">
-            Ground Floor Check — Harm Taxonomy v1.0
+            Ground Floor Check — Harm Taxonomy v2.0
           </p>
         </div>
       </footer>

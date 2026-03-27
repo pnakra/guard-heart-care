@@ -36,6 +36,7 @@ interface AnalysisResult {
 }
 
 const CATEGORY_LABELS: Record<HarmCategory, { label: string; description: string; icon: string }> = {
+  'restrictive-masculinity': { label: 'Restrictive Masculinity Patterns', description: 'Design that reinforces narrow definitions of manhood, suppresses help-seeking, or exploits identity-linked shame', icon: 'shield-alert-masc' },
   'false-authority': { label: 'False Authority', description: 'AI or UI positioned as moral/legal/medical authority', icon: 'scale' },
   'manipulation': { label: 'Manipulation', description: 'Features that help users coerce or pressure others', icon: 'brain' },
   'surveillance': { label: 'Surveillance', description: 'Tracking features exploitable in abuse contexts', icon: 'eye' },

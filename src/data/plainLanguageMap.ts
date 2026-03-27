@@ -2,6 +2,7 @@ import { HarmCategory, SeverityLevel } from '@/types/ethics';
 
 // Plain language category labels
 export const PLAIN_CATEGORY_LABELS: Record<HarmCategory, string> = {
+  'restrictive-masculinity': 'Harmful Masculinity Design',
   'false-authority': 'Fake Expert Claims',
   'manipulation': 'Pressure & Coercion',
   'surveillance': 'Tracking & Monitoring',

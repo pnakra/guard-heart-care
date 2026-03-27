@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   Zap,
   Leaf,
+  HeartCrack,
   LucideIcon
 } from 'lucide-react';
 
@@ -14,6 +15,7 @@ const iconMap: Record<string, LucideIcon> = {
   brain: Brain,
   eye: Eye,
   'shield-alert': ShieldAlert,
+  'shield-alert-masc': HeartCrack,
   scale: Scale,
   sparkles: Sparkles,
   'alert-triangle': AlertTriangle,
