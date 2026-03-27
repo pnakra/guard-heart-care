@@ -108,6 +108,8 @@ const Index = () => {
     setAnalysisResult(null);
     setCapabilities([]);
     setMisuseScenarios([]);
+    setReportId(undefined);
+    window.history.replaceState(null, '', '/');
   };
 
   const handlePublishClick = () => {
