@@ -169,11 +169,11 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
 
               {/* In vibe mode, show misuse scenario prominently in collapsed view */}
               {isVibe && issue.misuseScenario ? (
-                <p className="text-sm text-foreground mt-1.5 font-semibold line-clamp-2">
+                <p className="text-sm text-foreground mt-1.5 font-semibold">
                   {issue.misuseScenario}
                 </p>
               ) : (
-                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                <p className="text-sm text-muted-foreground mt-1">
                   {issue.description}
                 </p>
               )}
@@ -476,6 +476,13 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                     />
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Feedback buttons */}
+            {reportId && (
+              <div className="border-t border-border/50 pt-3">
+                <FeedbackButtons reportId={reportId} issueId={issue.id} />
               </div>
             )}
           </div>
