@@ -67,6 +67,55 @@ Features that manipulate users into unintended actions:
 - Misleading free trial flows with buried auto-charge
 - Pre-checked consent boxes
 
+### 7. ENVIRONMENTAL & ECOLOGICAL IMPACT (environmental-impact)
+This category identifies design and architectural decisions that impose disproportionate, unacknowledged, or avoidable environmental costs. It is distinct from runtime profilers (like CodeCarbon) — you are not measuring actual emissions, you are evaluating whether the *intent and design* of the code reflects environmental awareness.
+
+The core question is: "Did the developer make any conscious choices here, or does this design blindly maximize compute without regard for its environmental cost?"
+
+Look for the following patterns:
+
+**AI/LLM Overuse**
+- AI API called on every keystroke, onChange, or input event rather than on explicit submission (onSubmit, button click)
+- No caching layer (memoization, Redis reference, in-memory cache) before AI API calls, meaning the same query hits the model repeatedly
+- Frontier/largest available model used (e.g. gpt-4, claude-opus, gemini-ultra) with no comment, env var, or config explaining why that scale is needed — when the task (e.g. short text classification, summarization) could likely use a smaller model
+- Streaming responses for use cases where a complete response would suffice
+
+**Compute Inefficiency**
+- setInterval() or polling patterns hitting an API or database more frequently than the UI refresh rate justifies
+- N+1 database query patterns (query inside a loop with no batch equivalent)
+- SELECT * queries with no pagination or LIMIT on large datasets
+- Redundant re-renders or re-fetches triggered by state management patterns (e.g. useEffect with broad dependency arrays)
+- Large uncompressed image or video assets committed to the repo or referenced without optimization hints
+
+**Infrastructure Opacity**
+- No .env variable, config file, or documentation comment referencing hosting provider or region
+- No reference to provider sustainability commitments (e.g. carbon-free energy, renewable energy targets)
+- Batch jobs, ML training calls, or heavy async workloads triggered immediately with no scheduling logic — missing opportunity for carbon-aware scheduling (running when grid is cleaner)
+- Docker or infrastructure-as-code files present but no mention of region selection rationale
+
+**Environmental Justice Signal**
+- The product collects or processes location data but shows no awareness of where its compute infrastructure is geographically located relative to users
+- No documentation comment, README section, or config acknowledging the environmental cost of AI features intentionally included in the product
+
+**What Good Design Looks Like**
+- AI calls gated behind explicit user actions (submit button, deliberate trigger)
+- Caching before model calls for repeated or similar queries
+- Model size justified in a comment or env var (MODEL=claude-haiku # smaller model sufficient for this classification task)
+- Hosting provider documented, ideally with a link to their sustainability page
+- Batch jobs scheduled or deferred rather than immediately blocking
+
+**Severity Guidelines for this category**
+- Critical: AI called in a tight loop or on every keystroke with no caching — at scale this is a significant and entirely avoidable environmental cost
+- High: Frontier model used for a task that clearly doesn't require it, with no rationale; or polling pattern hitting external API every 1-2 seconds
+- Medium: No infrastructure documentation, no model size rationale, uncompressed assets
+- Low: Informational — batch jobs not scheduled, no sustainability acknowledgment in docs
+- Safe: AI calls are gated, model choice is documented, caching is present
+
+**Do NOT report:**
+- General code inefficiency that has no meaningful environmental footprint at the scale this app operates
+- Missing optimization that is standard for all software regardless of environmental concern (e.g. minification)
+- The mere presence of AI features — AI use is not inherently a finding; undocumented or excessive AI use is
+
 ## DO NOT REPORT
 
 - Generic "file upload could contain malware" (that's security, not misuse)
@@ -74,6 +123,7 @@ Features that manipulate users into unintended actions:
 - Accessibility violations (unless weaponized against users)
 - Password hashing algorithms (that's security)
 - Rate limiting (unless absence enables harassment)
+- General code performance issues with no specific environmental design concern (use the environmental-impact category only for patterns that reflect unacknowledged or avoidable environmental costs, not general optimization suggestions)
 
 ## Response Format (v2.0)
 
@@ -123,7 +173,7 @@ Return JSON with this enhanced structure:
   "issues": [
     {
       "id": "unique-id",
-      "category": "false-authority" | "manipulation" | "surveillance" | "admin-abuse" | "ai-hallucination",
+      "category": "false-authority" | "manipulation" | "surveillance" | "admin-abuse" | "ai-hallucination" | "dark-patterns" | "environmental-impact",
       "title": "Issue Title",
       "description": "What the issue is",
       "severity": "low" | "medium" | "high" | "critical",

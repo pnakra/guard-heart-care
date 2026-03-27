@@ -8,6 +8,7 @@ export const PLAIN_CATEGORY_LABELS: Record<HarmCategory, string> = {
   'admin-abuse': 'Admin Overreach',
   'ai-hallucination': 'AI Overconfidence',
   'dark-patterns': 'Sneaky UX',
+  'environmental-impact': 'Environmental Cost',
 };
 
 // Plain language severity labels
