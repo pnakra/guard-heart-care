@@ -7,6 +7,7 @@ import { AlertTriangle, Clock, TrendingUp, Info, Pencil, ShieldCheck, RefreshCw,
 import { calculateGFS, calculateAdjustedGFS, getGFSBand, getGFSLabel } from '@/services/gfsCalculator';
 import { AppCategory, getAppCategoryLabel } from '@/services/categoryDetector';
 import { useIssueStatus, REVIEWED_STATUSES } from '@/contexts/IssueStatusContext';
+import { useMode } from '@/contexts/ModeContext';
 import {
   Tooltip,
   TooltipContent,
