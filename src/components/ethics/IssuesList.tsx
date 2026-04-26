@@ -169,7 +169,7 @@ export function IssuesList({ issues, selectedCategory, reportId }: IssuesListPro
                 )}
               >
                 <Icon size={10} />
-                {opt.label}
+                {isVibe ? opt.vibeLabel : opt.label}
               </button>
             );
           })}
