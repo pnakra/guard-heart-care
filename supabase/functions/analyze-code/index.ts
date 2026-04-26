@@ -747,39 +747,50 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
             throw new Error("Empty stream from AI");
           }
 
-          // Parse Anthropic SSE stream and accumulate text deltas.
-          let content = "";
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder();
-          let buffer = "";
+          const readAnthropicStream = async (streamBody: ReadableStream<Uint8Array>): Promise<{ content: string; stopReason: string | null }> => {
+            let content = "";
+            let stopReason: string | null = null;
+            const reader = streamBody.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
 
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buffer += decoder.decode(value, { stream: true });
 
-            const lines = buffer.split("\n");
-            buffer = lines.pop() ?? "";
+              const lines = buffer.split("\n");
+              buffer = lines.pop() ?? "";
 
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (!trimmed.startsWith("data:")) continue;
-              const data = trimmed.slice(5).trim();
-              if (!data || data === "[DONE]") continue;
+              for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed.startsWith("data:")) continue;
+                const data = trimmed.slice(5).trim();
+                if (!data || data === "[DONE]") continue;
 
-              const event = JSON.parse(data);
-              if (
-                event.type === "content_block_delta" &&
-                event.delta?.type === "text_delta" &&
-                typeof event.delta.text === "string"
-              ) {
-                content += event.delta.text;
-              } else if (event.type === "error") {
-                console.error("Anthropic stream error:", event);
-                throw new Error(event.error?.message || "Anthropic stream error");
+                const event = JSON.parse(data);
+                if (
+                  event.type === "content_block_delta" &&
+                  event.delta?.type === "text_delta" &&
+                  typeof event.delta.text === "string"
+                ) {
+                  content += event.delta.text;
+                } else if (event.type === "message_delta" && event.delta?.stop_reason) {
+                  stopReason = event.delta.stop_reason;
+                } else if (event.type === "message_stop" && event.message?.stop_reason) {
+                  stopReason = event.message.stop_reason;
+                } else if (event.type === "error") {
+                  console.error("Anthropic stream error:", event);
+                  throw new Error(event.error?.message || "Anthropic stream error");
+                }
               }
             }
-          }
+
+            return { content, stopReason };
+          };
+
+          // Parse Anthropic SSE stream and accumulate text deltas.
+          let { content, stopReason } = await readAnthropicStream(response.body);
 
           if (!content) {
             throw new Error("Empty response from AI");
