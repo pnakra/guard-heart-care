@@ -433,7 +433,7 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
             )}
 
             {/* Confidence Section — collapsed by default in vibe, same behavior in dev */}
-            {confidence && (
+            {!isVibe && confidence && (
               <div className="border-t border-border/50 pt-3">
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowConfidence(!showConfidence); }}
