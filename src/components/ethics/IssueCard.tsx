@@ -257,7 +257,7 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                   <AlertCircle size={14} className="shrink-0 mt-0.5 text-[hsl(var(--ethics-high))]" />
                   <div>
                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                       Misuse Scenario
+                       {isVibe ? 'How this could be misused' : 'Misuse Scenario'}
                      </p>
                      <p className={cn(
                        'text-sm text-foreground',
@@ -276,7 +276,7 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                 <HelpCircle size={14} className="shrink-0 mt-0.5 text-muted-foreground" />
                 <div>
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                    Why This Is Misuse-by-Design
+                    {isVibe ? 'Why this is a problem' : 'Why This Is Misuse-by-Design'}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {issue.whyMisuseByDesign}
@@ -290,11 +290,13 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
               <div className="flex items-center gap-2 mb-1">
                 <Lightbulb size={14} className="text-primary" />
                 <h5 className="text-sm font-medium text-foreground">
-                  Mitigation
+                  {isVibe ? 'How to fix it' : 'Mitigation'}
                 </h5>
-                {!isVibe && issue.mitigationType && (
+                {issue.mitigationType && (
                   <span className="text-xs px-1.5 py-0.5 bg-secondary rounded text-muted-foreground">
-                    {mitigationTypeLabels[issue.mitigationType]}
+                    {isVibe
+                      ? PLAIN_MITIGATION_TYPE_LABELS[issue.mitigationType] || mitigationTypeLabels[issue.mitigationType]
+                      : mitigationTypeLabels[issue.mitigationType]}
                   </span>
                 )}
               </div>
