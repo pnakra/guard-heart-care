@@ -3,7 +3,7 @@ import { CategoryIcon } from './CategoryIcon';
 import { SeverityBadge } from './SeverityBadge';
 import { cn } from '@/lib/utils';
 import { useMode } from '@/contexts/ModeContext';
-import { PLAIN_CATEGORY_LABELS } from '@/data/plainLanguageMap';
+import { PLAIN_CATEGORY_LABELS, PLAIN_CATEGORY_DESCRIPTIONS } from '@/data/plainLanguageMap';
 
 interface CategoryCardProps {
   category: CategorySummary;
@@ -13,9 +13,13 @@ interface CategoryCardProps {
 
 export function CategoryCard({ category, isSelected, onClick }: CategoryCardProps) {
   const { isVibe } = useMode();
+  const cat = category.category as HarmCategory;
   const displayLabel = isVibe
-    ? PLAIN_CATEGORY_LABELS[category.category as HarmCategory] || category.label
+    ? PLAIN_CATEGORY_LABELS[cat] || category.label
     : category.label;
+  const displayDescription = isVibe
+    ? (PLAIN_CATEGORY_DESCRIPTIONS[cat] || category.description)
+    : category.description;
 
   return (
     <button
