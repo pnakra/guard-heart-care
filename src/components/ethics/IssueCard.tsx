@@ -10,7 +10,7 @@ import { getTemplatesForType, generateFixPrompt, MitigationType } from '@/data/r
 import { toast } from 'sonner';
 import { useIssueStatus, IssueStatus, ISSUE_STATUS_CONFIG } from '@/contexts/IssueStatusContext';
 import { useMode } from '@/contexts/ModeContext';
-import { PLAIN_CATEGORY_LABELS, getPlainTitle } from '@/data/plainLanguageMap';
+import { PLAIN_CATEGORY_LABELS, PLAIN_MITIGATION_TYPE_LABELS, getPlainTitle } from '@/data/plainLanguageMap';
 import {
   Select,
   SelectContent,
