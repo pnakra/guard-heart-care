@@ -338,25 +338,8 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                 )}
               </div>
             ) : (
-              issue.codeChanges && issue.codeChanges.length > 0 && (
-                <div className="pl-5">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setShowDiff(!showDiff); }}
-                    className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors w-full"
-                  >
-                    <Code2 size={14} />
-                    <span>View code changes ({issue.codeChanges.length})</span>
-                    {showDiff ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                  </button>
-                  {showDiff && (
-                    <div className="mt-2 space-y-3">
-                      {issue.codeChanges.map((change, i) => (
-                        <DiffViewer key={i} codeChange={change} />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )
+              // In vibe mode, code diffs are hidden — non-technical users don't need them.
+              null
             )}
 
             {/* Prompt-Ready Fix — larger CTA in vibe mode */}
