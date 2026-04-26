@@ -379,8 +379,8 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
               )}
             </div>
 
-            {/* Template Library */}
-            {issue.mitigationType && getTemplatesForType(issue.mitigationType as MitigationType).length > 0 && (
+            {/* Template Library — dev mode only (technical code snippets) */}
+            {!isVibe && issue.mitigationType && getTemplatesForType(issue.mitigationType as MitigationType).length > 0 && (
               <div className="border-t border-border/50 pt-3">
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowTemplates(!showTemplates); }}
