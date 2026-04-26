@@ -616,10 +616,28 @@ serve(async (req) => {
       throw new Error("ANTHROPIC_API_KEY is not configured");
     }
 
-    // Format files for the prompt
-    const filesContent = files
+    // Format a bounded code sample for the prompt so large repositories do not
+    // force the model to truncate JSON mid-object.
+    let totalChars = 0;
+    const boundedFiles = files
+      .filter((f: { name: string; content: string }) => typeof f?.name === "string" && typeof f?.content === "string")
+      .slice(0, MAX_PROMPT_FILES)
+      .map((f: { name: string; content: string }) => {
+        const remaining = Math.max(0, MAX_TOTAL_FILE_CHARS - totalChars);
+        const limit = Math.min(MAX_CHARS_PER_FILE, remaining);
+        const content = f.content.slice(0, limit);
+        totalChars += content.length;
+        return { ...f, content };
+      })
+      .filter((f: { content: string }) => f.content.length > 0);
+
+    const omittedFileCount = Math.max(0, files.length - boundedFiles.length);
+    const filesContent = boundedFiles
       .map((f: { name: string; content: string }) => `--- ${f.name} ---\n${f.content}`)
       .join("\n\n");
+    const truncationNotice = omittedFileCount > 0
+      ? `\n\nNOTE: This scan uses a representative bounded sample of ${boundedFiles.length} files from ${files.length} uploaded files to keep the AI response reliable. Do not claim certainty about omitted files.`
+      : '';
 
     // Include previous scan context if available
     const previousContext = previousScan 
@@ -682,7 +700,7 @@ Focus your analysis on the DIFFERENCES between fork and upstream. Prioritize iss
 
     const userPrompt = `Analyze this "${projectName || "web application"}" codebase for MISUSE-BY-DESIGN patterns using the v2.0 schema. Remember: you are looking for features that could harm people when working exactly as intended, not bugs or security vulnerabilities.
 
-Provide calibrated confidence scores for each finding and specific code-level mitigations.${categoryHint}${verticalProfilePrompt}${customRulesPrompt}${populationPrompt}${forkPrompt}${previousContext}
+Provide calibrated confidence scores for each finding and specific code-level mitigations.${categoryHint}${verticalProfilePrompt}${customRulesPrompt}${populationPrompt}${forkPrompt}${previousContext}${truncationNotice}
 
 OUTPUT SIZE LIMITS FOR RELIABILITY:
 - Return at most 3 issues, 5 capabilities, 3 misuseScenarios, and 2 riskChains.
