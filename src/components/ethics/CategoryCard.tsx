@@ -66,7 +66,9 @@ export function CategoryCard({ category, isSelected, onClick }: CategoryCardProp
                 'text-[10px] text-muted-foreground',
                 isVibe ? 'font-sans' : 'font-mono'
               )}>
-                {category.issueCount} {category.issueCount === 1 ? 'issue' : 'issues'}
+                {category.issueCount} {isVibe
+                  ? (category.issueCount === 1 ? 'finding' : 'findings')
+                  : (category.issueCount === 1 ? 'issue' : 'issues')}
               </span>
             </>
           ) : (
