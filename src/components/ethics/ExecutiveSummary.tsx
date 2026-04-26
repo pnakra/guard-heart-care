@@ -314,9 +314,12 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
       {/* Top 3 Risks */}
       {hasTopRisks && (
         <div className="space-y-3">
-          <h3 className="font-mono font-medium text-[11px] text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+          <h3 className={cn(
+            'font-medium text-[11px] text-muted-foreground tracking-widest flex items-center gap-2',
+            isVibe ? 'font-sans' : 'font-mono uppercase',
+          )}>
             <AlertTriangle size={14} />
-            top_risks // fix before shipping
+            {isVibe ? 'Top risks to fix before launch' : 'top_risks // fix before shipping'}
           </h3>
 
           <div className="grid gap-3">
