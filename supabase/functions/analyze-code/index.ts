@@ -563,6 +563,35 @@ function extractJsonObject(raw: string): unknown {
   return JSON.parse(jsonText);
 }
 
+function isLikelyTruncated(raw: string): boolean {
+  const text = raw.trim();
+  if (!text) return true;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = text.indexOf("{"); i >= 0 && i < text.length; i++) {
+    const char = text[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+    if (char === "{") depth++;
+    if (char === "}") depth--;
+  }
+
+  return depth !== 0 || /\.\.\.$|…$|\[truncated\]/i.test(text);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -650,6 +679,12 @@ Focus your analysis on the DIFFERENCES between fork and upstream. Prioritize iss
     const userPrompt = `Analyze this "${projectName || "web application"}" codebase for MISUSE-BY-DESIGN patterns using the v2.0 schema. Remember: you are looking for features that could harm people when working exactly as intended, not bugs or security vulnerabilities.
 
 Provide calibrated confidence scores for each finding and specific code-level mitigations.${categoryHint}${verticalProfilePrompt}${customRulesPrompt}${populationPrompt}${forkPrompt}${previousContext}
+
+OUTPUT SIZE LIMITS FOR RELIABILITY:
+- Return at most 3 issues, 5 capabilities, 3 misuseScenarios, and 2 riskChains.
+- Keep every narrative string under 350 characters unless it is a required explanation.
+- Keep mitigation.codeChanges minimal; do not include long currentCode, suggestedCode, or diffPreview blocks.
+- Prefer concise, high-confidence findings over exhaustive coverage.
 
 ${filesContent}
 
