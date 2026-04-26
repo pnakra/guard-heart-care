@@ -103,8 +103,11 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="font-mono text-xl font-semibold text-foreground tracking-tight">
-                Ground Floor Check
+              <h2 className={cn(
+                'text-xl font-semibold text-foreground tracking-tight',
+                isVibe ? 'font-sans' : 'font-mono'
+              )}>
+                {isVibe ? 'Your ethics review' : 'Ground Floor Check'}
               </h2>
               {(activeCategory !== 'unknown' || onRescanWithCategory) && (
                 <>
@@ -136,7 +139,9 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                         onClick={() => setIsEditingCategory(true)}
                         className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
                       >
-                        {activeCategory === 'unknown' ? 'Set category' : `Detected: ${categoryLabel}`}
+                        {activeCategory === 'unknown'
+                          ? (isVibe ? 'Set app type' : 'Set category')
+                          : `${isVibe ? 'App type' : 'Detected'}: ${categoryLabel}`}
                         <Pencil size={10} />
                       </button>
                     )}
@@ -154,24 +159,26 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                         ) : (
                           <RefreshCw size={10} />
                         )}
-                        Rescan with this category
+                        {isVibe ? 'Re-run with this type' : 'Rescan with this category'}
                       </button>
                     )}
                   </div>
                   {activeCategory !== 'unknown' && activeCategory !== 'general' && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-accent text-accent-foreground border border-border">
                       <ShieldCheck size={10} />
-                      Risk Profile Active
+                      {isVibe ? 'Tailored to this app type' : 'Risk Profile Active'}
                     </span>
                   )}
                 </>
               )}
             </div>
-            <p className="font-mono text-sm text-muted-foreground">
+            <p className={cn('text-sm text-muted-foreground', isVibe ? 'font-sans' : 'font-mono')}>
               {projectName}
             </p>
-            <p className="font-mono text-[10px] text-muted-foreground tabular-nums">
-              scanned: {new Date(timestamp).toISOString()}
+            <p className={cn('text-[10px] text-muted-foreground tabular-nums', isVibe ? 'font-sans' : 'font-mono')}>
+              {isVibe
+                ? `Reviewed ${new Date(timestamp).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}`
+                : `scanned: ${new Date(timestamp).toISOString()}`}
             </p>
           </div>
 
