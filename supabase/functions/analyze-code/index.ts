@@ -596,6 +596,61 @@ function isLikelyTruncated(raw: string): boolean {
   return depth !== 0 || /\.\.\.$|…$|\[truncated\]/i.test(text);
 }
 
+function buildFallbackAnalysis(files: { name: string; content: string }[], detectedCategory: string) {
+  const corpus = files.map((f) => `${f.name}\n${f.content}`).join("\n").toLowerCase();
+  const firstMatchingFile = (pattern: RegExp) => files.find((f) => pattern.test(`${f.name}\n${f.content}`))?.name || "uploaded files";
+  const makeIssue = (category: string, title: string, severity: string, location: string, description: string, mitigation: string) => ({
+    id: `fallback-${category}`,
+    category,
+    title,
+    description,
+    severity,
+    location,
+    misuseScenario: description,
+    whyMisuseByDesign: "The AI report was too long to parse, so this fallback flags a clear high-level affordance from the uploaded code for human review.",
+    mitigationType: "interaction-model",
+    confidence: {
+      detectionConfidence: 0.62,
+      detectionRationale: "Detected by deterministic keyword scan after the AI response was truncated.",
+      misuseConfidence: 0.55,
+      misuseRationale: "Needs human review because the full model analysis could not be safely parsed.",
+      severityConfidence: 0.5,
+      severityRationale: "Severity is conservative until a complete scan is available.",
+      overallConfidence: 0.56,
+      uncertaintyFactors: ["Fallback result", "AI output was truncated"],
+    },
+    mitigationsFound: [],
+    mitigationGaps: ["Run a smaller scan or reduce selected files for deeper analysis"],
+    mitigation: { summary: mitigation, codeChanges: [], designChanges: [], contentChanges: [], testingRequirements: [], estimatedEffort: "Review needed" },
+  });
+
+  const issues = [];
+  if (/geolocation|watchposition|latitude|longitude|live location|location sharing/.test(corpus)) {
+    issues.push(makeIssue("surveillance", "Location sharing may enable monitoring", "medium", firstMatchingFile(/geolocation|watchposition|latitude|longitude|live location|location sharing/i), "Location features can be repurposed to monitor someone without ongoing consent.", "Add explicit consent, clear status indicators, expiration, and easy stop-sharing controls."));
+  } else if (/impersonat|admin|moderator|delete user|ban user|private message|export data/.test(corpus)) {
+    issues.push(makeIssue("admin-abuse", "Administrative powers need transparency", "medium", firstMatchingFile(/impersonat|admin|moderator|delete user|ban user|private message|export data/i), "Admin tools can create harm when people affected by actions cannot see or contest them.", "Add user-visible audit trails, notifications, and narrow role permissions."));
+  } else if (/(openai|anthropic|gemini|ai|chatbot).*(therapy|medical|diagnos|legal|crisis)|(therapy|medical|diagnos|legal|crisis).*(openai|anthropic|gemini|ai|chatbot)/.test(corpus)) {
+    issues.push(makeIssue("false-authority", "AI guidance may be mistaken for expert advice", "medium", firstMatchingFile(/openai|anthropic|gemini|therapy|medical|diagnos|legal|crisis/i), "AI guidance in sensitive contexts can be read as professional advice it cannot reliably provide.", "Clarify limits, avoid definitive claims, and route high-risk cases to qualified support."));
+  }
+
+  const highCount = issues.filter((i) => i.severity === "high").length;
+  const criticalCount = issues.filter((i) => i.severity === "critical").length;
+  return {
+    executiveSummary: {
+      topThreeRisks: issues.slice(0, 3).map((i) => ({ title: i.title, severity: i.severity, effortToFix: "medium", summary: i.description, riskContribution: 1.5 })),
+      riskScore: issues.length ? 3.5 : 0,
+      totalIssueCount: issues.length,
+      criticalCount,
+      highCount,
+    },
+    capabilities: issues.length ? [{ id: "fallback-capability", name: "Fallback capability detected", description: "Detected by a conservative fallback scan after AI output truncation.", riskLevel: "medium", detectedIn: [issues[0].location], detectionConfidence: 0.62 }] : [],
+    misuseScenarios: issues.length ? [{ id: "fallback-scenario", title: issues[0].title, description: issues[0].description, capabilities: ["fallback-capability"], severity: issues[0].severity, realWorldExample: "Requires human review because the full AI report was truncated.", mitigations: [issues[0].mitigation.summary], likelihoodScore: 0.5, likelihoodRationale: "Fallback estimate", impactScore: 0.5, impactRationale: "Fallback estimate" }] : [],
+    issues,
+    riskChains: [],
+    detectedCategory,
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
