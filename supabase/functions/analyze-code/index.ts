@@ -801,8 +801,57 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
           try {
             analysisResult = extractJsonObject(content);
           } catch (parseError) {
+            if (stopReason === "max_tokens" || isLikelyTruncated(content)) {
+              console.warn("AI response was truncated; retrying with stricter concise-output instructions.", { stopReason, contentLength: content.length });
+              const retryPrompt = `${userPrompt}\n\nRETRY BECAUSE PRIOR OUTPUT WAS TRUNCATED: Return a MUCH SHORTER JSON object. Include only the single highest-risk issue, at most 3 capabilities, at most 1 misuse scenario, no codeChanges, no currentCode, no suggestedCode, no diffPreview, and keep every string under 220 characters.`;
+              response = await fetch("https://api.anthropic.com/v1/messages", {
+                method: "POST",
+                headers: {
+                  "x-api-key": ANTHROPIC_API_KEY,
+                  "anthropic-version": "2023-06-01",
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  model: "claude-sonnet-4-5",
+                  max_tokens: 6000,
+                  stream: true,
+                  system: ANALYSIS_PROMPT,
+                  messages: [{ role: "user", content: retryPrompt }],
+                }),
+              });
+
+              if (!response.ok) {
+                const errorText = await response.text();
+                console.error("Anthropic retry API error:", response.status, errorText);
+                throw new Error("AI response was too long and retry failed");
+              }
+              if (!response.body) {
+                throw new Error("Empty retry stream from AI");
+              }
+
+              const retryResult = await readAnthropicStream(response.body);
+              content = retryResult.content;
+              stopReason = retryResult.stopReason;
+              analysisResult = extractJsonObject(content);
+            } else {
+              throw parseError;
+            }
+          }
+
+          if (!analysisResult || typeof analysisResult !== "object") {
+            throw new Error("Invalid response format from AI");
+          }
+
+          try {
+            const analysis = analysisResult as Record<string, unknown>;
+            analysis.executiveSummary ||= { topThreeRisks: [], riskScore: 0, totalIssueCount: 0, criticalCount: 0, highCount: 0 };
+            analysis.capabilities = Array.isArray(analysis.capabilities) ? analysis.capabilities : [];
+            analysis.misuseScenarios = Array.isArray(analysis.misuseScenarios) ? analysis.misuseScenarios : [];
+            analysis.issues = Array.isArray(analysis.issues) ? analysis.issues : [];
+          } catch (normalizationError) {
             console.error("AI response parse error:", parseError);
             console.error("Failed to parse AI response:", content);
+            console.error("AI response normalization error:", normalizationError);
             throw new Error("Invalid response format from AI");
           }
 
