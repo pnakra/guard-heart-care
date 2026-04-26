@@ -86,7 +86,7 @@ function ScenarioCard({ scenario }: { scenario: MisuseScenario }) {
             {/* Enabling capabilities */}
             <div>
               <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                Enabled by these capabilities
+                {isVibe ? 'Made possible by these features' : 'Enabled by these capabilities'}
               </h5>
               <div className="flex flex-wrap gap-2">
                 {relatedCapabilities.map(cap => (
@@ -110,7 +110,7 @@ function ScenarioCard({ scenario }: { scenario: MisuseScenario }) {
                   <ExternalLink size={14} className="shrink-0 mt-0.5 text-muted-foreground" />
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                      Real-world precedent
+                      {isVibe ? 'This has happened before' : 'Real-world precedent'}
                     </p>
                     <p className="text-sm text-foreground">
                       {scenario.realWorldExample}
@@ -125,7 +125,7 @@ function ScenarioCard({ scenario }: { scenario: MisuseScenario }) {
               <div className="flex items-center gap-2 mb-2">
                 <Shield size={14} className="text-[hsl(var(--ethics-safe))]" />
                 <h5 className="text-sm font-medium text-foreground">
-                  Recommended mitigations
+                  {isVibe ? 'Things you can do about it' : 'Recommended mitigations'}
                 </h5>
               </div>
               <ul className="space-y-2">
