@@ -708,7 +708,7 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
         try {
           // Use streaming from Anthropic and stream keep-alives to the browser,
           // so neither side closes the connection during longer Claude scans.
-          const response = await fetch("https://api.anthropic.com/v1/messages", {
+          const callAnthropic = (maxTokens: number) => fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
             headers: {
               "x-api-key": ANTHROPIC_API_KEY,
@@ -717,7 +717,7 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
             },
             body: JSON.stringify({
               model: "claude-sonnet-4-5",
-              max_tokens: 6000,
+              max_tokens: maxTokens,
               stream: true,
               system: ANALYSIS_PROMPT,
               messages: [
@@ -725,6 +725,8 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
               ],
             }),
           });
+
+          let response = await callAnthropic(12000);
 
           if (!response.ok) {
             if (response.status === 429) {
