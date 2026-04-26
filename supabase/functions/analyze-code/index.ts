@@ -5,6 +5,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const MAX_PROMPT_FILES = 80;
+const MAX_CHARS_PER_FILE = 6_000;
+const MAX_TOTAL_FILE_CHARS = 90_000;
+
 const ANALYSIS_PROMPT = `You are an ethical misuse-by-design scanner v2.0 for web applications. Your role is to identify how product features could be weaponized to harm people—even when the code works exactly as intended.
 
 ## What You Are NOT
@@ -563,6 +567,90 @@ function extractJsonObject(raw: string): unknown {
   return JSON.parse(jsonText);
 }
 
+function isLikelyTruncated(raw: string): boolean {
+  const text = raw.trim();
+  if (!text) return true;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = text.indexOf("{"); i >= 0 && i < text.length; i++) {
+    const char = text[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+    if (char === "{") depth++;
+    if (char === "}") depth--;
+  }
+
+  return depth !== 0 || /\.\.\.$|…$|\[truncated\]/i.test(text);
+}
+
+function buildFallbackAnalysis(files: { name: string; content: string }[], detectedCategory: string) {
+  const corpus = files.map((f) => `${f.name}\n${f.content}`).join("\n").toLowerCase();
+  const firstMatchingFile = (pattern: RegExp) => files.find((f) => pattern.test(`${f.name}\n${f.content}`))?.name || "uploaded files";
+  const makeIssue = (category: string, title: string, severity: string, location: string, description: string, mitigation: string) => ({
+    id: `fallback-${category}`,
+    category,
+    title,
+    description,
+    severity,
+    location,
+    misuseScenario: description,
+    whyMisuseByDesign: "The AI report was too long to parse, so this fallback flags a clear high-level affordance from the uploaded code for human review.",
+    mitigationType: "interaction-model",
+    confidence: {
+      detectionConfidence: 0.62,
+      detectionRationale: "Detected by deterministic keyword scan after the AI response was truncated.",
+      misuseConfidence: 0.55,
+      misuseRationale: "Needs human review because the full model analysis could not be safely parsed.",
+      severityConfidence: 0.5,
+      severityRationale: "Severity is conservative until a complete scan is available.",
+      overallConfidence: 0.56,
+      uncertaintyFactors: ["Fallback result", "AI output was truncated"],
+    },
+    mitigationsFound: [],
+    mitigationGaps: ["Run a smaller scan or reduce selected files for deeper analysis"],
+    mitigation: { summary: mitigation, codeChanges: [], designChanges: [], contentChanges: [], testingRequirements: [], estimatedEffort: "Review needed" },
+  });
+
+  const issues = [];
+  if (/geolocation|watchposition|latitude|longitude|live location|location sharing/.test(corpus)) {
+    issues.push(makeIssue("surveillance", "Location sharing may enable monitoring", "medium", firstMatchingFile(/geolocation|watchposition|latitude|longitude|live location|location sharing/i), "Location features can be repurposed to monitor someone without ongoing consent.", "Add explicit consent, clear status indicators, expiration, and easy stop-sharing controls."));
+  } else if (/impersonat|admin|moderator|delete user|ban user|private message|export data/.test(corpus)) {
+    issues.push(makeIssue("admin-abuse", "Administrative powers need transparency", "medium", firstMatchingFile(/impersonat|admin|moderator|delete user|ban user|private message|export data/i), "Admin tools can create harm when people affected by actions cannot see or contest them.", "Add user-visible audit trails, notifications, and narrow role permissions."));
+  } else if (/(openai|anthropic|gemini|ai|chatbot).*(therapy|medical|diagnos|legal|crisis)|(therapy|medical|diagnos|legal|crisis).*(openai|anthropic|gemini|ai|chatbot)/.test(corpus)) {
+    issues.push(makeIssue("false-authority", "AI guidance may be mistaken for expert advice", "medium", firstMatchingFile(/openai|anthropic|gemini|therapy|medical|diagnos|legal|crisis/i), "AI guidance in sensitive contexts can be read as professional advice it cannot reliably provide.", "Clarify limits, avoid definitive claims, and route high-risk cases to qualified support."));
+  }
+
+  const highCount = issues.filter((i) => i.severity === "high").length;
+  const criticalCount = issues.filter((i) => i.severity === "critical").length;
+  return {
+    executiveSummary: {
+      topThreeRisks: issues.slice(0, 3).map((i) => ({ title: i.title, severity: i.severity, effortToFix: "medium", summary: i.description, riskContribution: 1.5 })),
+      riskScore: issues.length ? 3.5 : 0,
+      totalIssueCount: issues.length,
+      criticalCount,
+      highCount,
+    },
+    capabilities: issues.length ? [{ id: "fallback-capability", name: "Fallback capability detected", description: "Detected by a conservative fallback scan after AI output truncation.", riskLevel: "medium", detectedIn: [issues[0].location], detectionConfidence: 0.62 }] : [],
+    misuseScenarios: issues.length ? [{ id: "fallback-scenario", title: issues[0].title, description: issues[0].description, capabilities: ["fallback-capability"], severity: issues[0].severity, realWorldExample: "Requires human review because the full AI report was truncated.", mitigations: [issues[0].mitigation.summary], likelihoodScore: 0.5, likelihoodRationale: "Fallback estimate", impactScore: 0.5, impactRationale: "Fallback estimate" }] : [],
+    issues,
+    riskChains: [],
+    detectedCategory,
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -583,10 +671,28 @@ serve(async (req) => {
       throw new Error("ANTHROPIC_API_KEY is not configured");
     }
 
-    // Format files for the prompt
-    const filesContent = files
+    // Format a bounded code sample for the prompt so large repositories do not
+    // force the model to truncate JSON mid-object.
+    let totalChars = 0;
+    const boundedFiles = files
+      .filter((f: { name: string; content: string }) => typeof f?.name === "string" && typeof f?.content === "string")
+      .slice(0, MAX_PROMPT_FILES)
+      .map((f: { name: string; content: string }) => {
+        const remaining = Math.max(0, MAX_TOTAL_FILE_CHARS - totalChars);
+        const limit = Math.min(MAX_CHARS_PER_FILE, remaining);
+        const content = f.content.slice(0, limit);
+        totalChars += content.length;
+        return { ...f, content };
+      })
+      .filter((f: { content: string }) => f.content.length > 0);
+
+    const omittedFileCount = Math.max(0, files.length - boundedFiles.length);
+    const filesContent = boundedFiles
       .map((f: { name: string; content: string }) => `--- ${f.name} ---\n${f.content}`)
       .join("\n\n");
+    const truncationNotice = omittedFileCount > 0
+      ? `\n\nNOTE: This scan uses a representative bounded sample of ${boundedFiles.length} files from ${files.length} uploaded files to keep the AI response reliable. Do not claim certainty about omitted files.`
+      : '';
 
     // Include previous scan context if available
     const previousContext = previousScan 
@@ -649,7 +755,13 @@ Focus your analysis on the DIFFERENCES between fork and upstream. Prioritize iss
 
     const userPrompt = `Analyze this "${projectName || "web application"}" codebase for MISUSE-BY-DESIGN patterns using the v2.0 schema. Remember: you are looking for features that could harm people when working exactly as intended, not bugs or security vulnerabilities.
 
-Provide calibrated confidence scores for each finding and specific code-level mitigations.${categoryHint}${verticalProfilePrompt}${customRulesPrompt}${populationPrompt}${forkPrompt}${previousContext}
+Provide calibrated confidence scores for each finding and specific code-level mitigations.${categoryHint}${verticalProfilePrompt}${customRulesPrompt}${populationPrompt}${forkPrompt}${previousContext}${truncationNotice}
+
+OUTPUT SIZE LIMITS FOR RELIABILITY:
+- Return at most 3 issues, 5 capabilities, 3 misuseScenarios, and 2 riskChains.
+- Keep every narrative string under 350 characters unless it is a required explanation.
+- Keep mitigation.codeChanges minimal; do not include long currentCode, suggestedCode, or diffPreview blocks.
+- Prefer concise, high-confidence findings over exhaustive coverage.
 
 ${filesContent}
 
@@ -673,7 +785,7 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
         try {
           // Use streaming from Anthropic and stream keep-alives to the browser,
           // so neither side closes the connection during longer Claude scans.
-          const response = await fetch("https://api.anthropic.com/v1/messages", {
+          const callAnthropic = (maxTokens: number) => fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
             headers: {
               "x-api-key": ANTHROPIC_API_KEY,
@@ -682,7 +794,7 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
             },
             body: JSON.stringify({
               model: "claude-sonnet-4-5",
-              max_tokens: 6000,
+              max_tokens: maxTokens,
               stream: true,
               system: ANALYSIS_PROMPT,
               messages: [
@@ -690,6 +802,8 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
               ],
             }),
           });
+
+          let response = await callAnthropic(12000);
 
           if (!response.ok) {
             if (response.status === 429) {
@@ -710,39 +824,50 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
             throw new Error("Empty stream from AI");
           }
 
-          // Parse Anthropic SSE stream and accumulate text deltas.
-          let content = "";
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder();
-          let buffer = "";
+          const readAnthropicStream = async (streamBody: ReadableStream<Uint8Array>): Promise<{ content: string; stopReason: string | null }> => {
+            let content = "";
+            let stopReason: string | null = null;
+            const reader = streamBody.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
 
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buffer += decoder.decode(value, { stream: true });
 
-            const lines = buffer.split("\n");
-            buffer = lines.pop() ?? "";
+              const lines = buffer.split("\n");
+              buffer = lines.pop() ?? "";
 
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (!trimmed.startsWith("data:")) continue;
-              const data = trimmed.slice(5).trim();
-              if (!data || data === "[DONE]") continue;
+              for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed.startsWith("data:")) continue;
+                const data = trimmed.slice(5).trim();
+                if (!data || data === "[DONE]") continue;
 
-              const event = JSON.parse(data);
-              if (
-                event.type === "content_block_delta" &&
-                event.delta?.type === "text_delta" &&
-                typeof event.delta.text === "string"
-              ) {
-                content += event.delta.text;
-              } else if (event.type === "error") {
-                console.error("Anthropic stream error:", event);
-                throw new Error(event.error?.message || "Anthropic stream error");
+                const event = JSON.parse(data);
+                if (
+                  event.type === "content_block_delta" &&
+                  event.delta?.type === "text_delta" &&
+                  typeof event.delta.text === "string"
+                ) {
+                  content += event.delta.text;
+                } else if (event.type === "message_delta" && event.delta?.stop_reason) {
+                  stopReason = event.delta.stop_reason;
+                } else if (event.type === "message_stop" && event.message?.stop_reason) {
+                  stopReason = event.message.stop_reason;
+                } else if (event.type === "error") {
+                  console.error("Anthropic stream error:", event);
+                  throw new Error(event.error?.message || "Anthropic stream error");
+                }
               }
             }
-          }
+
+            return { content, stopReason };
+          };
+
+          // Parse Anthropic SSE stream and accumulate text deltas.
+          let { content, stopReason } = await readAnthropicStream(response.body);
 
           if (!content) {
             throw new Error("Empty response from AI");
@@ -753,8 +878,62 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
           try {
             analysisResult = extractJsonObject(content);
           } catch (parseError) {
-            console.error("AI response parse error:", parseError);
+            if (stopReason === "max_tokens" || isLikelyTruncated(content)) {
+              console.warn("AI response was truncated; retrying with stricter concise-output instructions.", { stopReason, contentLength: content.length });
+              const retryPrompt = `${userPrompt}\n\nRETRY BECAUSE PRIOR OUTPUT WAS TRUNCATED: Return a MUCH SHORTER JSON object. Include only the single highest-risk issue, at most 3 capabilities, at most 1 misuse scenario, no codeChanges, no currentCode, no suggestedCode, no diffPreview, and keep every string under 220 characters.`;
+              response = await fetch("https://api.anthropic.com/v1/messages", {
+                method: "POST",
+                headers: {
+                  "x-api-key": ANTHROPIC_API_KEY,
+                  "anthropic-version": "2023-06-01",
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  model: "claude-sonnet-4-5",
+                  max_tokens: 6000,
+                  stream: true,
+                  system: ANALYSIS_PROMPT,
+                  messages: [{ role: "user", content: retryPrompt }],
+                }),
+              });
+
+              if (!response.ok) {
+                const errorText = await response.text();
+                console.error("Anthropic retry API error:", response.status, errorText);
+                throw new Error("AI response was too long and retry failed");
+              }
+              if (!response.body) {
+                throw new Error("Empty retry stream from AI");
+              }
+
+              const retryResult = await readAnthropicStream(response.body);
+              content = retryResult.content;
+              stopReason = retryResult.stopReason;
+              try {
+                analysisResult = extractJsonObject(content);
+              } catch (retryParseError) {
+                console.error("AI retry response parse error:", retryParseError);
+                console.error("Failed to parse retry AI response:", content);
+                analysisResult = buildFallbackAnalysis(boundedFiles, detectedCategory);
+              }
+            } else {
+              throw parseError;
+            }
+          }
+
+          if (!analysisResult || typeof analysisResult !== "object") {
+            throw new Error("Invalid response format from AI");
+          }
+
+          try {
+            const analysis = analysisResult as Record<string, unknown>;
+            analysis.executiveSummary ||= { topThreeRisks: [], riskScore: 0, totalIssueCount: 0, criticalCount: 0, highCount: 0 };
+            analysis.capabilities = Array.isArray(analysis.capabilities) ? analysis.capabilities : [];
+            analysis.misuseScenarios = Array.isArray(analysis.misuseScenarios) ? analysis.misuseScenarios : [];
+            analysis.issues = Array.isArray(analysis.issues) ? analysis.issues : [];
+          } catch (normalizationError) {
             console.error("Failed to parse AI response:", content);
+            console.error("AI response normalization error:", normalizationError);
             throw new Error("Invalid response format from AI");
           }
 
@@ -770,10 +949,18 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
         } catch (error) {
           console.error("analyze-code stream error:", error);
           const errorMessage = error instanceof Error ? error.message : "Unknown error";
-          sendJson({ error: errorMessage });
+          try {
+            sendJson({ error: errorMessage });
+          } catch (sendError) {
+            console.error("Failed to send analyze-code error response:", sendError);
+          }
         } finally {
           clearInterval(keepAlive);
-          controller.close();
+          try {
+            controller.close();
+          } catch {
+            // Client disconnected after the analysis finished or failed.
+          }
         }
       },
     });
