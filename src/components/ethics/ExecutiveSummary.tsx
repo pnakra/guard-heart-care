@@ -366,9 +366,13 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
       {!hasTopRisks && summary.totalIssueCount === 0 && (
         <div className="p-6 rounded-lg bg-[hsl(var(--ethics-safe)/0.1)] border border-[hsl(var(--ethics-safe)/0.3)] text-center">
           <TrendingUp className="w-8 h-8 text-[hsl(var(--ethics-safe))] mx-auto mb-2" />
-          <h3 className="font-medium text-foreground">No misuse-by-design patterns detected</h3>
+          <h3 className="font-medium text-foreground">
+            {isVibe ? 'No ethical concerns spotted' : 'No misuse-by-design patterns detected'}
+          </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            This codebase appears to be free of harmful affordances. Continue to scan after making changes.
+            {isVibe
+              ? 'Your app looks clean from an ethical-design perspective. Re-run a check whenever you make changes.'
+              : 'This codebase appears to be free of harmful affordances. Continue to scan after making changes.'}
           </p>
         </div>
       )}
