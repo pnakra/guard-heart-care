@@ -354,7 +354,7 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                 )}
               >
                 <Wand2 size={isVibe ? 16 : 14} />
-                <span>{isVibe ? 'Copy fix prompt' : 'Prompt-Ready Fix'}</span>
+                <span>{isVibe ? 'Copy fix instructions' : 'Prompt-Ready Fix'}</span>
                 {!isVibe && (
                   <span className="ml-auto">
                     {copiedPrompt ? <Check size={14} className="text-[hsl(var(--ethics-safe))]" /> : <Copy size={14} className="text-muted-foreground" />}
@@ -362,6 +362,11 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                 )}
                 {isVibe && copiedPrompt && <Check size={16} />}
               </button>
+              {isVibe && (
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  Paste the copied instructions into your AI builder to apply the fix.
+                </p>
+              )}
               {!isVibe && (
                 <div
                   onClick={handleCopyPrompt}
