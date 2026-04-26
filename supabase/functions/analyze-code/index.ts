@@ -601,131 +601,147 @@ ${filesContent}
 
 IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No markdown code fences, no commentary before or after — just the raw JSON object starting with { and ending with }.`;
 
-    // Use streaming so the long-running Anthropic call doesn't drop the
-    // edge-function connection ("connection closed before message completed").
-    // We collect the streamed text on the server and return a single JSON payload.
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "Content-Type": "application/json",
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        const keepAlive = setInterval(() => {
+          try {
+            controller.enqueue(encoder.encode(" "));
+          } catch {
+            clearInterval(keepAlive);
+          }
+        }, 10_000);
+
+        const sendJson = (payload: unknown) => {
+          controller.enqueue(encoder.encode(JSON.stringify(payload)));
+        };
+
+        try {
+          // Use streaming from Anthropic and stream keep-alives to the browser,
+          // so neither side closes the connection during longer Claude scans.
+          const response = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+              "x-api-key": ANTHROPIC_API_KEY,
+              "anthropic-version": "2023-06-01",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "claude-sonnet-4-5",
+              max_tokens: 6000,
+              stream: true,
+              system: ANALYSIS_PROMPT,
+              messages: [
+                { role: "user", content: userPrompt },
+              ],
+            }),
+          });
+
+          if (!response.ok) {
+            if (response.status === 429) {
+              sendJson({ error: "Rate limit exceeded. Please try again in a moment." });
+              return;
+            }
+            if (response.status === 401 || response.status === 403) {
+              sendJson({ error: "Anthropic API key is invalid or unauthorized." });
+              return;
+            }
+            const errorText = await response.text();
+            console.error("Anthropic API error:", response.status, errorText);
+            sendJson({ error: "Failed to analyze code" });
+            return;
+          }
+
+          if (!response.body) {
+            throw new Error("Empty stream from AI");
+          }
+
+          // Parse Anthropic SSE stream and accumulate text deltas.
+          let content = "";
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+
+            const lines = buffer.split("\n");
+            buffer = lines.pop() ?? "";
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed.startsWith("data:")) continue;
+              const data = trimmed.slice(5).trim();
+              if (!data || data === "[DONE]") continue;
+
+              const event = JSON.parse(data);
+              if (
+                event.type === "content_block_delta" &&
+                event.delta?.type === "text_delta" &&
+                typeof event.delta.text === "string"
+              ) {
+                content += event.delta.text;
+              } else if (event.type === "error") {
+                console.error("Anthropic stream error:", event);
+                throw new Error(event.error?.message || "Anthropic stream error");
+              }
+            }
+          }
+
+          if (!content) {
+            throw new Error("Empty response from AI");
+          }
+
+          // Parse the JSON response (strip code fences if Claude wraps the output)
+          let analysisResult;
+          try {
+            let jsonText = content.trim();
+            const fenceMatch = jsonText.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
+            if (fenceMatch) jsonText = fenceMatch[1].trim();
+            if (!jsonText.startsWith("{")) {
+              const firstBrace = jsonText.indexOf("{");
+              const lastBrace = jsonText.lastIndexOf("}");
+              if (firstBrace !== -1 && lastBrace > firstBrace) {
+                jsonText = jsonText.slice(firstBrace, lastBrace + 1);
+              }
+            }
+            analysisResult = JSON.parse(jsonText);
+          } catch {
+            console.error("Failed to parse AI response:", content);
+            throw new Error("Invalid response format from AI");
+          }
+
+          sendJson({
+            success: true,
+            analysis: analysisResult,
+            timestamp: new Date().toISOString(),
+            projectName: projectName || "Uploaded Project",
+            scanVersion: 2,
+            detectedCategory,
+            previousScanTimestamp: previousScan?.timestamp || null,
+          });
+        } catch (error) {
+          console.error("analyze-code stream error:", error);
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
+          sendJson({ error: errorMessage });
+        } finally {
+          clearInterval(keepAlive);
+          controller.close();
+        }
       },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-5",
-        max_tokens: 8000,
-        stream: true,
-        system: ANALYSIS_PROMPT,
-        messages: [
-          { role: "user", content: userPrompt },
-        ],
-      }),
     });
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 401 || response.status === 403) {
-        return new Response(
-          JSON.stringify({ error: "Anthropic API key is invalid or unauthorized." }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      const errorText = await response.text();
-      console.error("Anthropic API error:", response.status, errorText);
-      return new Response(
-        JSON.stringify({ error: "Failed to analyze code" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (!response.body) {
-      throw new Error("Empty stream from AI");
-    }
-
-    // Parse Anthropic SSE stream and accumulate text deltas.
-    let content = "";
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-
-      const lines = buffer.split("\n");
-      buffer = lines.pop() ?? "";
-
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed.startsWith("data:")) continue;
-        const data = trimmed.slice(5).trim();
-        if (!data || data === "[DONE]") continue;
-        try {
-          const event = JSON.parse(data);
-          if (
-            event.type === "content_block_delta" &&
-            event.delta?.type === "text_delta" &&
-            typeof event.delta.text === "string"
-          ) {
-            content += event.delta.text;
-          } else if (event.type === "message_stop") {
-            // end of message
-          } else if (event.type === "error") {
-            console.error("Anthropic stream error:", event);
-            throw new Error(event.error?.message || "Anthropic stream error");
-          }
-        } catch (e) {
-          // Ignore malformed SSE chunks (keep-alives, partial JSON in buffer edges)
-        }
-      }
-    }
-
-    if (!content) {
-      throw new Error("Empty response from AI");
-    }
-
-    // Parse the JSON response (strip code fences if Claude wraps the output)
-    let analysisResult;
-    try {
-      let jsonText = content.trim();
-      // Strip ```json ... ``` or ``` ... ``` wrappers if present
-      const fenceMatch = jsonText.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
-      if (fenceMatch) jsonText = fenceMatch[1].trim();
-      // If there's extra text, extract the first {...} block
-      if (!jsonText.startsWith("{")) {
-        const firstBrace = jsonText.indexOf("{");
-        const lastBrace = jsonText.lastIndexOf("}");
-        if (firstBrace !== -1 && lastBrace > firstBrace) {
-          jsonText = jsonText.slice(firstBrace, lastBrace + 1);
-        }
-      }
-      analysisResult = JSON.parse(jsonText);
-    } catch {
-      console.error("Failed to parse AI response:", content);
-      throw new Error("Invalid response format from AI");
-    }
-
-    // Add post-processing for benchmarking and deployment context
-    // These are calculated on the client side using the services
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        analysis: analysisResult,
-        timestamp: new Date().toISOString(),
-        projectName: projectName || "Uploaded Project",
-        scanVersion: 2,
-        detectedCategory,
-        previousScanTimestamp: previousScan?.timestamp || null,
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(stream, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json",
+        "Cache-Control": "no-cache",
+        "X-Accel-Buffering": "no",
+      },
+    });
   } catch (error) {
     console.error("analyze-code error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
