@@ -154,8 +154,8 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                   </span>
                 ))}
                 <span className={cn(
-                  'text-[10px] text-muted-foreground uppercase tracking-widest',
-                  isVibe ? 'font-sans' : 'font-mono'
+                  'text-muted-foreground',
+                  isVibe ? 'text-xs font-sans' : 'text-[10px] font-mono uppercase tracking-widest'
                 )}>
                   {isVibe ? displayCategory : `[${displayCategory.toUpperCase()}]`}
                 </span>
