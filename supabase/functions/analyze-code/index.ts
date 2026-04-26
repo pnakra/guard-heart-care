@@ -949,10 +949,18 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
         } catch (error) {
           console.error("analyze-code stream error:", error);
           const errorMessage = error instanceof Error ? error.message : "Unknown error";
-          sendJson({ error: errorMessage });
+          try {
+            sendJson({ error: errorMessage });
+          } catch (sendError) {
+            console.error("Failed to send analyze-code error response:", sendError);
+          }
         } finally {
           clearInterval(keepAlive);
-          controller.close();
+          try {
+            controller.close();
+          } catch {
+            // Client disconnected after the analysis finished or failed.
+          }
         }
       },
     });
