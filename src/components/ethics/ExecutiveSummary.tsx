@@ -188,38 +188,57 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="text-center cursor-help">
-                    <div className={cn('text-5xl font-mono font-bold tabular-nums', styles.text)}>
+                    <div className={cn(
+                      'text-5xl font-bold tabular-nums',
+                      isVibe ? 'font-sans' : 'font-mono',
+                      styles.text,
+                    )}>
                       {displayGFS}
                     </div>
                     <div className="flex items-center justify-center gap-1 mt-1">
-                      <span className={cn('font-mono text-[10px] font-semibold px-2 py-0.5 rounded', styles.badge)}>
+                      <span className={cn(
+                        'text-[10px] font-semibold px-2 py-0.5 rounded',
+                        isVibe ? 'font-sans' : 'font-mono',
+                        styles.badge,
+                      )}>
                         {bandLabel}
                       </span>
                       <Info size={12} className="text-muted-foreground" />
                     </div>
-                    <p className="font-mono text-[10px] text-muted-foreground mt-0.5">
-                      {isAdjusted ? 'adj_gfs / 100' : 'gfs / 100'}
+                    <p className={cn(
+                      'text-[10px] text-muted-foreground mt-0.5',
+                      isVibe ? 'font-sans' : 'font-mono',
+                    )}>
+                      {isVibe
+                        ? `${isAdjusted ? 'Adjusted score' : 'Risk score'} (out of 100)`
+                        : (isAdjusted ? 'adj_gfs / 100' : 'gfs / 100')}
                     </p>
                   </div>
                 </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-[260px] text-center">
+                <TooltipContent side="bottom" className="max-w-[280px] text-center">
                   <p className="text-xs">
-                    {isAdjusted
-                      ? `Adjusted from ${gfs} → ${displayGFS} after excluding accepted-risk and won't-fix issues. Composite score factoring risk severity, deployment context, and population vulnerability.`
-                      : 'Composite score factoring risk severity, deployment context, and population vulnerability'}
+                    {isVibe
+                      ? (isAdjusted
+                          ? `Started at ${gfs}, now ${displayGFS} after setting some issues aside as "won't fix" or "accepted risk." Lower is better — this score combines how serious the risks are, where the app will run, and how vulnerable the people using it might be.`
+                          : `Lower is better. This score combines how serious the risks are, where your app will run, and how vulnerable the people using it might be.`)
+                      : (isAdjusted
+                          ? `Adjusted from ${gfs} → ${displayGFS} after excluding accepted-risk and won't-fix issues. Composite score factoring risk severity, deployment context, and population vulnerability.`
+                          : 'Composite score factoring risk severity, deployment context, and population vulnerability')}
                   </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
 
             {/* Issue counts */}
-            <div className="flex gap-4 text-sm font-mono">
+            <div className={cn('flex gap-4 text-sm', isVibe ? 'font-sans' : 'font-mono')}>
               {summary.criticalCount > 0 && (
                 <div className="text-center">
                   <div className="text-2xl font-bold text-[hsl(var(--ethics-critical))]">
                     {summary.criticalCount}
                   </div>
-                  <p className="text-[10px] text-muted-foreground">CRIT</p>
+                  <p className={cn('text-muted-foreground', isVibe ? 'text-[11px]' : 'text-[10px]')}>
+                    {isVibe ? 'Critical' : 'CRIT'}
+                  </p>
                 </div>
               )}
               {summary.highCount > 0 && (
@@ -227,14 +246,18 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                   <div className="text-2xl font-bold text-[hsl(var(--ethics-high))]">
                     {summary.highCount}
                   </div>
-                  <p className="text-[10px] text-muted-foreground">HIGH</p>
+                  <p className={cn('text-muted-foreground', isVibe ? 'text-[11px]' : 'text-[10px]')}>
+                    {isVibe ? 'High' : 'HIGH'}
+                  </p>
                 </div>
               )}
               <div className="text-center">
                 <div className="text-2xl font-bold text-foreground">
                   {summary.totalIssueCount}
                 </div>
-                <p className="text-[10px] text-muted-foreground">TOTAL</p>
+                <p className={cn('text-muted-foreground', isVibe ? 'text-[11px]' : 'text-[10px]')}>
+                  {isVibe ? 'Total findings' : 'TOTAL'}
+                </p>
               </div>
             </div>
           </div>
@@ -244,11 +267,19 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
         {totalIssues > 0 && (
           <div className="mt-4 pt-4 border-t border-border/30">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="font-mono text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
-                triage_progress
+              <span className={cn(
+                'text-[10px] font-medium text-muted-foreground tracking-widest',
+                isVibe ? 'font-sans' : 'font-mono uppercase',
+              )}>
+                {isVibe ? 'Review progress' : 'triage_progress'}
               </span>
-              <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
-                {reviewedCount}/{totalIssues} ({triagePercent}%)
+              <span className={cn(
+                'text-[10px] text-muted-foreground tabular-nums',
+                isVibe ? 'font-sans' : 'font-mono',
+              )}>
+                {isVibe
+                  ? `${reviewedCount} of ${totalIssues} reviewed (${triagePercent}%)`
+                  : `${reviewedCount}/${totalIssues} (${triagePercent}%)`}
               </span>
             </div>
             <div className="h-2 bg-secondary rounded-full overflow-hidden">
@@ -272,7 +303,9 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
           <div className="mt-3 flex items-center gap-2 text-xs text-[hsl(var(--ethics-medium))]">
             <AlertTriangle size={12} />
             <span>
-              {lowConfidenceCount} {lowConfidenceCount === 1 ? 'issue' : 'issues'} flagged for human review due to low confidence
+              {isVibe
+                ? `${lowConfidenceCount} ${lowConfidenceCount === 1 ? 'finding needs' : 'findings need'} a human eye — the AI wasn't fully confident.`
+                : `${lowConfidenceCount} ${lowConfidenceCount === 1 ? 'issue' : 'issues'} flagged for human review due to low confidence`}
             </span>
           </div>
         )}
