@@ -748,21 +748,12 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
             throw new Error("Empty response from AI");
           }
 
-          // Parse the JSON response (strip code fences if Claude wraps the output)
+          // Parse the JSON response even if Claude wraps it in markdown or appends notes.
           let analysisResult;
           try {
-            let jsonText = content.trim();
-            const fenceMatch = jsonText.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
-            if (fenceMatch) jsonText = fenceMatch[1].trim();
-            if (!jsonText.startsWith("{")) {
-              const firstBrace = jsonText.indexOf("{");
-              const lastBrace = jsonText.lastIndexOf("}");
-              if (firstBrace !== -1 && lastBrace > firstBrace) {
-                jsonText = jsonText.slice(firstBrace, lastBrace + 1);
-              }
-            }
-            analysisResult = JSON.parse(jsonText);
-          } catch {
+            analysisResult = extractJsonObject(content);
+          } catch (parseError) {
+            console.error("AI response parse error:", parseError);
             console.error("Failed to parse AI response:", content);
             throw new Error("Invalid response format from AI");
           }
