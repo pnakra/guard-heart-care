@@ -509,6 +509,60 @@ function getVerticalProfilePrompt(category: string): string {
   return `\n\nVERTICAL RISK PROFILE (${category.toUpperCase()}):\n${JSON.stringify(profile, null, 2)}\n\nApply this profile: weight the elevated categories more heavily, actively scan for the additional harm patterns listed, and check whether the standard mitigations are present. Consider the population notes when assessing severity.`;
 }
 
+function extractJsonObject(raw: string): unknown {
+  let cleaned = raw
+    .replace(/^\uFEFF/, "")
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/```\s*$/i, "")
+    .trim();
+
+  const firstBrace = cleaned.indexOf("{");
+  if (firstBrace === -1) {
+    throw new Error("No JSON object found in AI response");
+  }
+
+  cleaned = cleaned.slice(firstBrace);
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  let endIndex = -1;
+
+  for (let i = 0; i < cleaned.length; i++) {
+    const char = cleaned[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+    if (char === "{") depth++;
+    if (char === "}") depth--;
+    if (depth === 0) {
+      endIndex = i;
+      break;
+    }
+  }
+
+  if (endIndex === -1) {
+    throw new Error("AI response ended before the JSON object was complete");
+  }
+
+  const jsonText = cleaned
+    .slice(0, endIndex + 1)
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+    .replace(/,\s*([}\]])/g, "$1");
+
+  return JSON.parse(jsonText);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -694,21 +748,12 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
             throw new Error("Empty response from AI");
           }
 
-          // Parse the JSON response (strip code fences if Claude wraps the output)
+          // Parse the JSON response even if Claude wraps it in markdown or appends notes.
           let analysisResult;
           try {
-            let jsonText = content.trim();
-            const fenceMatch = jsonText.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
-            if (fenceMatch) jsonText = fenceMatch[1].trim();
-            if (!jsonText.startsWith("{")) {
-              const firstBrace = jsonText.indexOf("{");
-              const lastBrace = jsonText.lastIndexOf("}");
-              if (firstBrace !== -1 && lastBrace > firstBrace) {
-                jsonText = jsonText.slice(firstBrace, lastBrace + 1);
-              }
-            }
-            analysisResult = JSON.parse(jsonText);
-          } catch {
+            analysisResult = extractJsonObject(content);
+          } catch (parseError) {
+            console.error("AI response parse error:", parseError);
             console.error("Failed to parse AI response:", content);
             throw new Error("Invalid response format from AI");
           }
