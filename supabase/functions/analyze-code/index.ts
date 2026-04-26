@@ -849,7 +849,6 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
             analysis.misuseScenarios = Array.isArray(analysis.misuseScenarios) ? analysis.misuseScenarios : [];
             analysis.issues = Array.isArray(analysis.issues) ? analysis.issues : [];
           } catch (normalizationError) {
-            console.error("AI response parse error:", parseError);
             console.error("Failed to parse AI response:", content);
             console.error("AI response normalization error:", normalizationError);
             throw new Error("Invalid response format from AI");
