@@ -5,6 +5,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const MAX_PROMPT_FILES = 80;
+const MAX_CHARS_PER_FILE = 6_000;
+const MAX_TOTAL_FILE_CHARS = 90_000;
+
 const ANALYSIS_PROMPT = `You are an ethical misuse-by-design scanner v2.0 for web applications. Your role is to identify how product features could be weaponized to harm people—even when the code works exactly as intended.
 
 ## What You Are NOT
