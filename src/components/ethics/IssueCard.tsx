@@ -307,7 +307,7 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                 <div className="mt-2 ml-5 p-2.5 rounded-lg bg-primary/5 border border-primary/15 flex items-start gap-2">
                   <Info size={13} className="text-primary shrink-0 mt-0.5" />
                   <p className="text-xs text-muted-foreground">
-                    For a plain-language fix, use the <strong className="text-foreground">'Copy fix prompt'</strong> button and paste into your AI tool.
+                    Use the <strong className="text-foreground">'Copy fix instructions'</strong> button below and paste it into your AI builder (like Lovable, Cursor, or ChatGPT) — it'll do the technical work for you.
                   </p>
                 </div>
               )}
