@@ -601,6 +601,9 @@ ${filesContent}
 
 IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No markdown code fences, no commentary before or after — just the raw JSON object starting with { and ending with }.`;
 
+    // Use streaming so the long-running Anthropic call doesn't drop the
+    // edge-function connection ("connection closed before message completed").
+    // We collect the streamed text on the server and return a single JSON payload.
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -610,7 +613,8 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-5",
-        max_tokens: 16000,
+        max_tokens: 8000,
+        stream: true,
         system: ANALYSIS_PROMPT,
         messages: [
           { role: "user", content: userPrompt },
@@ -639,12 +643,48 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
       );
     }
 
-    const aiResponse = await response.json();
-    // Anthropic returns { content: [{ type: "text", text: "..." }, ...] }
-    const content = aiResponse.content
-      ?.filter((block: any) => block.type === "text")
-      .map((block: any) => block.text)
-      .join("");
+    if (!response.body) {
+      throw new Error("Empty stream from AI");
+    }
+
+    // Parse Anthropic SSE stream and accumulate text deltas.
+    let content = "";
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith("data:")) continue;
+        const data = trimmed.slice(5).trim();
+        if (!data || data === "[DONE]") continue;
+        try {
+          const event = JSON.parse(data);
+          if (
+            event.type === "content_block_delta" &&
+            event.delta?.type === "text_delta" &&
+            typeof event.delta.text === "string"
+          ) {
+            content += event.delta.text;
+          } else if (event.type === "message_stop") {
+            // end of message
+          } else if (event.type === "error") {
+            console.error("Anthropic stream error:", event);
+            throw new Error(event.error?.message || "Anthropic stream error");
+          }
+        } catch (e) {
+          // Ignore malformed SSE chunks (keep-alives, partial JSON in buffer edges)
+        }
+      }
+    }
 
     if (!content) {
       throw new Error("Empty response from AI");
