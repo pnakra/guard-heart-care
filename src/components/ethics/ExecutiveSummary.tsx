@@ -68,6 +68,7 @@ const gfsBandStyles = {
 };
 
 export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, detectedCategory, issueIds = [], lowConfidenceCount = 0, onRescanWithCategory, isRescanning = false }: ExecutiveSummaryProps) {
+  const { isVibe } = useMode();
   const hasTopRisks = summary.topThreeRisks && summary.topThreeRisks.length > 0;
   const [categoryOverride, setCategoryOverride] = useState<string | null>(null);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
