@@ -100,10 +100,10 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
 
   const handleCopyPrompt = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const prompt = generateFixPrompt(issue);
+    const prompt = generateFixPrompt(issue, { plainLanguage: isVibe });
     navigator.clipboard.writeText(prompt);
     setCopiedPrompt(true);
-    toast.success('Fix prompt copied to clipboard');
+    toast.success(isVibe ? 'Fix instructions copied — paste into your AI builder' : 'Fix prompt copied to clipboard');
     setTimeout(() => setCopiedPrompt(false), 2000);
   };
 
