@@ -25,6 +25,7 @@ const severityConfig = {
 };
 
 function ScenarioCard({ scenario }: { scenario: MisuseScenario }) {
+  const { isVibe } = useMode();
   const [isExpanded, setIsExpanded] = useState(false);
   const config = severityConfig[scenario.severity];
   const relatedCapabilities = scenario.capabilities
