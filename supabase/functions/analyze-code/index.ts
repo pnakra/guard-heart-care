@@ -909,7 +909,13 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
               const retryResult = await readAnthropicStream(response.body);
               content = retryResult.content;
               stopReason = retryResult.stopReason;
-              analysisResult = extractJsonObject(content);
+              try {
+                analysisResult = extractJsonObject(content);
+              } catch (retryParseError) {
+                console.error("AI retry response parse error:", retryParseError);
+                console.error("Failed to parse retry AI response:", content);
+                analysisResult = buildFallbackAnalysis(boundedFiles, detectedCategory);
+              }
             } else {
               throw parseError;
             }
