@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { MisuseScenario, DetectedCapability, getCapabilityById } from '@/data/mockMisuseData';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, ChevronRight, Shield, Lightbulb, ExternalLink } from 'lucide-react';
+import { useMode } from '@/contexts/ModeContext';
 
 interface MisuseScenariosProps {
   scenarios: MisuseScenario[];
