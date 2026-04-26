@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { MisuseScenario, DetectedCapability, getCapabilityById } from '@/data/mockMisuseData';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, ChevronRight, Shield, Lightbulb, ExternalLink } from 'lucide-react';
+import { useMode } from '@/contexts/ModeContext';
 
 interface MisuseScenariosProps {
   scenarios: MisuseScenario[];
@@ -24,6 +25,7 @@ const severityConfig = {
 };
 
 function ScenarioCard({ scenario }: { scenario: MisuseScenario }) {
+  const { isVibe } = useMode();
   const [isExpanded, setIsExpanded] = useState(false);
   const config = severityConfig[scenario.severity];
   const relatedCapabilities = scenario.capabilities
@@ -84,7 +86,7 @@ function ScenarioCard({ scenario }: { scenario: MisuseScenario }) {
             {/* Enabling capabilities */}
             <div>
               <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                Enabled by these capabilities
+                {isVibe ? 'Made possible by these features' : 'Enabled by these capabilities'}
               </h5>
               <div className="flex flex-wrap gap-2">
                 {relatedCapabilities.map(cap => (
@@ -108,7 +110,7 @@ function ScenarioCard({ scenario }: { scenario: MisuseScenario }) {
                   <ExternalLink size={14} className="shrink-0 mt-0.5 text-muted-foreground" />
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                      Real-world precedent
+                      {isVibe ? 'This has happened before' : 'Real-world precedent'}
                     </p>
                     <p className="text-sm text-foreground">
                       {scenario.realWorldExample}
@@ -123,7 +125,7 @@ function ScenarioCard({ scenario }: { scenario: MisuseScenario }) {
               <div className="flex items-center gap-2 mb-2">
                 <Shield size={14} className="text-[hsl(var(--ethics-safe))]" />
                 <h5 className="text-sm font-medium text-foreground">
-                  Recommended mitigations
+                  {isVibe ? 'Things you can do about it' : 'Recommended mitigations'}
                 </h5>
               </div>
               <ul className="space-y-2">
@@ -143,6 +145,7 @@ function ScenarioCard({ scenario }: { scenario: MisuseScenario }) {
 }
 
 export function MisuseScenarios({ scenarios, capabilities }: MisuseScenariosProps) {
+  const { isVibe } = useMode();
   const criticalCount = scenarios.filter(s => s.severity === 'critical').length;
   const highCount = scenarios.filter(s => s.severity === 'high').length;
 
@@ -162,13 +165,19 @@ export function MisuseScenarios({ scenarios, capabilities }: MisuseScenariosProp
           )} />
           <div>
             <p className="font-medium text-foreground">
-              {criticalCount > 0 
-                ? `${criticalCount} critical misuse scenario${criticalCount > 1 ? 's' : ''} detected`
-                : `${highCount} high-risk misuse scenario${highCount > 1 ? 's' : ''} detected`
+              {isVibe
+                ? (criticalCount > 0
+                    ? `${criticalCount} critical way${criticalCount > 1 ? 's' : ''} this app could be misused`
+                    : `${highCount} high-risk way${highCount > 1 ? 's' : ''} this app could be misused`)
+                : (criticalCount > 0
+                    ? `${criticalCount} critical misuse scenario${criticalCount > 1 ? 's' : ''} detected`
+                    : `${highCount} high-risk misuse scenario${highCount > 1 ? 's' : ''} detected`)
               }
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Based on {capabilities.length} detected capabilities, we've identified how bad actors could misuse this application.
+              {isVibe
+                ? `We looked at ${capabilities.length} feature${capabilities.length === 1 ? '' : 's'} in your app and worked out how someone with bad intentions could combine them to cause harm.`
+                : `Based on ${capabilities.length} detected capabilities, we've identified how bad actors could misuse this application.`}
             </p>
           </div>
         </div>
@@ -176,9 +185,14 @@ export function MisuseScenarios({ scenarios, capabilities }: MisuseScenariosProp
 
       {/* Detected capabilities summary */}
       <div className="p-4 bg-secondary/50 rounded-lg border border-border">
-        <h4 className="text-sm font-medium text-foreground mb-3">
-          Detected Capabilities
+        <h4 className="text-sm font-medium text-foreground mb-1">
+          {isVibe ? 'Features we found in your app' : 'Detected Capabilities'}
         </h4>
+        {isVibe && (
+          <p className="text-xs text-muted-foreground mb-3">
+            These are the building blocks the misuse scenarios below are based on.
+          </p>
+        )}
         <div className="flex flex-wrap gap-2">
           {capabilities.map(cap => (
             <span 

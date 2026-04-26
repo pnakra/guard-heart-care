@@ -7,6 +7,7 @@ import { AlertTriangle, Clock, TrendingUp, Info, Pencil, ShieldCheck, RefreshCw,
 import { calculateGFS, calculateAdjustedGFS, getGFSBand, getGFSLabel } from '@/services/gfsCalculator';
 import { AppCategory, getAppCategoryLabel } from '@/services/categoryDetector';
 import { useIssueStatus, REVIEWED_STATUSES } from '@/contexts/IssueStatusContext';
+import { useMode } from '@/contexts/ModeContext';
 import {
   Tooltip,
   TooltipContent,
@@ -67,6 +68,7 @@ const gfsBandStyles = {
 };
 
 export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, detectedCategory, issueIds = [], lowConfidenceCount = 0, onRescanWithCategory, isRescanning = false }: ExecutiveSummaryProps) {
+  const { isVibe } = useMode();
   const hasTopRisks = summary.topThreeRisks && summary.topThreeRisks.length > 0;
   const [categoryOverride, setCategoryOverride] = useState<string | null>(null);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
@@ -101,8 +103,11 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="font-mono text-xl font-semibold text-foreground tracking-tight">
-                Ground Floor Check
+              <h2 className={cn(
+                'text-xl font-semibold text-foreground tracking-tight',
+                isVibe ? 'font-sans' : 'font-mono'
+              )}>
+                {isVibe ? 'Your ethics review' : 'Ground Floor Check'}
               </h2>
               {(activeCategory !== 'unknown' || onRescanWithCategory) && (
                 <>
@@ -134,7 +139,9 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                         onClick={() => setIsEditingCategory(true)}
                         className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
                       >
-                        {activeCategory === 'unknown' ? 'Set category' : `Detected: ${categoryLabel}`}
+                        {activeCategory === 'unknown'
+                          ? (isVibe ? 'Set app type' : 'Set category')
+                          : `${isVibe ? 'App type' : 'Detected'}: ${categoryLabel}`}
                         <Pencil size={10} />
                       </button>
                     )}
@@ -152,24 +159,26 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                         ) : (
                           <RefreshCw size={10} />
                         )}
-                        Rescan with this category
+                        {isVibe ? 'Re-run with this type' : 'Rescan with this category'}
                       </button>
                     )}
                   </div>
                   {activeCategory !== 'unknown' && activeCategory !== 'general' && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-accent text-accent-foreground border border-border">
                       <ShieldCheck size={10} />
-                      Risk Profile Active
+                      {isVibe ? 'Tailored to this app type' : 'Risk Profile Active'}
                     </span>
                   )}
                 </>
               )}
             </div>
-            <p className="font-mono text-sm text-muted-foreground">
+            <p className={cn('text-sm text-muted-foreground', isVibe ? 'font-sans' : 'font-mono')}>
               {projectName}
             </p>
-            <p className="font-mono text-[10px] text-muted-foreground tabular-nums">
-              scanned: {new Date(timestamp).toISOString()}
+            <p className={cn('text-[10px] text-muted-foreground tabular-nums', isVibe ? 'font-sans' : 'font-mono')}>
+              {isVibe
+                ? `Reviewed ${new Date(timestamp).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}`
+                : `scanned: ${new Date(timestamp).toISOString()}`}
             </p>
           </div>
 
@@ -179,38 +188,57 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="text-center cursor-help">
-                    <div className={cn('text-5xl font-mono font-bold tabular-nums', styles.text)}>
+                    <div className={cn(
+                      'text-5xl font-bold tabular-nums',
+                      isVibe ? 'font-sans' : 'font-mono',
+                      styles.text,
+                    )}>
                       {displayGFS}
                     </div>
                     <div className="flex items-center justify-center gap-1 mt-1">
-                      <span className={cn('font-mono text-[10px] font-semibold px-2 py-0.5 rounded', styles.badge)}>
+                      <span className={cn(
+                        'text-[10px] font-semibold px-2 py-0.5 rounded',
+                        isVibe ? 'font-sans' : 'font-mono',
+                        styles.badge,
+                      )}>
                         {bandLabel}
                       </span>
                       <Info size={12} className="text-muted-foreground" />
                     </div>
-                    <p className="font-mono text-[10px] text-muted-foreground mt-0.5">
-                      {isAdjusted ? 'adj_gfs / 100' : 'gfs / 100'}
+                    <p className={cn(
+                      'text-[10px] text-muted-foreground mt-0.5',
+                      isVibe ? 'font-sans' : 'font-mono',
+                    )}>
+                      {isVibe
+                        ? `${isAdjusted ? 'Adjusted score' : 'Risk score'} (out of 100)`
+                        : (isAdjusted ? 'adj_gfs / 100' : 'gfs / 100')}
                     </p>
                   </div>
                 </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-[260px] text-center">
+                <TooltipContent side="bottom" className="max-w-[280px] text-center">
                   <p className="text-xs">
-                    {isAdjusted
-                      ? `Adjusted from ${gfs} → ${displayGFS} after excluding accepted-risk and won't-fix issues. Composite score factoring risk severity, deployment context, and population vulnerability.`
-                      : 'Composite score factoring risk severity, deployment context, and population vulnerability'}
+                    {isVibe
+                      ? (isAdjusted
+                          ? `Started at ${gfs}, now ${displayGFS} after setting some issues aside as "won't fix" or "accepted risk." Lower is better — this score combines how serious the risks are, where the app will run, and how vulnerable the people using it might be.`
+                          : `Lower is better. This score combines how serious the risks are, where your app will run, and how vulnerable the people using it might be.`)
+                      : (isAdjusted
+                          ? `Adjusted from ${gfs} → ${displayGFS} after excluding accepted-risk and won't-fix issues. Composite score factoring risk severity, deployment context, and population vulnerability.`
+                          : 'Composite score factoring risk severity, deployment context, and population vulnerability')}
                   </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
 
             {/* Issue counts */}
-            <div className="flex gap-4 text-sm font-mono">
+            <div className={cn('flex gap-4 text-sm', isVibe ? 'font-sans' : 'font-mono')}>
               {summary.criticalCount > 0 && (
                 <div className="text-center">
                   <div className="text-2xl font-bold text-[hsl(var(--ethics-critical))]">
                     {summary.criticalCount}
                   </div>
-                  <p className="text-[10px] text-muted-foreground">CRIT</p>
+                  <p className={cn('text-muted-foreground', isVibe ? 'text-[11px]' : 'text-[10px]')}>
+                    {isVibe ? 'Critical' : 'CRIT'}
+                  </p>
                 </div>
               )}
               {summary.highCount > 0 && (
@@ -218,14 +246,18 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                   <div className="text-2xl font-bold text-[hsl(var(--ethics-high))]">
                     {summary.highCount}
                   </div>
-                  <p className="text-[10px] text-muted-foreground">HIGH</p>
+                  <p className={cn('text-muted-foreground', isVibe ? 'text-[11px]' : 'text-[10px]')}>
+                    {isVibe ? 'High' : 'HIGH'}
+                  </p>
                 </div>
               )}
               <div className="text-center">
                 <div className="text-2xl font-bold text-foreground">
                   {summary.totalIssueCount}
                 </div>
-                <p className="text-[10px] text-muted-foreground">TOTAL</p>
+                <p className={cn('text-muted-foreground', isVibe ? 'text-[11px]' : 'text-[10px]')}>
+                  {isVibe ? 'Total findings' : 'TOTAL'}
+                </p>
               </div>
             </div>
           </div>
@@ -235,11 +267,19 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
         {totalIssues > 0 && (
           <div className="mt-4 pt-4 border-t border-border/30">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="font-mono text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
-                triage_progress
+              <span className={cn(
+                'text-[10px] font-medium text-muted-foreground tracking-widest',
+                isVibe ? 'font-sans' : 'font-mono uppercase',
+              )}>
+                {isVibe ? 'Review progress' : 'triage_progress'}
               </span>
-              <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
-                {reviewedCount}/{totalIssues} ({triagePercent}%)
+              <span className={cn(
+                'text-[10px] text-muted-foreground tabular-nums',
+                isVibe ? 'font-sans' : 'font-mono',
+              )}>
+                {isVibe
+                  ? `${reviewedCount} of ${totalIssues} reviewed (${triagePercent}%)`
+                  : `${reviewedCount}/${totalIssues} (${triagePercent}%)`}
               </span>
             </div>
             <div className="h-2 bg-secondary rounded-full overflow-hidden">
@@ -263,7 +303,9 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
           <div className="mt-3 flex items-center gap-2 text-xs text-[hsl(var(--ethics-medium))]">
             <AlertTriangle size={12} />
             <span>
-              {lowConfidenceCount} {lowConfidenceCount === 1 ? 'issue' : 'issues'} flagged for human review due to low confidence
+              {isVibe
+                ? `${lowConfidenceCount} ${lowConfidenceCount === 1 ? 'finding needs' : 'findings need'} a human eye — the AI wasn't fully confident.`
+                : `${lowConfidenceCount} ${lowConfidenceCount === 1 ? 'issue' : 'issues'} flagged for human review due to low confidence`}
             </span>
           </div>
         )}
@@ -272,9 +314,12 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
       {/* Top 3 Risks */}
       {hasTopRisks && (
         <div className="space-y-3">
-          <h3 className="font-mono font-medium text-[11px] text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+          <h3 className={cn(
+            'font-medium text-[11px] text-muted-foreground tracking-widest flex items-center gap-2',
+            isVibe ? 'font-sans' : 'font-mono uppercase',
+          )}>
             <AlertTriangle size={14} />
-            top_risks // fix before shipping
+            {isVibe ? 'Top risks to fix before launch' : 'top_risks // fix before shipping'}
           </h3>
 
           <div className="grid gap-3">
@@ -321,9 +366,13 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
       {!hasTopRisks && summary.totalIssueCount === 0 && (
         <div className="p-6 rounded-lg bg-[hsl(var(--ethics-safe)/0.1)] border border-[hsl(var(--ethics-safe)/0.3)] text-center">
           <TrendingUp className="w-8 h-8 text-[hsl(var(--ethics-safe))] mx-auto mb-2" />
-          <h3 className="font-medium text-foreground">No misuse-by-design patterns detected</h3>
+          <h3 className="font-medium text-foreground">
+            {isVibe ? 'No ethical concerns spotted' : 'No misuse-by-design patterns detected'}
+          </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            This codebase appears to be free of harmful affordances. Continue to scan after making changes.
+            {isVibe
+              ? 'Your app looks clean from an ethical-design perspective. Re-run a check whenever you make changes.'
+              : 'This codebase appears to be free of harmful affordances. Continue to scan after making changes.'}
           </p>
         </div>
       )}

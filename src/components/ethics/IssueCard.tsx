@@ -10,7 +10,7 @@ import { getTemplatesForType, generateFixPrompt, MitigationType } from '@/data/r
 import { toast } from 'sonner';
 import { useIssueStatus, IssueStatus, ISSUE_STATUS_CONFIG } from '@/contexts/IssueStatusContext';
 import { useMode } from '@/contexts/ModeContext';
-import { PLAIN_CATEGORY_LABELS, getPlainTitle } from '@/data/plainLanguageMap';
+import { PLAIN_CATEGORY_LABELS, PLAIN_MITIGATION_TYPE_LABELS, getPlainTitle } from '@/data/plainLanguageMap';
 import {
   Select,
   SelectContent,
@@ -100,10 +100,10 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
 
   const handleCopyPrompt = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const prompt = generateFixPrompt(issue);
+    const prompt = generateFixPrompt(issue, { plainLanguage: isVibe });
     navigator.clipboard.writeText(prompt);
     setCopiedPrompt(true);
-    toast.success('Fix prompt copied to clipboard');
+    toast.success(isVibe ? 'Fix instructions copied — paste into your AI builder' : 'Fix prompt copied to clipboard');
     setTimeout(() => setCopiedPrompt(false), 2000);
   };
 
@@ -143,7 +143,7 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                     {confidenceBadge.label}
                   </span>
                 )}
-                {issue.customRule && (
+                {!isVibe && issue.customRule && (
                   <span className="text-xs px-1.5 py-0.5 rounded-full border bg-primary/10 text-primary border-primary/20">
                     Custom Rule{issue.customRuleName ? `: ${issue.customRuleName}` : ''}
                   </span>
@@ -154,8 +154,8 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                   </span>
                 ))}
                 <span className={cn(
-                  'text-[10px] text-muted-foreground uppercase tracking-widest',
-                  isVibe ? 'font-sans' : 'font-mono'
+                  'text-muted-foreground',
+                  isVibe ? 'text-xs font-sans' : 'text-[10px] font-mono uppercase tracking-widest'
                 )}>
                   {isVibe ? displayCategory : `[${displayCategory.toUpperCase()}]`}
                 </span>
@@ -257,7 +257,7 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                   <AlertCircle size={14} className="shrink-0 mt-0.5 text-[hsl(var(--ethics-high))]" />
                   <div>
                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                       Misuse Scenario
+                       {isVibe ? 'How this could be misused' : 'Misuse Scenario'}
                      </p>
                      <p className={cn(
                        'text-sm text-foreground',
@@ -276,7 +276,7 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                 <HelpCircle size={14} className="shrink-0 mt-0.5 text-muted-foreground" />
                 <div>
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                    Why This Is Misuse-by-Design
+                    {isVibe ? 'Why this is a problem' : 'Why This Is Misuse-by-Design'}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {issue.whyMisuseByDesign}
@@ -290,11 +290,13 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
               <div className="flex items-center gap-2 mb-1">
                 <Lightbulb size={14} className="text-primary" />
                 <h5 className="text-sm font-medium text-foreground">
-                  Mitigation
+                  {isVibe ? 'How to fix it' : 'Mitigation'}
                 </h5>
-                {!isVibe && issue.mitigationType && (
+                {issue.mitigationType && (
                   <span className="text-xs px-1.5 py-0.5 bg-secondary rounded text-muted-foreground">
-                    {mitigationTypeLabels[issue.mitigationType]}
+                    {isVibe
+                      ? PLAIN_MITIGATION_TYPE_LABELS[issue.mitigationType] || mitigationTypeLabels[issue.mitigationType]
+                      : mitigationTypeLabels[issue.mitigationType]}
                   </span>
                 )}
               </div>
@@ -305,7 +307,7 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                 <div className="mt-2 ml-5 p-2.5 rounded-lg bg-primary/5 border border-primary/15 flex items-start gap-2">
                   <Info size={13} className="text-primary shrink-0 mt-0.5" />
                   <p className="text-xs text-muted-foreground">
-                    For a plain-language fix, use the <strong className="text-foreground">'Copy fix prompt'</strong> button and paste into your AI tool.
+                    Use the <strong className="text-foreground">'Copy fix instructions'</strong> button below and paste it into your AI builder (like Lovable, Cursor, or ChatGPT) — it'll do the technical work for you.
                   </p>
                 </div>
               )}
@@ -336,25 +338,8 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                 )}
               </div>
             ) : (
-              issue.codeChanges && issue.codeChanges.length > 0 && (
-                <div className="pl-5">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setShowDiff(!showDiff); }}
-                    className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors w-full"
-                  >
-                    <Code2 size={14} />
-                    <span>View code changes ({issue.codeChanges.length})</span>
-                    {showDiff ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                  </button>
-                  {showDiff && (
-                    <div className="mt-2 space-y-3">
-                      {issue.codeChanges.map((change, i) => (
-                        <DiffViewer key={i} codeChange={change} />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )
+              // In vibe mode, code diffs are hidden — non-technical users don't need them.
+              null
             )}
 
             {/* Prompt-Ready Fix — larger CTA in vibe mode */}
@@ -369,7 +354,7 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                 )}
               >
                 <Wand2 size={isVibe ? 16 : 14} />
-                <span>{isVibe ? 'Copy fix prompt' : 'Prompt-Ready Fix'}</span>
+                <span>{isVibe ? 'Copy fix instructions' : 'Prompt-Ready Fix'}</span>
                 {!isVibe && (
                   <span className="ml-auto">
                     {copiedPrompt ? <Check size={14} className="text-[hsl(var(--ethics-safe))]" /> : <Copy size={14} className="text-muted-foreground" />}
@@ -377,6 +362,11 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                 )}
                 {isVibe && copiedPrompt && <Check size={16} />}
               </button>
+              {isVibe && (
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  Paste the copied instructions into your AI builder to apply the fix.
+                </p>
+              )}
               {!isVibe && (
                 <div
                   onClick={handleCopyPrompt}
@@ -389,8 +379,8 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
               )}
             </div>
 
-            {/* Template Library */}
-            {issue.mitigationType && getTemplatesForType(issue.mitigationType as MitigationType).length > 0 && (
+            {/* Template Library — dev mode only (technical code snippets) */}
+            {!isVibe && issue.mitigationType && getTemplatesForType(issue.mitigationType as MitigationType).length > 0 && (
               <div className="border-t border-border/50 pt-3">
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowTemplates(!showTemplates); }}
@@ -443,7 +433,7 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
             )}
 
             {/* Confidence Section — collapsed by default in vibe, same behavior in dev */}
-            {confidence && (
+            {!isVibe && confidence && (
               <div className="border-t border-border/50 pt-3">
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowConfidence(!showConfidence); }}

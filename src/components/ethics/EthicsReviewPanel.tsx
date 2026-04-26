@@ -287,14 +287,14 @@ export function EthicsReviewPanel({
                 <TabsList className={cn('bg-secondary/50', isVibe ? 'font-sans' : 'font-mono')}>
                   <TabsTrigger value="issues" className={cn('gap-2 text-xs', isVibe ? 'font-sans' : 'font-mono')}>
                     <Shield size={14} />
-                    {isVibe ? 'Findings' : 'findings'}
+                    {isVibe ? 'What we found' : 'findings'}
                     <span className={cn('text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded', isVibe ? 'font-sans' : 'font-mono')}>
                       {result.issues.length}
                     </span>
                   </TabsTrigger>
                   <TabsTrigger value="misuse" className={cn('gap-2 text-xs', isVibe ? 'font-sans' : 'font-mono')}>
                     <AlertTriangle size={14} />
-                    {isVibe ? 'Misuse Scenarios' : 'misuse_scenarios'}
+                    {isVibe ? 'How it could be misused' : 'misuse_scenarios'}
                     {criticalMisuseCount > 0 && (
                       <span className={cn('text-[10px] bg-[hsl(var(--ethics-critical))] text-white px-1.5 py-0.5 rounded', isVibe ? 'font-sans' : 'font-mono')}>
                         {criticalMisuseCount}
@@ -304,7 +304,7 @@ export function EthicsReviewPanel({
                   {result.isForkAnalysis && result.forkSummary && (
                     <TabsTrigger value="fork" className={cn('gap-2 text-xs', isVibe ? 'font-sans' : 'font-mono')}>
                       <GitFork size={14} />
-                      {isVibe ? 'Fork Analysis' : 'fork_analysis'}
+                      {isVibe ? 'Compared to original' : 'fork_analysis'}
                       {result.forkSummary.introducedCount > 0 && (
                         <span className={cn('text-[10px] bg-[hsl(var(--ethics-critical))] text-white px-1.5 py-0.5 rounded', isVibe ? 'font-sans' : 'font-mono')}>
                           {result.forkSummary.introducedCount}
@@ -314,7 +314,7 @@ export function EthicsReviewPanel({
                   )}
                   <TabsTrigger value="checklist" className={cn('gap-2 text-xs', isVibe ? 'font-sans' : 'font-mono')}>
                     <ClipboardCheck size={14} />
-                    {isVibe ? 'Pre-Launch' : 'pre_launch'}
+                    {isVibe ? 'Launch checklist' : 'pre_launch'}
                   </TabsTrigger>
                 </TabsList>
 

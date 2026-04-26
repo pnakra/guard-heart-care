@@ -205,18 +205,42 @@ export function getTemplatesForType(type: MitigationType): RemediationTemplate[]
   return REMEDIATION_TEMPLATES[type] || [];
 }
 
-export function generateFixPrompt(issue: {
-  location?: string;
-  title: string;
-  description: string;
-  mitigation: string;
-  mitigationType: string;
-  codeChanges?: { action: string }[];
-}): string {
+export function generateFixPrompt(
+  issue: {
+    location?: string;
+    title: string;
+    description: string;
+    mitigation: string;
+    mitigationType: string;
+    codeChanges?: { action: string }[];
+  },
+  options: { plainLanguage?: boolean } = {},
+): string {
   const location = issue.location || 'the relevant component';
-
-  // Try to find a specific remediation detail
   const specific = issue.codeChanges?.[0]?.action;
+
+  if (options.plainLanguage) {
+    // Friendly version for non-technical users to paste into an AI tool.
+    const lines = [
+      `Hi! I'm working on my app and a review flagged this concern:`,
+      ``,
+      `Issue: ${issue.title}`,
+      `What's happening: ${issue.description}`,
+      ``,
+      `Please help me fix it by doing this: ${issue.mitigation}`,
+    ];
+    if (specific) {
+      lines.push(``, `Specifically: ${specific}`);
+    }
+    if (issue.location) {
+      lines.push(``, `It looks like this lives in: ${issue.location}`);
+    }
+    lines.push(
+      ``,
+      `Please only address this one concern — don't change anything else, don't add new features, and keep the rest of the app working as it does today.`,
+    );
+    return lines.join('\n');
+  }
 
   if (specific) {
     return `In ${location}, there is a misuse-by-design issue: ${issue.title}. ${issue.description}\n\nFix: ${issue.mitigation}\n\nSpecifically: ${specific}\n\nDo not change any other functionality. Do not add new features. Only address this specific issue.`;

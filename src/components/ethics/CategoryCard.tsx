@@ -3,7 +3,7 @@ import { CategoryIcon } from './CategoryIcon';
 import { SeverityBadge } from './SeverityBadge';
 import { cn } from '@/lib/utils';
 import { useMode } from '@/contexts/ModeContext';
-import { PLAIN_CATEGORY_LABELS } from '@/data/plainLanguageMap';
+import { PLAIN_CATEGORY_LABELS, PLAIN_CATEGORY_DESCRIPTIONS } from '@/data/plainLanguageMap';
 
 interface CategoryCardProps {
   category: CategorySummary;
@@ -13,9 +13,13 @@ interface CategoryCardProps {
 
 export function CategoryCard({ category, isSelected, onClick }: CategoryCardProps) {
   const { isVibe } = useMode();
+  const cat = category.category as HarmCategory;
   const displayLabel = isVibe
-    ? PLAIN_CATEGORY_LABELS[category.category as HarmCategory] || category.label
+    ? PLAIN_CATEGORY_LABELS[cat] || category.label
     : category.label;
+  const displayDescription = isVibe
+    ? (PLAIN_CATEGORY_DESCRIPTIONS[cat] || category.description)
+    : category.description;
 
   return (
     <button
@@ -45,8 +49,11 @@ export function CategoryCard({ category, isSelected, onClick }: CategoryCardProp
             )}>
               {isVibe ? displayLabel : `[${category.label.toUpperCase()}]`}
             </h3>
-            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-              {category.description}
+            <p className={cn(
+              'text-xs text-muted-foreground mt-0.5',
+              isVibe ? 'line-clamp-3' : 'line-clamp-2'
+            )}>
+              {displayDescription}
             </p>
           </div>
         </div>
@@ -59,7 +66,9 @@ export function CategoryCard({ category, isSelected, onClick }: CategoryCardProp
                 'text-[10px] text-muted-foreground',
                 isVibe ? 'font-sans' : 'font-mono'
               )}>
-                {category.issueCount} {category.issueCount === 1 ? 'issue' : 'issues'}
+                {category.issueCount} {isVibe
+                  ? (category.issueCount === 1 ? 'finding' : 'findings')
+                  : (category.issueCount === 1 ? 'issue' : 'issues')}
               </span>
             </>
           ) : (

@@ -14,11 +14,11 @@ interface IssuesListProps {
 
 type SortMode = 'severity' | 'effort' | 'confidence' | 'category';
 
-const SORT_OPTIONS: { value: SortMode; label: string; icon: typeof AlertTriangle }[] = [
-  { value: 'severity', label: 'Severity', icon: AlertTriangle },
-  { value: 'effort', label: 'Effort to Fix', icon: Zap },
-  { value: 'confidence', label: 'Confidence', icon: BarChart3 },
-  { value: 'category', label: 'Category', icon: Layers },
+const SORT_OPTIONS: { value: SortMode; label: string; vibeLabel: string; icon: typeof AlertTriangle }[] = [
+  { value: 'severity', label: 'Severity', vibeLabel: 'Most serious first', icon: AlertTriangle },
+  { value: 'effort', label: 'Effort to Fix', vibeLabel: 'Quickest wins first', icon: Zap },
+  { value: 'confidence', label: 'Confidence', vibeLabel: 'How sure we are', icon: BarChart3 },
+  { value: 'category', label: 'Category', vibeLabel: 'By category', icon: Layers },
 ];
 
 const EFFORT_ORDER: Record<string, number> = {
@@ -169,7 +169,7 @@ export function IssuesList({ issues, selectedCategory, reportId }: IssuesListPro
                 )}
               >
                 <Icon size={10} />
-                {opt.label}
+                {isVibe ? opt.vibeLabel : opt.label}
               </button>
             );
           })}
