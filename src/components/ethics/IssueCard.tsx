@@ -143,7 +143,7 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                     {confidenceBadge.label}
                   </span>
                 )}
-                {issue.customRule && (
+                {!isVibe && issue.customRule && (
                   <span className="text-xs px-1.5 py-0.5 rounded-full border bg-primary/10 text-primary border-primary/20">
                     Custom Rule{issue.customRuleName ? `: ${issue.customRuleName}` : ''}
                   </span>
