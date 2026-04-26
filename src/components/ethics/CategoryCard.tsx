@@ -49,8 +49,11 @@ export function CategoryCard({ category, isSelected, onClick }: CategoryCardProp
             )}>
               {isVibe ? displayLabel : `[${category.label.toUpperCase()}]`}
             </h3>
-            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-              {category.description}
+            <p className={cn(
+              'text-xs text-muted-foreground mt-0.5',
+              isVibe ? 'line-clamp-3' : 'line-clamp-2'
+            )}>
+              {displayDescription}
             </p>
           </div>
         </div>
