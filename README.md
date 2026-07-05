@@ -1,6 +1,6 @@
-# Ground Floor Check — Product Requirements Document
+# Ground Floor Ethiscanner — Product Requirements Document
 
-**Ground Floor Check** is an AI-powered ethical code scanner that analyzes source code for *misuse-by-design* patterns — features that can harm people even when working exactly as intended. It helps product teams, independent developers, and social-impact reviewers ship responsibly.
+**Ground Floor Ethiscanner** is an AI-powered ethical code scanner that analyzes source code for *misuse-by-design* patterns — features that can harm people even when working exactly as intended. It helps product teams, independent developers, and social-impact reviewers ship responsibly.
 
 > **Live:** [ground-floor-scan.lovable.app](https://ground-floor-scan.lovable.app)
 
@@ -34,7 +34,7 @@
 
 ## Core Concept
 
-Ground Floor Check focuses exclusively on **misuse-by-design** — it does *not* report generic security bugs, linting violations, or encryption gaps unless they directly facilitate human misuse scenarios. The question it answers is: *"If this feature works exactly as designed, who could it hurt?"*
+Ground Floor Ethiscanner focuses exclusively on **misuse-by-design** — it does *not* report generic security bugs, linting violations, or encryption gaps unless they directly facilitate human misuse scenarios. The question it answers is: *"If this feature works exactly as designed, who could it hurt?"*
 
 ---
 
@@ -289,7 +289,7 @@ Both formats include severity badges, misuse scenarios, code changes, and the GF
 ## Onboarding Flow
 
 First-time users see a guided onboarding explaining:
-1. What Ground Floor Check does (misuse-by-design, not security bugs)
+1. What Ground Floor Ethiscanner does (misuse-by-design, not security bugs)
 2. The six harm categories
 3. How to interpret results
 4. How to use the publish gate

@@ -301,7 +301,7 @@ export default function Taxonomy() {
             Harm Taxonomy
           </h1>
           <p className="text-muted-foreground mt-2 max-w-2xl">
-            Reference documentation for the eight harm categories detected by Ground Floor Check.
+            Reference documentation for the eight harm categories detected by Ground Floor Ethiscanner.
             Each category describes a class of <em>misuse-by-design</em> — features that cause harm
             when working exactly as intended, not through bugs or security vulnerabilities.
           </p>
@@ -431,7 +431,7 @@ export default function Taxonomy() {
       <footer className="border-t border-border mt-16">
         <div className="container max-w-6xl mx-auto px-4 py-6 text-center">
           <p className="text-sm text-muted-foreground">
-            Ground Floor Check — Harm Taxonomy v2.0
+            Ground Floor Ethiscanner — Harm Taxonomy v2.0
           </p>
         </div>
       </footer>

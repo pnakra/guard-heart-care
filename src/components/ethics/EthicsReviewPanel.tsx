@@ -134,7 +134,7 @@ export function EthicsReviewPanel({
                   'text-lg font-semibold text-foreground tracking-tight',
                   isVibe ? 'font-sans' : 'font-mono'
                 )}>
-                  {isVibe ? 'Ground Floor Check' : 'gfc-scanner'} <span className="text-primary">{isVibe ? '' : 'v2.0'}</span>
+                  {isVibe ? 'Ground Floor Ethiscanner' : 'gfc-scanner'} <span className="text-primary">{isVibe ? '' : 'v2.0'}</span>
                 </h1>
                 <p className={cn(
                   'text-[10px] text-muted-foreground tracking-wide',

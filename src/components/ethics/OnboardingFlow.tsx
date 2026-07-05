@@ -66,7 +66,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             <div className="space-y-6">
               <div className="space-y-3">
                 <h2 className="text-xl font-bold font-mono text-foreground">
-                  Ground Floor Check scans for misuse-by-design
+                  Ground Floor Ethiscanner scans for misuse-by-design
                 </h2>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Your AI coding assistant helps you build fast. It won't tell you when your features could be weaponized. That's what this does.

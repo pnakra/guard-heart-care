@@ -13,7 +13,7 @@ export function getBadgeColor(band: GFSBand) {
 
 export function generateBadgeSVG(score: number, band: GFSBand): string {
   const { hex } = BAND_COLORS[band];
-  const label = 'Ground Floor Check';
+  const label = 'Ground Floor Ethiscanner';
   const value = `GFS ${score}/100`;
   const labelWidth = 138;
   const valueWidth = 80;
@@ -53,10 +53,10 @@ export function generateShieldsUrl(score: number, band: GFSBand): string {
 
 export function generateMarkdownBadge(score: number, band: GFSBand): string {
   const url = generateShieldsUrl(score, band);
-  return `![Ground Floor Check](${url})`;
+  return `![Ground Floor Ethiscanner](${url})`;
 }
 
 export function generateHTMLBadge(score: number, band: GFSBand): string {
   const url = generateShieldsUrl(score, band);
-  return `<img alt="Ground Floor Check" src="${url}" />`;
+  return `<img alt="Ground Floor Ethiscanner" src="${url}" />`;
 }

@@ -109,7 +109,7 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                 'text-xl font-semibold text-foreground tracking-tight',
                 isVibe ? 'font-sans' : 'font-mono'
               )}>
-                {isVibe ? 'Your ethics review' : 'Ground Floor Check'}
+                {isVibe ? 'Your ethics review' : 'Ground Floor Ethiscanner'}
               </h2>
               {(activeCategory !== 'unknown' || onRescanWithCategory) && (
                 <>

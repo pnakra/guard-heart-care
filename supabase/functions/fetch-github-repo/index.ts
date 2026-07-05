@@ -50,7 +50,7 @@ async function fetchRepoTree(owner: string, repo: string, branch?: string): Prom
   let targetBranch = branch;
   if (!targetBranch) {
     const repoResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-      headers: { 'User-Agent': 'Lovable-Ethics-Scanner' },
+      headers: { 'User-Agent': 'Ground Floor Ethiscanner' },
     });
     if (!repoResponse.ok) {
       const body = await repoResponse.text();
@@ -68,7 +68,7 @@ async function fetchRepoTree(owner: string, repo: string, branch?: string): Prom
 
   const treeResponse = await fetch(
     `https://api.github.com/repos/${owner}/${repo}/git/trees/${targetBranch}?recursive=1`,
-    { headers: { 'User-Agent': 'Lovable-Ethics-Scanner' } }
+    { headers: { 'User-Agent': 'Ground Floor Ethiscanner' } }
   );
 
   if (!treeResponse.ok) {
@@ -87,7 +87,7 @@ async function fetchFileContent(owner: string, repo: string, path: string, branc
   try {
     const response = await fetch(
       `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`,
-      { headers: { 'User-Agent': 'Lovable-Ethics-Scanner' } }
+      { headers: { 'User-Agent': 'Ground Floor Ethiscanner' } }
     );
     if (!response.ok) {
       await response.text(); // consume body
