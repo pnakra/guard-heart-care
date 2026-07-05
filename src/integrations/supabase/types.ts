@@ -46,6 +46,27 @@ export type Database = {
           },
         ]
       }
+      rate_limit_counters: {
+        Row: {
+          bucket: string
+          count: number
+          identifier: string
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          count?: number
+          identifier: string
+          window_start?: string
+        }
+        Update: {
+          bucket?: string
+          count?: number
+          identifier?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       scan_reports: {
         Row: {
           capabilities_json: Json
@@ -59,6 +80,7 @@ export type Database = {
           project_name: string
           result_json: Json
           risk_score: number
+          share_token: string
           total_issues: number
         }
         Insert: {
@@ -73,6 +95,7 @@ export type Database = {
           project_name: string
           result_json: Json
           risk_score?: number
+          share_token?: string
           total_issues?: number
         }
         Update: {
@@ -87,6 +110,7 @@ export type Database = {
           project_name?: string
           result_json?: Json
           risk_score?: number
+          share_token?: string
           total_issues?: number
         }
         Relationships: []
@@ -96,7 +120,43 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_rate_limit: {
+        Args: {
+          p_bucket: string
+          p_identifier: string
+          p_max: number
+          p_window_seconds: number
+        }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          retry_after_seconds: number
+        }[]
+      }
+      get_scan_report: {
+        Args: { p_share_token: string }
+        Returns: {
+          capabilities_json: Json
+          created_at: string
+          critical_count: number
+          detected_category: string | null
+          high_count: number
+          id: string
+          misuse_scenarios_json: Json
+          overall_status: string
+          project_name: string
+          result_json: Json
+          risk_score: number
+          share_token: string
+          total_issues: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "scan_reports"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       [_ in never]: never
