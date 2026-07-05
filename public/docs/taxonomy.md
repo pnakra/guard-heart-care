@@ -1,8 +1,8 @@
-# Ground Floor Check — Harm Taxonomy Reference
+# Ground Floor Ethiscanner — Harm Taxonomy Reference
 
 **For: Lawyers, policy specialists, technology-abuse researchers, and social-impact reviewers**
 
-This document explains the eight categories of harm that Ground Floor Check scans for, what severity levels mean, and how population context affects the analysis. It is written for non-technical readers who need to evaluate whether the tool's framework is comprehensive and appropriate.
+This document explains the eight categories of harm that Ground Floor Ethiscanner scans for, what severity levels mean, and how population context affects the analysis. It is written for non-technical readers who need to evaluate whether the tool's framework is comprehensive and appropriate.
 
 ---
 
@@ -30,7 +30,7 @@ This document explains the eight categories of harm that Ground Floor Check scan
 
 ## What This Tool Looks For
 
-Ground Floor Check identifies **misuse-by-design** — features in software that can harm people *even when the software is working exactly as intended*. The core question is:
+Ground Floor Ethiscanner identifies **misuse-by-design** — features in software that can harm people *even when the software is working exactly as intended*. The core question is:
 
 > "If every line of code works perfectly, who could still be hurt by this product?"
 
@@ -301,7 +301,7 @@ Severity is *elevated* when vulnerable populations are involved. The same featur
 
 ## Population Context & Vulnerability Modifiers
 
-The same feature can be harmless for one group of people and dangerous for another. Ground Floor Check adjusts its analysis based on who will actually use the product.
+The same feature can be harmless for one group of people and dangerous for another. Ground Floor Ethiscanner adjusts its analysis based on who will actually use the product.
 
 | Population | Why They're at Higher Risk | What Gets Elevated |
 |-----------|--------------------------|-------------------|
@@ -411,7 +411,7 @@ Every finding includes a confidence score (0–100%) reflecting how certain the 
 | **Vertical profile** | Industry-specific harm patterns applied when the scanner detects the app belongs to a particular domain (health, dating, finance, etc.) |
 | **Triage** | The process of reviewing findings and deciding what to fix, accept, or defer |
 | **Remediation** | The specific changes (code, design, or content) suggested to address a finding |
-| **Restrictive masculinity patterns** | Design choices that reinforce narrow, harmful definitions of manhood — suppressing help-seeking, rewarding dominance, exploiting identity-linked shame, pathologizing healthy developmental experiences, or deepening isolation in men and boys. A root-cause harm category unique to Ground Floor Check. |
+| **Restrictive masculinity patterns** | Design choices that reinforce narrow, harmful definitions of manhood — suppressing help-seeking, rewarding dominance, exploiting identity-linked shame, pathologizing healthy developmental experiences, or deepening isolation in men and boys. A root-cause harm category unique to Ground Floor Ethiscanner. |
 | **Help-seeking suppression** | A design pattern that frames asking for professional support as weakness or failure, particularly harmful for men and boys who are already the least likely demographic to seek mental health care. |
 | **Entitlement affordance** | A platform feature that treats another person's "no" as a problem to be overcome rather than a boundary to respect — including retry mechanics, rejection bypass, and AI coaching that optimizes for persistence. |
 | **Isolation reinforcement** | Design that deepens a user's disconnection from human relationships by substituting AI personas or solo engagement for peer connection, community participation, or IRL interaction. |
@@ -421,6 +421,6 @@ Every finding includes a confidence score (0–100%) reflecting how certain the 
 
 ---
 
-*This document is part of the Ground Floor Check project. For the technical taxonomy with code signals and detection patterns, see the in-app Taxonomy page at `/taxonomy`.*
+*This document is part of the Ground Floor Ethiscanner project. For the technical taxonomy with code signals and detection patterns, see the in-app Taxonomy page at `/taxonomy`.*
 
 *Additions developed through the Ground Floor Coding Project healthy masculinity framework review.*
