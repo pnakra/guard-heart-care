@@ -4,7 +4,7 @@ import {
   getChainsAffectedByFix,
   calculateTotalChainRisk,
 } from '@/services/riskChainAnalyzer';
-import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
+import { DetectedCapability, MisuseScenario } from '@/types/misuse';
 
 function cap(id: string, riskLevel: DetectedCapability['riskLevel'] = 'high'): DetectedCapability {
   return { id, name: id, description: '', riskLevel, detectedIn: [] };

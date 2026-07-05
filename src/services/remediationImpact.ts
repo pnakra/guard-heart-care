@@ -9,7 +9,7 @@ import {
   EthicsIssueV2 
 } from '@/types/ethicsV2';
 import { EthicsIssue, SeverityLevel } from '@/types/ethics';
-import { MisuseScenario } from '@/data/mockMisuseData';
+import { MisuseScenario } from '@/types/misuse';
 
 // Time estimates by mitigation type (in hours)
 const TIME_ESTIMATES: Record<string, { design: number; implementation: number; testing: number }> = {

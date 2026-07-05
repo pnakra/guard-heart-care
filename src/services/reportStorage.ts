@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
 import { EthicsReviewResult } from '@/types/ethics';
-import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
+import { DetectedCapability, MisuseScenario } from '@/types/misuse';
 
 export interface SavedReport {
   id: string;

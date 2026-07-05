@@ -16,7 +16,7 @@ import {
   IssueConfidence,
   DefensiveUse,
 } from '@/types/ethicsV2';
-import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
+import { DetectedCapability, MisuseScenario } from '@/types/misuse';
 import { calculateRemediationImpact } from '@/services/remediationImpact';
 import { calculateIssueConfidence, calculateScenarioConfidence } from '@/services/confidenceScoring';
 import { detectDeploymentContext } from '@/services/deploymentDetector';

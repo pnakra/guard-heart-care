@@ -4,7 +4,7 @@
 
 import { IssueConfidence, ScenarioConfidence } from '@/types/ethicsV2';
 import { EthicsIssue, SeverityLevel } from '@/types/ethics';
-import { MisuseScenario, DetectedCapability } from '@/data/mockMisuseData';
+import { MisuseScenario, DetectedCapability } from '@/types/misuse';
 
 // Confidence factors based on detection method
 const DETECTION_CONFIDENCE_FACTORS = {

@@ -7,7 +7,7 @@ import { PublishGate } from '@/components/ethics/PublishGate';
 import { OnboardingFlow } from '@/components/ethics/OnboardingFlow';
 import { useCodeAnalysis } from '@/hooks/useCodeAnalysis';
 import { EthicsReviewResult } from '@/types/ethics';
-import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
+import { DetectedCapability, MisuseScenario } from '@/types/misuse';
 import { IssueStatusProvider } from '@/contexts/IssueStatusContext';
 import { ModeProvider } from '@/contexts/ModeContext';
 import { AppCategory } from '@/services/categoryDetector';

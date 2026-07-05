@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MisuseScenario, DetectedCapability, getCapabilityById } from '@/data/mockMisuseData';
+import { MisuseScenario, DetectedCapability } from '@/types/misuse';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, ChevronRight, Shield, Lightbulb, ExternalLink } from 'lucide-react';
 import { useMode } from '@/contexts/ModeContext';
@@ -24,12 +24,14 @@ const severityConfig = {
   },
 };
 
-function ScenarioCard({ scenario }: { scenario: MisuseScenario }) {
+function ScenarioCard({ scenario, capabilities }: { scenario: MisuseScenario; capabilities: DetectedCapability[] }) {
   const { isVibe } = useMode();
   const [isExpanded, setIsExpanded] = useState(false);
   const config = severityConfig[scenario.severity];
+  // Resolve related capabilities against the actual scan results (previously
+  // this looked them up in mock fixture data, so real capability IDs missed).
   const relatedCapabilities = scenario.capabilities
-    .map(getCapabilityById)
+    .map(id => capabilities.find(c => c.id === id))
     .filter(Boolean) as DetectedCapability[];
 
   return (
@@ -218,7 +220,7 @@ export function MisuseScenarios({ scenarios, capabilities }: MisuseScenariosProp
             return order[a.severity] - order[b.severity];
           })
           .map(scenario => (
-            <ScenarioCard key={scenario.id} scenario={scenario} />
+            <ScenarioCard key={scenario.id} scenario={scenario} capabilities={capabilities} />
           ))}
       </div>
     </div>

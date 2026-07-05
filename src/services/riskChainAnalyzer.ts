@@ -4,7 +4,7 @@
 
 import { RiskChain } from '@/types/ethicsV2';
 import { SeverityLevel } from '@/types/ethics';
-import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
+import { DetectedCapability, MisuseScenario } from '@/types/misuse';
 
 interface ChainPattern {
   capabilities: string[];

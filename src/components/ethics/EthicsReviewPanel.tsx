@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { PopulationModifier, POPULATION_MODIFIERS } from './ProjectUpload';
 import { EthicsReviewResult, HarmCategory } from '@/types/ethics';
-import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
+import { DetectedCapability, MisuseScenario } from '@/types/misuse';
 import { ExecutiveSummary } from './ExecutiveSummary';
 import { CategoryCard } from './CategoryCard';
 import { IssuesList } from './IssuesList';

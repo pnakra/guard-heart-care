@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { EthicsReviewResult } from '@/types/ethics';
-import { DetectedCapability, MisuseScenario } from '@/data/mockMisuseData';
+import { DetectedCapability, MisuseScenario } from '@/types/misuse';
 
 interface ExportData {
   result: EthicsReviewResult;

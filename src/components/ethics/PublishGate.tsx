@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MisuseScenario, DetectedCapability } from '@/data/mockMisuseData';
+import { MisuseScenario, DetectedCapability } from '@/types/misuse';
 import { EthicsIssue } from '@/types/ethics';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, CheckCircle2, Shield, ExternalLink } from 'lucide-react';

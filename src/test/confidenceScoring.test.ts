@@ -5,7 +5,7 @@ import {
   flagLowConfidenceIssues,
 } from '@/services/confidenceScoring';
 import { EthicsIssue } from '@/types/ethics';
-import { MisuseScenario, DetectedCapability } from '@/data/mockMisuseData';
+import { MisuseScenario, DetectedCapability } from '@/types/misuse';
 
 function makeIssue(partial: Partial<EthicsIssue>): EthicsIssue {
   return {
