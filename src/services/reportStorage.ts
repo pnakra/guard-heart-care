@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import type { Json } from '@/integrations/supabase/types';
+import { edgeFunctionHeaders, extractEdgeError } from '@/lib/edgeFunctions';
 import { EthicsReviewResult } from '@/types/ethics';
 import { DetectedCapability, MisuseScenario } from '@/types/misuse';
 
@@ -20,39 +20,44 @@ export interface SavedReport {
 }
 
 // Reports are keyed in the URL by their unguessable share_token, not the PK, so
-// the report table can't be enumerated. saveReport returns the token to link to.
+// the report table can't be enumerated. Inserts go through the `save-report`
+// edge function (token + per-IP rate limiter) so anon can't write scan_reports
+// directly. Returns the share token to link to.
 export async function saveReport(
   result: EthicsReviewResult,
   capabilities: DetectedCapability[],
   misuseScenarios: MisuseScenario[],
 ): Promise<string | null> {
-  const { data, error } = await supabase
-    .from('scan_reports')
-    .insert({
-      project_name: result.projectName,
-      detected_category: result.detectedCategory || null,
-      risk_score: result.executiveSummary.riskScore,
-      overall_status: result.overallStatus,
-      total_issues: result.executiveSummary.totalIssueCount,
-      critical_count: result.executiveSummary.criticalCount,
-      high_count: result.executiveSummary.highCount,
-      result_json: result as unknown as Json,
-      capabilities_json: capabilities as unknown as Json,
-      misuse_scenarios_json: misuseScenarios as unknown as Json,
-    })
-    .select('share_token')
-    .single();
+  const { data, error } = await supabase.functions.invoke<{ shareToken: string }>(
+    'save-report',
+    {
+      headers: edgeFunctionHeaders(),
+      body: {
+        projectName: result.projectName,
+        detectedCategory: result.detectedCategory || null,
+        riskScore: result.executiveSummary.riskScore,
+        overallStatus: result.overallStatus,
+        totalIssues: result.executiveSummary.totalIssueCount,
+        criticalCount: result.executiveSummary.criticalCount,
+        highCount: result.executiveSummary.highCount,
+        result,
+        capabilities,
+        misuseScenarios,
+      },
+    },
+  );
 
-  if (error) {
-    console.error('Failed to save report:', error);
+  if (error || !data?.shareToken) {
+    const message = await extractEdgeError(error, 'Failed to save report.');
+    console.error('Failed to save report:', message);
     return null;
   }
 
-  return data.share_token;
+  return data.shareToken;
 }
 
 // Reads go through the token-scoped SECURITY DEFINER function; there is no
-// direct anon SELECT on scan_reports anymore.
+// direct anon SELECT on scan_reports.
 export async function loadReport(shareToken: string): Promise<SavedReport | null> {
   const { data, error } = await supabase
     .rpc('get_scan_report', { p_share_token: shareToken });
@@ -62,28 +67,26 @@ export async function loadReport(shareToken: string): Promise<SavedReport | null
     return null;
   }
 
-  // PostgREST may return the composite row as an object or a single-element
-  // array depending on version; normalize to the row (or null when not found).
   const raw = data as unknown;
   const record = Array.isArray(raw) ? raw[0] : raw;
   return (record ?? null) as SavedReport | null;
 }
 
+// Feedback inserts go through an edge function so the anon insert policy can
+// stay closed; the function validates the referenced report exists.
 export async function submitFeedback(
   reportId: string,
   issueId: string,
   isHelpful: boolean,
 ): Promise<boolean> {
-  const { error } = await supabase
-    .from('finding_feedback')
-    .insert({
-      report_id: reportId,
-      issue_id: issueId,
-      is_helpful: isHelpful,
-    });
+  const { error } = await supabase.functions.invoke('submit-feedback', {
+    headers: edgeFunctionHeaders(),
+    body: { reportId, issueId, isHelpful },
+  });
 
   if (error) {
-    console.error('Failed to submit feedback:', error);
+    const message = await extractEdgeError(error, 'Failed to submit feedback.');
+    console.error('Failed to submit feedback:', message);
     return false;
   }
 
