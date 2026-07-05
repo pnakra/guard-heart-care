@@ -3,14 +3,15 @@ import { SeverityBadge } from './SeverityBadge';
 import { DiffViewer } from './DiffViewer';
 import { ForkBadge } from './ForkBadge';
 import { FeedbackButtons } from './FeedbackButtons';
-import { ChevronRight, ChevronDown, FileCode, Lightbulb, AlertCircle, HelpCircle, BarChart3, AlertTriangle as AlertTriangleIcon, BookTemplate, Copy, Check, Wand2, Code2, Info } from 'lucide-react';
+import { ChevronRight, ChevronDown, FileCode, Lightbulb, AlertCircle, HelpCircle, BarChart3, AlertTriangle as AlertTriangleIcon, BookTemplate, Copy, Check, Wand2, Code2, Info, MessageSquareText, Pencil, X } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { getTemplatesForType, generateFixPrompt, MitigationType } from '@/data/remediationTemplates';
 import { toast } from 'sonner';
-import { useIssueStatus, IssueStatus, ISSUE_STATUS_CONFIG } from '@/contexts/IssueStatusContext';
+import { useIssueStatus, IssueStatus, ISSUE_STATUS_CONFIG, RATIONALE_REQUIRED_STATUSES } from '@/contexts/IssueStatusContext';
 import { useMode } from '@/contexts/ModeContext';
 import { PLAIN_CATEGORY_LABELS, PLAIN_MITIGATION_TYPE_LABELS, getPlainTitle } from '@/data/plainLanguageMap';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -85,9 +86,50 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
   const [showTemplates, setShowTemplates] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
-  const { getStatus, setStatus } = useIssueStatus();
+  const { getStatus, setStatus, getRationale } = useIssueStatus();
   const currentStatus = getStatus(issue.id);
   const statusConfig = ISSUE_STATUS_CONFIG[currentStatus];
+  const rationale = getRationale(issue.id);
+
+  // Triage rationale capture: when a builder sets an issue aside ("Won't fix" /
+  // "This is intentional") we hold the status change until they explain why.
+  const [pendingStatus, setPendingStatus] = useState<IssueStatus | null>(null);
+  const [rationaleDraft, setRationaleDraft] = useState('');
+
+  const statusLabel = (status: IssueStatus) =>
+    isVibe ? ISSUE_STATUS_CONFIG[status].intentLabel : ISSUE_STATUS_CONFIG[status].label;
+
+  const handleStatusChange = (next: IssueStatus) => {
+    if (RATIONALE_REQUIRED_STATUSES.includes(next)) {
+      // Require a rationale before committing a set-aside decision.
+      setPendingStatus(next);
+      setRationaleDraft(rationale ?? '');
+    } else {
+      setStatus(issue.id, next);
+      setPendingStatus(null);
+    }
+  };
+
+  const confirmRationale = () => {
+    if (!pendingStatus) return;
+    const trimmed = rationaleDraft.trim();
+    if (!trimmed) return; // required — button is disabled, but guard anyway
+    setStatus(issue.id, pendingStatus, trimmed);
+    setPendingStatus(null);
+    setRationaleDraft('');
+  };
+
+  const cancelRationale = () => {
+    setPendingStatus(null);
+    setRationaleDraft('');
+  };
+
+  const editRationale = () => {
+    setPendingStatus(currentStatus);
+    setRationaleDraft(rationale ?? '');
+  };
+
+  const pendingLabel = pendingStatus ? statusLabel(pendingStatus) : '';
 
   const confidence = issue.confidence;
   const isLowConfidence = confidence && confidence.overallConfidence < 0.6;
@@ -207,18 +249,27 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
           )}
         </button>
 
-        {/* Status dropdown */}
+        {/* Status dropdown — prominent triage control, visible without expanding */}
         <div className="p-3 shrink-0" onClick={(e) => e.stopPropagation()}>
+          <span className={cn(
+            'block text-[9px] font-medium text-muted-foreground mb-1 tracking-widest text-right',
+            isVibe ? 'font-sans' : 'font-mono uppercase',
+          )}>
+            {isVibe ? 'Your call' : 'triage'}
+          </span>
           <Select
             value={currentStatus}
-            onValueChange={(val) => setStatus(issue.id, val as IssueStatus)}
+            onValueChange={(val) => handleStatusChange(val as IssueStatus)}
           >
             <SelectTrigger className={cn(
-              'h-7 text-xs w-auto min-w-[110px] gap-1.5 border-0 bg-secondary/50',
-              statusConfig.color
+              'h-8 text-xs w-auto min-w-[150px] gap-1.5 border font-medium',
+              statusConfig.color,
+              currentStatus === 'unreviewed'
+                ? 'border-primary/40 bg-primary/5'
+                : 'border-border bg-secondary/50',
             )}>
               <span className={cn('w-2 h-2 rounded-full shrink-0', statusConfig.dotClass)} />
-              <SelectValue />
+              <span className="truncate">{statusLabel(currentStatus)}</span>
             </SelectTrigger>
             <SelectContent align="end">
               {ALL_STATUSES.map(status => {
@@ -227,7 +278,7 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
                   <SelectItem key={status} value={status} className="text-xs">
                     <span className="flex items-center gap-2">
                       <span className={cn('w-2 h-2 rounded-full', cfg.dotClass)} />
-                      {cfg.label}
+                      {statusLabel(status)}
                     </span>
                   </SelectItem>
                 );
@@ -236,7 +287,79 @@ export function IssueCard({ issue, reportId }: IssueCardProps) {
           </Select>
         </div>
       </div>
-      
+
+      {/* Rationale capture / display — kept out of the expand toggle so a triage
+          decision and its justification are always visible. */}
+      {pendingStatus ? (
+        <div className="px-4 pb-4 pt-0" onClick={(e) => e.stopPropagation()}>
+          <div className="rounded-lg border border-[hsl(var(--ethics-medium)/0.4)] bg-[hsl(var(--ethics-medium)/0.06)] p-3 space-y-2">
+            <div className="flex items-center gap-1.5">
+              <MessageSquareText size={13} className="text-[hsl(var(--ethics-medium))]" />
+              <p className="text-xs font-medium text-foreground">
+                {isVibe
+                  ? `Why are you marking this "${pendingLabel}"?`
+                  : `Rationale required to mark as "${pendingLabel}"`}
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {isVibe
+                ? 'One line is enough. This is stored with the decision and lowers the risk score — so future-you (and anyone reviewing) knows it was a deliberate choice, not an oversight.'
+                : 'Recorded with the status and reflected in the adjusted score. Explain why this is acceptable or out of scope.'}
+            </p>
+            <Textarea
+              value={rationaleDraft}
+              onChange={(e) => setRationaleDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) confirmRationale();
+                if (e.key === 'Escape') cancelRationale();
+              }}
+              rows={2}
+              autoFocus
+              placeholder={isVibe
+                ? 'e.g. This is behind an admin-only login, not exposed to end users.'
+                : 'e.g. Gated behind authenticated admin role; not reachable by end users.'}
+              className="text-xs resize-none"
+            />
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={cancelRationale}
+                className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X size={12} />
+                Cancel
+              </button>
+              <button
+                onClick={confirmRationale}
+                disabled={!rationaleDraft.trim()}
+                className="flex items-center gap-1 px-3 py-1 rounded text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Check size={12} />
+                {isVibe ? 'Save decision' : 'Save rationale'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : rationale ? (
+        <div className="px-4 pb-4 pt-0" onClick={(e) => e.stopPropagation()}>
+          <div className="rounded-lg border border-border bg-secondary/30 p-3 flex items-start gap-2">
+            <MessageSquareText size={13} className={cn('shrink-0 mt-0.5', statusConfig.color)} />
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-0.5">
+                {isVibe ? `Marked "${statusLabel(currentStatus)}" because` : `${statusLabel(currentStatus)} — rationale`}
+              </p>
+              <p className="text-xs text-foreground break-words">{rationale}</p>
+            </div>
+            <button
+              onClick={editRationale}
+              className="shrink-0 flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Pencil size={11} />
+              Edit
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {isExpanded && (
         <div className="px-4 pb-4 pt-0 border-t border-border/50 mt-0 animate-slide-in">
           <div className="pt-4 space-y-4">

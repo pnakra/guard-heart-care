@@ -213,6 +213,16 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
                         ? `${isAdjusted ? 'Adjusted score' : 'Risk score'} (out of 100)`
                         : (isAdjusted ? 'adj_gfs / 100' : 'gfs / 100')}
                     </p>
+                    {isAdjusted && (
+                      <p className={cn(
+                        'text-[10px] text-muted-foreground/70 mt-0.5 tabular-nums',
+                        isVibe ? 'font-sans' : 'font-mono',
+                      )}>
+                        {isVibe
+                          ? <>before your triage: <span className="line-through">{gfs}</span></>
+                          : <>raw: <span className="line-through">{gfs}</span></>}
+                      </p>
+                    )}
                   </div>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-[280px] text-center">
