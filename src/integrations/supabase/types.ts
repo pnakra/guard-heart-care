@@ -46,6 +46,27 @@ export type Database = {
           },
         ]
       }
+      rate_limit_counters: {
+        Row: {
+          bucket: string
+          count: number
+          identifier: string
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          count?: number
+          identifier: string
+          window_start?: string
+        }
+        Update: {
+          bucket?: string
+          count?: number
+          identifier?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       scan_reports: {
         Row: {
           capabilities_json: Json
@@ -113,10 +134,28 @@ export type Database = {
         }[]
       }
       get_scan_report: {
-        Args: {
-          p_share_token: string
+        Args: { p_share_token: string }
+        Returns: {
+          capabilities_json: Json
+          created_at: string
+          critical_count: number
+          detected_category: string | null
+          high_count: number
+          id: string
+          misuse_scenarios_json: Json
+          overall_status: string
+          project_name: string
+          result_json: Json
+          risk_score: number
+          share_token: string
+          total_issues: number
         }
-        Returns: Database["public"]["Tables"]["scan_reports"]["Row"]
+        SetofOptions: {
+          from: "*"
+          to: "scan_reports"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
     }
     Enums: {
