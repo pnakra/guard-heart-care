@@ -1,9 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { corsHeaders, guardRequest } from "../_shared/security.ts";
 
 const MAX_PROMPT_FILES = 80;
 const MAX_CHARS_PER_FILE = 6_000;
@@ -655,6 +651,10 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  // Access-token gate + per-IP rate limit before spending the Anthropic key.
+  const guardResponse = await guardRequest(req, "analyze-code");
+  if (guardResponse) return guardResponse;
 
   try {
     const { files, projectName, previousScan, customRules, populationModifiers, forkMode, upstreamFiles, categoryOverride } = await req.json();

@@ -59,6 +59,7 @@ export type Database = {
           project_name: string
           result_json: Json
           risk_score: number
+          share_token: string
           total_issues: number
         }
         Insert: {
@@ -73,6 +74,7 @@ export type Database = {
           project_name: string
           result_json: Json
           risk_score?: number
+          share_token?: string
           total_issues?: number
         }
         Update: {
@@ -87,6 +89,7 @@ export type Database = {
           project_name?: string
           result_json?: Json
           risk_score?: number
+          share_token?: string
           total_issues?: number
         }
         Relationships: []
@@ -96,7 +99,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_rate_limit: {
+        Args: {
+          p_bucket: string
+          p_identifier: string
+          p_max: number
+          p_window_seconds: number
+        }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          retry_after_seconds: number
+        }[]
+      }
+      get_scan_report: {
+        Args: {
+          p_share_token: string
+        }
+        Returns: Database["public"]["Tables"]["scan_reports"]["Row"]
+      }
     }
     Enums: {
       [_ in never]: never

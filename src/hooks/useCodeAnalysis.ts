@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { edgeFunctionHeaders, extractEdgeError } from '@/lib/edgeFunctions';
 import { toast } from 'sonner';
 import { EthicsReviewResult, EthicsIssue, CategorySummary, HarmCategory, SeverityLevel, ExecutiveSummary } from '@/types/ethics';
 import { 
@@ -105,12 +106,13 @@ export function useCodeAnalysis() {
 
       const { data, error } = await supabase.functions.invoke('analyze-code', {
         body,
+        headers: edgeFunctionHeaders(),
       });
 
       if (error) {
         console.error('Analysis error:', error);
         toast.error('Analysis failed', {
-          description: error.message || 'Failed to analyze code. Please try again.',
+          description: await extractEdgeError(error, 'Failed to analyze code. Please try again.'),
         });
         return null;
       }

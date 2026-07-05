@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Upload, FileCode, X, FolderOpen, Loader2, Github, ArrowRight, Settings2, ChevronDown, ChevronRight, AlertCircle, Check, GitFork, Pencil, Tag, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { edgeFunctionHeaders, extractEdgeError } from '@/lib/edgeFunctions';
 import { toast } from 'sonner';
 import { detectAppCategory, getAppCategoryLabel, AppCategory } from '@/services/categoryDetector';
 import {
@@ -270,10 +271,11 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
     try {
       const { data, error } = await supabase.functions.invoke('fetch-github-repo', {
         body: { url: githubUrl },
+        headers: edgeFunctionHeaders(),
       });
 
       if (error) {
-        throw new Error(error.message);
+        throw new Error(await extractEdgeError(error, 'Failed to fetch repository'));
       }
 
       if (data.error) {
@@ -310,15 +312,19 @@ export function ProjectUpload({ onAnalyze, isAnalyzing, onShowOnboarding }: Proj
       // Fetch upstream
       const { data: upstreamData, error: upstreamError } = await supabase.functions.invoke('fetch-github-repo', {
         body: { url: upstreamUrl },
+        headers: edgeFunctionHeaders(),
       });
-      if (upstreamError || upstreamData?.error) throw new Error(upstreamData?.error || upstreamError?.message || 'Failed to fetch upstream');
+      if (upstreamError) throw new Error(await extractEdgeError(upstreamError, 'Failed to fetch upstream'));
+      if (upstreamData?.error) throw new Error(upstreamData.error);
 
       setForkStatus('Fetching fork repo...');
       // Fetch fork
       const { data: forkData, error: forkError } = await supabase.functions.invoke('fetch-github-repo', {
         body: { url: forkUrl },
+        headers: edgeFunctionHeaders(),
       });
-      if (forkError || forkData?.error) throw new Error(forkData?.error || forkError?.message || 'Failed to fetch fork');
+      if (forkError) throw new Error(await extractEdgeError(forkError, 'Failed to fetch fork'));
+      if (forkData?.error) throw new Error(forkData.error);
 
       setFiles(forkData.files);
       setProjectName(`${forkData.repoName} (fork comparison)`);

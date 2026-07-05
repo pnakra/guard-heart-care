@@ -1,9 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { corsHeaders, guardRequest } from "../_shared/security.ts";
 
 const ALLOWED_EXTENSIONS = [
   '.ts', '.tsx', '.js', '.jsx', '.vue', '.svelte', '.html', '.css', '.scss', '.json',
@@ -107,6 +103,10 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  // Access-token gate + per-IP rate limit (separate bucket from analyze-code).
+  const guardResponse = await guardRequest(req, "fetch-github-repo");
+  if (guardResponse) return guardResponse;
 
   try {
     const { url } = await req.json();
