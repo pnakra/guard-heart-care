@@ -236,6 +236,7 @@ export function EthicsReviewPanel({
           projectName={result.projectName}
           timestamp={result.timestamp}
           detectedCategory={activeCategory || result.detectedCategory}
+          sampling={result.sampling}
           issueIds={result.issues.map(i => i.id)}
           lowConfidenceCount={result.issues.filter(i => i.confidence && i.confidence.overallConfidence < 0.6).length}
           onRescanWithCategory={onRescanWithCategory}

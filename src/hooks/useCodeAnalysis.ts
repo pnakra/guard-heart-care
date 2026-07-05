@@ -127,6 +127,16 @@ export function useCodeAnalysis() {
       const analysis = data.analysis;
       const timestamp = data.timestamp;
 
+      // Sampling disclosure: large repos are scanned as a bounded sample, so the
+      // edge function reports how many files were actually analyzed.
+      const sampling = data.sampling && data.sampling.omittedFileCount > 0
+        ? {
+            totalFileCount: data.sampling.totalFileCount,
+            analyzedFileCount: data.sampling.analyzedFileCount,
+            omittedFileCount: data.sampling.omittedFileCount,
+          }
+        : undefined;
+
       // Transform AI response to our types
       const capabilities: DetectedCapability[] = (analysis.capabilities || []).map((c: any) => ({
         id: c.id || crypto.randomUUID(),
@@ -371,6 +381,7 @@ export function useCodeAnalysis() {
         timestamp,
         projectName: data.projectName,
         detectedCategory: data.detectedCategory || 'unknown',
+        sampling,
         isForkAnalysis,
         forkSummary,
       };

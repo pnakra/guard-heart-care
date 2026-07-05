@@ -40,6 +40,10 @@ export function exportAsMarkdown({ result, capabilities, misuseScenarios }: Expo
   lines.push(`**Generated:** ${new Date(result.timestamp).toLocaleString()}`);
   lines.push(`**Risk Score:** ${result.executiveSummary.riskScore.toFixed(1)} / 10`);
   lines.push(`**Overall Status:** ${severityEmoji[result.overallStatus]} ${result.overallStatus.toUpperCase()}`);
+  if (result.sampling && result.sampling.omittedFileCount > 0) {
+    lines.push('');
+    lines.push(`> ⚠️ **Partial scan:** This report reflects a sample of ${result.sampling.analyzedFileCount} of ${result.sampling.totalFileCount} files (${result.sampling.omittedFileCount} omitted for output reliability). Findings are not exhaustive across the full codebase.`);
+  }
   lines.push('');
   lines.push('---');
   lines.push('');
@@ -164,6 +168,7 @@ export function exportAsJSON({ result, capabilities, misuseScenarios }: ExportDa
     projectName: result.projectName,
     timestamp: result.timestamp,
     overallStatus: result.overallStatus,
+    sampling: result.sampling,
     executiveSummary: result.executiveSummary,
     capabilities,
     misuseScenarios,
@@ -328,7 +333,13 @@ export function exportAsPDF({ result, capabilities, misuseScenarios }: ExportDat
   addText(`Generated: ${new Date(result.timestamp).toLocaleString()}`, 10, 'normal', [120, 120, 120]);
   addText(`Risk Score: ${result.executiveSummary.riskScore.toFixed(1)} / 10`, 12, 'bold');
   addText(`Overall Status: ${result.overallStatus.toUpperCase()}`, 11, 'normal');
-  
+  if (result.sampling && result.sampling.omittedFileCount > 0) {
+    addText(
+      `Partial scan: reflects a sample of ${result.sampling.analyzedFileCount} of ${result.sampling.totalFileCount} files (${result.sampling.omittedFileCount} omitted for output reliability). Findings are not exhaustive across the full codebase.`,
+      9, 'bold', [180, 120, 40]
+    );
+  }
+
   // Separator line
   addSpacer(4);
   doc.setDrawColor(200, 200, 200);

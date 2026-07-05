@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ExecutiveSummary as ExecutiveSummaryType, SeverityLevel } from '@/types/ethics';
+import { ExecutiveSummary as ExecutiveSummaryType, SeverityLevel, SamplingInfo } from '@/types/ethics';
 import { EthicsReviewResultV2 } from '@/types/ethicsV2';
 import { SeverityBadge } from './SeverityBadge';
 import { cn } from '@/lib/utils';
@@ -28,6 +28,8 @@ interface ExecutiveSummaryProps {
   timestamp: string;
   fullResult?: EthicsReviewResultV2;
   detectedCategory?: string;
+  /** Sampling info when the scan analyzed a bounded subset of files */
+  sampling?: SamplingInfo;
   /** Issue IDs for triage tracking */
   issueIds?: string[];
   /** Count of issues with confidence < 0.6 */
@@ -67,7 +69,7 @@ const gfsBandStyles = {
   },
 };
 
-export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, detectedCategory, issueIds = [], lowConfidenceCount = 0, onRescanWithCategory, isRescanning = false }: ExecutiveSummaryProps) {
+export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, detectedCategory, sampling, issueIds = [], lowConfidenceCount = 0, onRescanWithCategory, isRescanning = false }: ExecutiveSummaryProps) {
   const { isVibe } = useMode();
   const hasTopRisks = summary.topThreeRisks && summary.topThreeRisks.length > 0;
   const [categoryOverride, setCategoryOverride] = useState<string | null>(null);
@@ -316,6 +318,18 @@ export function ExecutiveSummary({ summary, projectName, timestamp, fullResult, 
               {isVibe
                 ? `${lowConfidenceCount} ${lowConfidenceCount === 1 ? 'finding needs' : 'findings need'} a human eye — the AI wasn't fully confident.`
                 : `${lowConfidenceCount} ${lowConfidenceCount === 1 ? 'issue' : 'issues'} flagged for human review due to low confidence`}
+            </span>
+          </div>
+        )}
+
+        {/* Sampling disclosure — be honest that the score reflects a subset */}
+        {sampling && sampling.omittedFileCount > 0 && (
+          <div className="mt-3 flex items-start gap-2 rounded-lg border border-[hsl(var(--ethics-medium)/0.3)] bg-[hsl(var(--ethics-medium)/0.06)] p-2.5">
+            <Info size={13} className="text-[hsl(var(--ethics-medium))] shrink-0 mt-0.5" />
+            <span className="text-xs text-foreground">
+              {isVibe
+                ? `Heads up: this score is based on a sample of ${sampling.analyzedFileCount} of ${sampling.totalFileCount} files — ${sampling.omittedFileCount} weren't scanned to keep the AI reliable on large projects. Issues could exist in the files that weren't checked.`
+                : `Score reflects a sample of ${sampling.analyzedFileCount} of ${sampling.totalFileCount} files (${sampling.omittedFileCount} omitted for output reliability). Findings are not exhaustive across the full codebase.`}
             </span>
           </div>
         )}

@@ -71,6 +71,21 @@ export interface CategorySummary {
   highestSeverity: SeverityLevel;
 }
 
+/**
+ * Records how much of the uploaded codebase the scan actually analyzed. Large
+ * repos are sampled to a bounded set of files so the model can return reliable
+ * JSON — when that happens we surface it so scores aren't mistaken for a
+ * whole-repo verdict.
+ */
+export interface SamplingInfo {
+  /** Total eligible files submitted to the scan */
+  totalFileCount: number;
+  /** Files actually included in the analysis prompt */
+  analyzedFileCount: number;
+  /** Files left out of the analysis (totalFileCount - analyzedFileCount) */
+  omittedFileCount: number;
+}
+
 export interface EthicsReviewResult {
   executiveSummary: ExecutiveSummary;
   overallStatus: SeverityLevel;
@@ -80,6 +95,7 @@ export interface EthicsReviewResult {
   projectName: string;
   scanVersion?: number;
   detectedCategory?: string;
+  sampling?: SamplingInfo;
   isForkAnalysis?: boolean;
   forkSummary?: {
     introducedCount: number;

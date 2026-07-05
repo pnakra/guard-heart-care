@@ -775,6 +775,11 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
             projectName: projectName || "Uploaded Project",
             scanVersion: 2,
             detectedCategory,
+            sampling: {
+              totalFileCount: files.length,
+              analyzedFileCount: boundedFiles.length,
+              omittedFileCount,
+            },
             previousScanTimestamp: previousScan?.timestamp || null,
           });
         } catch (error) {
