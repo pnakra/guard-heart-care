@@ -3,10 +3,18 @@ import { corsHeaders, guardRequest } from "../_shared/security.ts";
 import { detectAppCategory } from "../_shared/categoryDetector.ts";
 import { getVerticalProfilePrompt } from "../_shared/verticalProfiles.ts";
 import { extractJsonObject, isLikelyTruncated } from "../_shared/jsonExtraction.ts";
+import { mergeAnalyses, CATEGORY_GROUPS } from "../_shared/mergeAnalyses.ts";
 
 // Pinned to a dated snapshot so scan behavior doesn't shift when the alias moves.
 // Override via the ANALYSIS_MODEL edge-function secret to roll forward deliberately.
 const ANALYSIS_MODEL = Deno.env.get("ANALYSIS_MODEL") ?? "claude-sonnet-4-5-20250929";
+
+// Chunked analysis: run one focused pass per harm-category group and merge the
+// results, instead of a single pass capped at 3 issues. Each pass stays small
+// enough to return complete JSON; together they surface far more real findings.
+// Set the ANALYSIS_CHUNKED secret to "false" to fall back to a single pass.
+const CHUNKED_ANALYSIS = (Deno.env.get("ANALYSIS_CHUNKED") ?? "true").toLowerCase() !== "false";
+const MAX_ISSUES_PER_PASS = 3;
 
 const MAX_PROMPT_FILES = 80;
 const MAX_CHARS_PER_FILE = 6_000;
@@ -584,12 +592,21 @@ Lead the executive summary with counts: "Introduced X new issues, inherited Y fr
 Focus your analysis on the DIFFERENCES between fork and upstream. Prioritize issues that were INTRODUCED by the fork.`;
     }
 
-    const userPrompt = `Analyze this "${projectName || "web application"}" codebase for MISUSE-BY-DESIGN patterns using the v2.0 schema. Remember: you are looking for features that could harm people when working exactly as intended, not bugs or security vulnerabilities.
+    // Build a user prompt. When `focus` is provided (chunked mode) the pass is
+    // scoped to a subset of harm categories, so each response stays small.
+    const buildUserPrompt = (focus?: { label: string; categories: string[] }, maxIssues = 3) => {
+      const focusClause = focus
+        ? `\n\nFOCUS FOR THIS PASS — ${focus.label}:
+Only report issues whose "category" is one of: ${focus.categories.join(", ")}.
+Do NOT report issues in any other category during this pass; those are covered by a separate pass. If nothing in these categories applies, return an empty "issues" array.`
+        : '';
 
-Provide calibrated confidence scores for each finding and specific code-level mitigations.${categoryHint}${verticalProfilePrompt}${customRulesPrompt}${populationPrompt}${forkPrompt}${previousContext}${truncationNotice}
+      return `Analyze this "${projectName || "web application"}" codebase for MISUSE-BY-DESIGN patterns using the v2.0 schema. Remember: you are looking for features that could harm people when working exactly as intended, not bugs or security vulnerabilities.
+
+Provide calibrated confidence scores for each finding and specific code-level mitigations.${categoryHint}${verticalProfilePrompt}${customRulesPrompt}${populationPrompt}${forkPrompt}${previousContext}${truncationNotice}${focusClause}
 
 OUTPUT SIZE LIMITS FOR RELIABILITY:
-- Return at most 3 issues, 5 capabilities, 3 misuseScenarios, and 2 riskChains.
+- Return at most ${maxIssues} issues, 5 capabilities, 3 misuseScenarios, and 2 riskChains.
 - Keep every narrative string under 350 characters unless it is a required explanation.
 - Keep mitigation.codeChanges minimal; do not include long currentCode, suggestedCode, or diffPreview blocks.
 - Prefer concise, high-confidence findings over exhaustive coverage.
@@ -597,6 +614,7 @@ OUTPUT SIZE LIMITS FOR RELIABILITY:
 ${filesContent}
 
 IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No markdown code fences, no commentary before or after — just the raw JSON object starting with { and ending with }.`;
+    };
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
@@ -614,9 +632,9 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
         };
 
         try {
-          // Use streaming from Anthropic and stream keep-alives to the browser,
-          // so neither side closes the connection during longer Claude scans.
-          const callAnthropic = (maxTokens: number) => fetch("https://api.anthropic.com/v1/messages", {
+          // One Anthropic streaming call for a given user prompt. Keep-alives are
+          // streamed to the browser so neither side closes during longer scans.
+          const callAnthropic = (prompt: string, maxTokens: number) => fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
             headers: {
               "x-api-key": ANTHROPIC_API_KEY,
@@ -628,32 +646,9 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
               max_tokens: maxTokens,
               stream: true,
               system: ANALYSIS_PROMPT,
-              messages: [
-                { role: "user", content: userPrompt },
-              ],
+              messages: [{ role: "user", content: prompt }],
             }),
           });
-
-          let response = await callAnthropic(12000);
-
-          if (!response.ok) {
-            if (response.status === 429) {
-              sendJson({ error: "Rate limit exceeded. Please try again in a moment." });
-              return;
-            }
-            if (response.status === 401 || response.status === 403) {
-              sendJson({ error: "Anthropic API key is invalid or unauthorized." });
-              return;
-            }
-            const errorText = await response.text();
-            console.error("Anthropic API error:", response.status, errorText);
-            sendJson({ error: "Failed to analyze code" });
-            return;
-          }
-
-          if (!response.body) {
-            throw new Error("Empty stream from AI");
-          }
 
           const readAnthropicStream = async (streamBody: ReadableStream<Uint8Array>): Promise<{ content: string; stopReason: string | null }> => {
             let content = "";
@@ -697,59 +692,72 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
             return { content, stopReason };
           };
 
-          // Parse Anthropic SSE stream and accumulate text deltas.
-          let { content, stopReason } = await readAnthropicStream(response.body);
+          // Run one analysis pass end-to-end: call, parse, and retry once with a
+          // stricter prompt if the JSON was truncated. Returns the parsed object,
+          // or null if this pass could not be recovered (the caller merges the
+          // rest, or falls back if every pass fails). Terminal HTTP failures
+          // (rate limit / bad key) throw to abort the whole scan.
+          const runPass = async (prompt: string): Promise<Record<string, unknown> | null> => {
+            let response = await callAnthropic(prompt, 12000);
+            if (!response.ok) {
+              if (response.status === 429) throw new Error("Rate limit exceeded. Please try again in a moment.");
+              if (response.status === 401 || response.status === 403) throw new Error("Anthropic API key is invalid or unauthorized.");
+              const errorText = await response.text();
+              console.error("Anthropic API error:", response.status, errorText);
+              throw new Error("Failed to analyze code");
+            }
+            if (!response.body) throw new Error("Empty stream from AI");
 
-          if (!content) {
-            throw new Error("Empty response from AI");
-          }
+            const { content, stopReason } = await readAnthropicStream(response.body);
+            if (!content) throw new Error("Empty response from AI");
 
-          // Parse the JSON response even if Claude wraps it in markdown or appends notes.
-          let analysisResult;
-          try {
-            analysisResult = extractJsonObject(content);
-          } catch (parseError) {
-            if (stopReason === "max_tokens" || isLikelyTruncated(content)) {
+            try {
+              return extractJsonObject(content) as Record<string, unknown>;
+            } catch (parseError) {
+              if (stopReason !== "max_tokens" && !isLikelyTruncated(content)) throw parseError;
+
               console.warn("AI response was truncated; retrying with stricter concise-output instructions.", { stopReason, contentLength: content.length });
-              const retryPrompt = `${userPrompt}\n\nRETRY BECAUSE PRIOR OUTPUT WAS TRUNCATED: Return a MUCH SHORTER JSON object. Include only the single highest-risk issue, at most 3 capabilities, at most 1 misuse scenario, no codeChanges, no currentCode, no suggestedCode, no diffPreview, and keep every string under 220 characters.`;
-              response = await fetch("https://api.anthropic.com/v1/messages", {
-                method: "POST",
-                headers: {
-                  "x-api-key": ANTHROPIC_API_KEY,
-                  "anthropic-version": "2023-06-01",
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  model: ANALYSIS_MODEL,
-                  max_tokens: 6000,
-                  stream: true,
-                  system: ANALYSIS_PROMPT,
-                  messages: [{ role: "user", content: retryPrompt }],
-                }),
-              });
-
+              const retryPrompt = `${prompt}\n\nRETRY BECAUSE PRIOR OUTPUT WAS TRUNCATED: Return a MUCH SHORTER JSON object. Include only the single highest-risk issue, at most 3 capabilities, at most 1 misuse scenario, no codeChanges, no currentCode, no suggestedCode, no diffPreview, and keep every string under 220 characters.`;
+              response = await callAnthropic(retryPrompt, 6000);
               if (!response.ok) {
                 const errorText = await response.text();
                 console.error("Anthropic retry API error:", response.status, errorText);
-                throw new Error("AI response was too long and retry failed");
+                return null;
               }
-              if (!response.body) {
-                throw new Error("Empty retry stream from AI");
-              }
+              if (!response.body) return null;
 
-              const retryResult = await readAnthropicStream(response.body);
-              content = retryResult.content;
-              stopReason = retryResult.stopReason;
+              const retry = await readAnthropicStream(response.body);
               try {
-                analysisResult = extractJsonObject(content);
+                return extractJsonObject(retry.content) as Record<string, unknown>;
               } catch (retryParseError) {
                 console.error("AI retry response parse error:", retryParseError);
-                console.error("Failed to parse retry AI response:", content);
-                analysisResult = buildFallbackAnalysis(boundedFiles, detectedCategory);
+                console.error("Failed to parse retry AI response:", retry.content);
+                return null;
               }
-            } else {
-              throw parseError;
             }
+          };
+
+          // Chunked mode: one focused pass per harm-category group, then merge.
+          // Single-pass mode (ANALYSIS_CHUNKED=false) preserves prior behavior.
+          const passes: Record<string, unknown>[] = [];
+          if (CHUNKED_ANALYSIS) {
+            for (const group of CATEGORY_GROUPS) {
+              const parsed = await runPass(buildUserPrompt(group, MAX_ISSUES_PER_PASS));
+              if (parsed && typeof parsed === "object") passes.push(parsed);
+            }
+          } else {
+            const parsed = await runPass(buildUserPrompt(undefined, 3));
+            if (parsed && typeof parsed === "object") passes.push(parsed);
+          }
+
+          let analysisResult: Record<string, unknown>;
+          if (passes.length === 0) {
+            // Every pass failed to parse — deterministic keyword fallback.
+            analysisResult = buildFallbackAnalysis(boundedFiles, detectedCategory) as Record<string, unknown>;
+          } else if (CHUNKED_ANALYSIS) {
+            analysisResult = mergeAnalyses(passes, detectedCategory);
+          } else {
+            analysisResult = passes[0];
           }
 
           if (!analysisResult || typeof analysisResult !== "object") {
@@ -763,7 +771,6 @@ IMPORTANT: Respond with ONLY a valid JSON object matching the v2.0 schema. No ma
             analysis.misuseScenarios = Array.isArray(analysis.misuseScenarios) ? analysis.misuseScenarios : [];
             analysis.issues = Array.isArray(analysis.issues) ? analysis.issues : [];
           } catch (normalizationError) {
-            console.error("Failed to parse AI response:", content);
             console.error("AI response normalization error:", normalizationError);
             throw new Error("Invalid response format from AI");
           }
