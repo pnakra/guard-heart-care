@@ -1,19 +1,18 @@
-import { HarmCategory } from '@/types/ethics';
-import { AppCategory } from '@/services/categoryDetector';
-
-// MIRROR of supabase/functions/_shared/verticalProfiles.ts (the canonical source
-// the scanner actually applies). Kept identical so the taxonomy UI matches the
-// scanner; src/test/profileParity.test.ts fails the build if they drift.
-// To change a profile, edit the _shared canonical file and mirror it here.
+// CANONICAL vertical risk profiles — the single source of truth for both the
+// analyze-code edge function (which imports this file) and the frontend
+// taxonomy UI (src/data/verticalProfiles.ts mirrors this exactly).
+// src/test/profileParity.test.ts fails the build if the two ever drift.
+// Pure data + a pure prompt builder — no Deno/browser APIs — so it is safe to
+// import from Deno, and to read from Vitest for the parity check.
 
 export interface VerticalProfile {
-  elevatedCategories: HarmCategory[];
+  elevatedCategories: string[];
   additionalHarmPatterns: string[];
   standardMitigations: string[];
   populationNotes: string;
 }
 
-export const VERTICAL_PROFILES: Partial<Record<Exclude<AppCategory, 'unknown' | 'general'>, VerticalProfile>> = {
+export const VERTICAL_PROFILES: Record<string, VerticalProfile> = {
   fitness: {
     elevatedCategories: ['ai-hallucination', 'manipulation', 'restrictive-masculinity'],
     additionalHarmPatterns: ['Body image distortion through metrics or comparisons', 'Calorie restriction encouragement without medical context', 'Progress shaming or guilt-based engagement', 'AI meal plans or supplement advice framed as professional', 'Competitive leaderboards triggering compulsive exercise', 'Shame-based streak mechanics tying masculine identity to performance outcomes', 'Absence of recovery and rest modeled as strength', 'Leaderboard mechanics framing low performance as personal failure'],
@@ -63,3 +62,9 @@ export const VERTICAL_PROFILES: Partial<Record<Exclude<AppCategory, 'unknown' | 
     populationNotes: 'Heavily used by minors and those vulnerable to gambling-like mechanics. Young men vulnerable to shame-based rank mechanics and hypermasculine persona design.',
   },
 };
+
+export function getVerticalProfilePrompt(category: string): string {
+  const profile = VERTICAL_PROFILES[category];
+  if (!profile) return '';
+  return `\n\nVERTICAL RISK PROFILE (${category.toUpperCase()}):\n${JSON.stringify(profile, null, 2)}\n\nApply this profile: weight the elevated categories more heavily, actively scan for the additional harm patterns listed, and check whether the standard mitigations are present. Consider the population notes when assessing severity.`;
+}

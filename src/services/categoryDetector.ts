@@ -15,15 +15,19 @@ interface FileInput {
   content: string;
 }
 
-const CATEGORY_SIGNALS: Record<Exclude<AppCategory, 'unknown' | 'general'>, string[]> = {
+// MIRROR of supabase/functions/_shared/categoryDetector.ts (the canonical signals
+// the scanner actually uses for detection). Kept identical so the frontend preview
+// category matches the server's; src/test/profileParity.test.ts enforces parity.
+// To change signals, edit the _shared canonical file and mirror it here.
+export const CATEGORY_SIGNALS: Record<Exclude<AppCategory, 'unknown' | 'general'>, string[]> = {
   fitness: ['workout', 'calories', 'weight', 'exercise', 'reps', 'sets', 'gym', 'training', 'fitness', 'bmi'],
-  dating: ['match', 'swipe', 'profile', 'like', 'message', 'dating', 'tinder', 'crush', 'unmatch', 'superlike'],
-  fintech: ['invoice', 'payment', 'subscription', 'billing', 'checkout', 'stripe', 'transaction', 'wallet', 'pricing', 'plan'],
-  health: ['symptom', 'dose', 'health', 'mental', 'mood', 'therapy', 'diagnosis', 'patient', 'medication', 'wellbeing'],
-  productivity: ['task', 'todo', 'calendar', 'project', 'sprint', 'kanban', 'deadline', 'milestone', 'backlog', 'agenda'],
-  social: ['post', 'feed', 'follow', 'share', 'comment', 'timeline', 'newsfeed', 'hashtag', 'repost', 'story'],
-  b2b: ['admin', 'dashboard', 'team', 'role', 'permission', 'tenant', 'organization', 'workspace', 'member', 'invite'],
-  gaming: ['score', 'level', 'achievement', 'leaderboard', 'player', 'quest', 'badge', 'xp', 'highscore', 'rank'],
+  dating: ['match', 'swipe', 'profile', 'like', 'message', 'dating', 'tinder', 'crush', 'unmatch'],
+  fintech: ['invoice', 'payment', 'subscription', 'billing', 'checkout', 'stripe', 'transaction', 'wallet', 'pricing'],
+  health: ['symptom', 'dose', 'health', 'mental', 'mood', 'therapy', 'diagnosis', 'patient', 'medication'],
+  productivity: ['task', 'todo', 'calendar', 'project', 'sprint', 'kanban', 'deadline', 'milestone', 'backlog'],
+  social: ['post', 'feed', 'follow', 'share', 'comment', 'timeline', 'newsfeed', 'hashtag', 'repost'],
+  b2b: ['admin', 'dashboard', 'team', 'role', 'permission', 'tenant', 'organization', 'workspace', 'member'],
+  gaming: ['score', 'level', 'achievement', 'leaderboard', 'player', 'quest', 'badge', 'xp', 'highscore'],
 };
 
 const CATEGORY_LABELS: Record<AppCategory, string> = {
