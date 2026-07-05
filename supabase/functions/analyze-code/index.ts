@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders, guardRequest } from "../_shared/security.ts";
 import { detectAppCategory } from "../_shared/categoryDetector.ts";
 import { getVerticalProfilePrompt } from "../_shared/verticalProfiles.ts";
+import { extractJsonObject, isLikelyTruncated } from "../_shared/jsonExtraction.ts";
 
 // Pinned to a dated snapshot so scan behavior doesn't shift when the alias moves.
 // Override via the ANALYSIS_MODEL edge-function secret to roll forward deliberately.
@@ -421,89 +422,6 @@ For EACH flagged pattern, actively search for counter-evidence before assigning 
 - Do not assume storage persistence without checking which API is used
 - Do not assume state resets without checking the state management logic
 - Report only what you can verify from the code you were given`;
-
-function extractJsonObject(raw: string): unknown {
-  let cleaned = raw
-    .replace(/^\uFEFF/, "")
-    .trim()
-    .replace(/^```(?:json)?\s*/i, "")
-    .replace(/```\s*$/i, "")
-    .trim();
-
-  const firstBrace = cleaned.indexOf("{");
-  if (firstBrace === -1) {
-    throw new Error("No JSON object found in AI response");
-  }
-
-  cleaned = cleaned.slice(firstBrace);
-  let depth = 0;
-  let inString = false;
-  let escaped = false;
-  let endIndex = -1;
-
-  for (let i = 0; i < cleaned.length; i++) {
-    const char = cleaned[i];
-    if (escaped) {
-      escaped = false;
-      continue;
-    }
-    if (char === "\\") {
-      escaped = true;
-      continue;
-    }
-    if (char === '"') {
-      inString = !inString;
-      continue;
-    }
-    if (inString) continue;
-    if (char === "{") depth++;
-    if (char === "}") depth--;
-    if (depth === 0) {
-      endIndex = i;
-      break;
-    }
-  }
-
-  if (endIndex === -1) {
-    throw new Error("AI response ended before the JSON object was complete");
-  }
-
-  const jsonText = cleaned
-    .slice(0, endIndex + 1)
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
-    .replace(/,\s*([}\]])/g, "$1");
-
-  return JSON.parse(jsonText);
-}
-
-function isLikelyTruncated(raw: string): boolean {
-  const text = raw.trim();
-  if (!text) return true;
-
-  let depth = 0;
-  let inString = false;
-  let escaped = false;
-  for (let i = text.indexOf("{"); i >= 0 && i < text.length; i++) {
-    const char = text[i];
-    if (escaped) {
-      escaped = false;
-      continue;
-    }
-    if (char === "\\") {
-      escaped = true;
-      continue;
-    }
-    if (char === '"') {
-      inString = !inString;
-      continue;
-    }
-    if (inString) continue;
-    if (char === "{") depth++;
-    if (char === "}") depth--;
-  }
-
-  return depth !== 0 || /\.\.\.$|…$|\[truncated\]/i.test(text);
-}
 
 function buildFallbackAnalysis(files: { name: string; content: string }[], detectedCategory: string) {
   const corpus = files.map((f) => `${f.name}\n${f.content}`).join("\n").toLowerCase();
