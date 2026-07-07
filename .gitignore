@@ -12,8 +12,8 @@ dist
 dist-ssr
 *.local
 
-# Local env files — never commit real secrets. Keep the checked-in template.
-.env
+# Env files: .env is committed so Vite publishable vars reach the published build.
+# Real server-side secrets live in Supabase Edge Function secrets, never here.
 .env.*
 !.env.example
 
